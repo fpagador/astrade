@@ -9,17 +9,22 @@ use App\Models\Subtask;
 use App\Models\Location;
 use App\Models\LocationTask;
 use App\Models\TaskCompletionLog;
+use Illuminate\Support\Facades\DB;
 
 class TestDataSeeder extends Seeder
 {
     public function run()
     {
+        $password = 'TestPass2025!';
+
         // Delete previous data
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         LocationTask::truncate();
         TaskCompletionLog::truncate();
         Subtask::truncate();
         Task::truncate();
         User::truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         // Create 3 fixed locations
         $locations = Location::factory()->count(3)->create();
@@ -30,9 +35,9 @@ class TestDataSeeder extends Seeder
         //Change the first user to admin with a fixed ID and role 1
         $admin = $users->first();
         $admin->update([
-            'dni' => '00000000A',
+            'dni' => '01035080L',
             'role_id' => 1,  // admin
-            'password' => bcrypt('password'),
+            'password' => bcrypt($password),
         ]);
 
         //Assign roles for other users randomly between manager (2) and user (3)

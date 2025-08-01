@@ -11,13 +11,14 @@ class UserFactory extends Factory
 
     public function definition(): array
     {
+        $password = 'TestPass2025!';
         return [
             'name' => $this->faker->firstName,
             'surname' => $this->faker->lastName,
             'dni' => $this->faker->unique()->regexify('[0-9]{8}[A-Z]'),
             'email' => $this->faker->unique()->safeEmail,
             'username' => $this->faker->userName,
-            'password' => bcrypt('password'),
+            'password' => bcrypt($password),
             'photo' => null,
             'work_schedule' => $this->faker->randomElement(['Mañana', 'Tarde', 'Noche']),
             'contract_type' => $this->faker->randomElement(['fijo', 'temporal']),

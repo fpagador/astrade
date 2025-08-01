@@ -28,9 +28,17 @@ class AuthenticatedSessionController extends WebController
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        if (!User::where('dni', $request->dni)->exists()) {
+        $user = User::with('role')->where('dni', $request->dni)->first();
+
+        if (!$user) {
             return back()->withErrors([
                 'dni' => 'El DNI no está registrado.',
+            ])->onlyInput('dni');
+        }
+
+        if (!in_array($user->role->role_name, ['admin', 'manager'])) {
+            return back()->withErrors([
+                'dni' => 'No tienes permisos para acceder.',
             ])->onlyInput('dni');
         }
 
