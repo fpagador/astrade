@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use App\Policies\LocationPolicy;
 use App\Policies\TaskPolicy;
 use App\Policies\RolePolicy;
 use App\Policies\UserPolicy;
@@ -11,8 +11,10 @@ use App\Models\Task;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Log;
+use App\Models\Location;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -25,7 +27,8 @@ class AuthServiceProvider extends ServiceProvider
         Task::class => TaskPolicy::class,
         Role::class => RolePolicy::class,
         User::class => UserPolicy::class,
-        Log::class => LogPolicy::class
+        Log::class => LogPolicy::class,
+        Location::class => LocationPolicy::class
     ];
 
     /**

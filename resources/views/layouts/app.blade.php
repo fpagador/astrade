@@ -42,8 +42,8 @@
             <x-admin.nav-link route="admin.tasks.index" icon="plus-square" label="Tareas" />
             <x-admin.nav-link route="admin.calendar.index" icon="calendar-days" label="Calendario" />
             <x-admin.nav-link route="admin.notifications.index" icon="bell" label="Notificaciones" />
-            <x-admin.nav-link route="admin.notifications.index" icon="map-pin" label="Localizaciones" />
-            <x-admin.nav-link route="admin.logs.index" icon="check-circle" label="Registro de Finalización de Tareas" />
+            <x-admin.nav-link route="admin.locations.index" icon="map-pin" label="Ubicaciones" />
+            <x-admin.nav-link route="admin.tasksCompletionLog.index" icon="check-circle" label="Registro de Finalización de Tareas" />
             @can('viewLogs', \App\Models\Log::class)
             <x-admin.nav-link route="admin.logs.index" icon="file-text" label="Logs" />
             @endcan

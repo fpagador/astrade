@@ -9,7 +9,8 @@ use App\Http\Controllers\Web\Admin\TaskController;
 use App\Http\Controllers\Web\Admin\CalendarController;
 use App\Http\Controllers\Web\Admin\NotificationController;
 use App\Http\Controllers\Web\Admin\LogController;
-use App\Http\Controllers\Web\Admin\RoleController;
+use App\Http\Controllers\Web\Admin\LocationController;
+use App\Http\Controllers\Web\Admin\TaskCompletionLogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -91,7 +92,7 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
     | Work Calendar
     |--------------------------------------------------------------------------
     */
-    Route::get('/calendario', [CalendarController::class, 'index'])->name('calendar.index');
+    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
 
     /*
     |--------------------------------------------------------------------------
@@ -104,7 +105,26 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
 
     /*
     |--------------------------------------------------------------------------
-    | Completion logs
+    | Locations
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/locations', [LocationController::class, 'index'])->name('locations.index');
+    Route::get('/location/create', [LocationController::class, 'create'])->name('locations.create');
+    Route::post('/location', [LocationController::class, 'store'])->name('locations.store');
+    Route::get('/location/{location}/edit', [LocationController::class, 'edit'])->name('locations.edit');
+    Route::put('/location/{location}', [LocationController::class, 'update'])->name('locations.update');
+    Route::delete('/location/{location}', [LocationController::class, 'destroy'])->name('locations.destroy');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Task Completion Logs
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/tasks-completion-log', [TaskCompletionLogController::class, 'index'])->name('task_completion_logs.index');
+
+    /*
+    |--------------------------------------------------------------------------
+    | logs
     |--------------------------------------------------------------------------
     */
     Route::get('/logs-completado', [LogController::class, 'index'])->name('logs.index');

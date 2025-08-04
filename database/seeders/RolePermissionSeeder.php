@@ -28,6 +28,11 @@ class RolePermissionSeeder extends Seeder
 
             ['code' => 'change_password', 'description' => 'Cambiar contraseña de otros usuarios'],
             ['code' => 'view_logs', 'description' => 'Ver tabla de logs'],
+
+            ['code' => 'view_location', 'description' => 'Ver ubicaciones'],
+            ['code' => 'create_location', 'description' => 'Crear ubicaciones'],
+            ['code' => 'edit_location', 'description' => 'Editar ubicaciones'],
+            ['code' => 'delete_location', 'description' => 'Eliminar ubicaciones'],
         ];
 
         foreach ($permissions as $perm) {
@@ -48,7 +53,8 @@ class RolePermissionSeeder extends Seeder
                 $role->permissions()->sync(
                     Permission::whereIn('code', [
                         'create_user', 'view_user', 'edit_user',
-                        'view_task', 'edit_task', 'change_password', 'delete_task'
+                        'view_task', 'edit_task', 'change_password', 'delete_task',
+                        'create_location', 'edit_location', 'delete_location', 'view_location'
                     ])->pluck('id')
                 );
             }
