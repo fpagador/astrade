@@ -23,7 +23,6 @@ Route::middleware(['auth:sanctum', 'role:admin|manager|user|'])->group(function 
     |--------------------------------------------------------------------------
     */
     Route::get('/profile', [UserApiController::class, 'profile']);
-    Route::get('/profile/update', [UserApiController::class, 'update']);
     /*
     |--------------------------------------------------------------------------
     | Task

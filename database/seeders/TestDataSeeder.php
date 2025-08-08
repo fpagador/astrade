@@ -66,7 +66,7 @@ class TestDataSeeder extends Seeder
                 CompanyPhone::create([
                     'company_id' => $company->id,
                     'phone_number' => fake()->phoneNumber(),
-                    'label' => fake()->optional()->words(2, true),
+                    'name' => fake()->optional()->words(2, true),
                 ]);
             }
         }

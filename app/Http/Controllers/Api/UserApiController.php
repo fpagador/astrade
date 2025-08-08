@@ -31,23 +31,6 @@ class UserApiController extends ApiController
     }
 
     /**
-     * Update the authenticated user profile.
-     *
-     * @param UpdateProfileRequest $request
-     * @return JsonResponse
-     */
-    public function update(UpdateProfileRequest $request): JsonResponse
-    {
-        return $this->handleApi(function () use ($request) {
-            /** @var User $user */
-            $user = $request->user();
-            $user->update($request->validated());
-
-            return $this->render($user, 'Profile updated successfully');
-        }, 'Error updating user profile', $request);
-    }
-
-    /**
      * Update FCM Token
      *
      * @param Request $request

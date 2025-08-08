@@ -23,11 +23,11 @@
         @method('PUT')
         <input type="hidden" name="id" value="{{ $user->id }}">
 
-        <x-form.input label="First Name" name="name" required value="{{ old('name', $user->name) }}" />
-        <x-form.input label="Last Name" name="surname" required value="{{ old('surname', $user->surname) }}" />
+        <x-form.input label="Nombre" name="name" required value="{{ old('name', $user->name) }}" />
+        <x-form.input label="Apellidos" name="surname" required value="{{ old('surname', $user->surname) }}" />
         <x-form.input label="DNI" name="dni" required value="{{ old('dni', $user->dni) }}" />
         <x-form.input label="Email" name="email" required type="email" value="{{ old('email', $user->email) }}" />
-        <x-form.input label="Phone" name="phone" required value="{{ old('phone', $user->phone) }}" />
+        <x-form.input label="Teléfono" name="phone" required value="{{ old('phone', $user->phone) }}" />
         <x-form.input label="Username" name="username" required value="{{ old('username', $user->username) }}" />
 
         <!-- Role -->
@@ -46,7 +46,7 @@
 
         <!-- Photo -->
         <div class="gap-4">
-            <x-form.file label="Photo" name="photo" accept="image/*" />
+            <x-form.file label="Foto" name="photo" accept="image/*" />
             @if ($user->photo)
                 <div class="mb-4">
                     <img src="{{ asset('storage/' . $user->photo) }}"
@@ -59,7 +59,7 @@
         {{-- Fields that are only displayed when creating a user of type "user" --}}
         <!-- Company -->
         <x-form.select
-            label="Company"
+            label="Empresa"
             name="company_id"
             class="user-only"
             :options="$companies->pluck('name', 'id')->prepend('-- Selecciona una empresa --', '')->toArray()"
@@ -68,7 +68,7 @@
 
         <!-- Work schedule -->
         <x-form.textarea
-            label="Work Schedule"
+            label="Horario de trabajo"
             name="work_schedule"
             class="user-only"
         >{{ old('work_schedule', $user->work_schedule) }}</x-form.textarea>
@@ -81,14 +81,14 @@
             :options="[
                 '' => '-- Selecciona un tipo --',
                 'Temporal' => 'Temporal',
-                'Indefinido' => 'Indefinite',
+                'Indefinido' => 'Indefinido',
             ]"
             :selected="old('contract_type', $user->contract_type)"
         />
 
         <!-- Contract Start Date -->
         <x-form.input
-            label="Contract Start Date"
+            label="Fecha de inicio de contrato"
             name="contract_start_date"
             type="date"
             class="user-only"
@@ -98,20 +98,20 @@
         <!-- Checkbox: Can receive notifications -->
         <x-form.checkbox
             name="can_receive_notifications"
-            label="Can receive notifications"
+            label="Puede recibir notificaciones"
             class="user-only"
             :checked="old('can_receive_notifications', $user->can_receive_notifications)"
         />
 
         <!-- Notification type -->
         <x-form.select
-            label="Notification Type"
+            label="Tipo de notificación"
             name="notification_type"
             class="user-only"
             :options="[
                 'none' => 'None',
                 'visual' => 'Visual',
-                'visual_audio' => 'Visual and Audio',
+                'visual_audio' => 'Visual y Audio',
             ]"
             :selected="old('notification_type', $user->notification_type)"
         />
