@@ -31,6 +31,22 @@ class UserApiController extends ApiController
     }
 
     /**
+     * Profile of the authenticated user.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getPhone(Request $request): JsonResponse
+    {
+        return $this->handleApi(function () use ($request) {
+            $rawPhone = '617972442';
+            $parsedPhone = preg_replace('/[^\d+]/', '', $rawPhone);
+            
+            return $this->render($parsedPhone);
+        }, 'Error getting user profile', $request);
+    }
+
+    /**
      * Update FCM Token
      *
      * @param Request $request

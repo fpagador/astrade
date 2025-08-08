@@ -45,6 +45,10 @@ class TaskApiController extends ApiController
                 ->whereDate('scheduled_date', now()->toDateString())
                 ->with('subtasks')
                 ->get();
+
+            if ($tasks->isEmpty()) {
+                return $this->render(null, 'This user has no tasks for today', 204);
+            }
             return $this->render($tasks);
 
         }, "Error getting today's tasks", $request);
@@ -69,6 +73,10 @@ class TaskApiController extends ApiController
                 ->orderBy('scheduled_date')
                 ->orderBy('scheduled_time')
                 ->get();
+
+            if ($tasks->isEmpty()) {
+                return $this->render(null, 'This user has no tasks scheduled for the following'. $days .' days', 204);
+            }
             return $this->render($tasks);
         }, 'Error getting scheduled tasks', $request);
     }
