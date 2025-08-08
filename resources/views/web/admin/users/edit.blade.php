@@ -62,7 +62,7 @@
             label="Company"
             name="company_id"
             class="user-only"
-            :options="$companies->pluck('name', 'id')->prepend('-- Select a company --', '')->toArray()"
+            :options="$companies->pluck('name', 'id')->prepend('-- Selecciona una empresa --', '')->toArray()"
             :selected="old('company_id', $user->company_id)"
         />
 
@@ -75,11 +75,11 @@
 
         <!-- Contract Type -->
         <x-form.select
-            label="Contract Type"
+            label="Tipo de contrato"
             name="contract_type"
             class="user-only"
             :options="[
-                '' => '-- Select a type --',
+                '' => '-- Selecciona un tipo --',
                 'Temporal' => 'Temporal',
                 'Indefinido' => 'Indefinite',
             ]"
