@@ -6,26 +6,15 @@
     <h1 class="text-2xl font-semibold mb-6">Nueva Empresa</h1>
 
     {{-- ALERTS --}}
-    @if(session('error'))
-        <div class="w-full bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-6 text-base font-semibold">
-            <strong>{{ session('error') }}</strong>
-        </div>
-    @endif
+    <x-admin.alert-messages />
 
-    @if ($errors->has('general'))
-        <div class="w-full bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-6 text-base font-semibold">
-            <strong>{{ $errors->first('general') }}</strong>
-        </div>
-    @endif
-
+    {{-- FORM --}}
     <x-form.form-wrapper action="{{ route('admin.companies.store') }}" method="POST" class="max-w-lg mx-auto bg-white p-6 rounded shadow">
         <x-form.input label="Nombre" name="name" required />
         <x-form.input label="Dirección" name="address" />
         <x-form.textarea label="Descripción" name="description" />
 
-        <div class="flex space-x-4 mt-6">
-            <button type="submit" class="bg-indigo-900 text-white px-4 py-2 rounded hover:bg-indigo-800 flex-1">Crear</button>
-            <a href="{{ route('admin.companies.index') }}" class="bg-red-900 text-white px-4 py-2 rounded hover:bg-red-800 flex-1 text-center">Cancelar</a>
-        </div>
+        {{-- Buttons --}}
+        <x-form.button-group submit-text="Crear" />
     </x-form.form-wrapper>
 @endsection

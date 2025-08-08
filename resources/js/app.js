@@ -12,6 +12,7 @@ import {
     imageModal
 } from './task';
 
+import './users';
 window.Alpine = Alpine;
 
 window.cloneTaskForm = cloneTaskForm;

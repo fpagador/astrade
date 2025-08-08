@@ -19,23 +19,7 @@
     <hr class="border-gray-300 mb-6">
 
     {{-- ALERTS --}}
-    @if(session('success'))
-        <div class="w-full bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded mb-6 text-base font-semibold">
-            <strong>{{ session('success') }}</strong>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="w-full bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-6 text-base font-semibold">
-            <strong>{{ session('error') }}</strong>
-        </div>
-    @endif
-
-    @if ($errors->has('general'))
-        <div class="w-full bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-6 text-base font-semibold">
-            <strong>{{ $errors->first('general') }}</strong>
-        </div>
-    @endif
+    <x-admin.alert-messages />
 
     {{-- FILTERS--}}
     <form method="GET" class="bg-white p-4 rounded shadow mb-6 flex flex-wrap gap-4 items-end">
@@ -235,12 +219,8 @@
     @endif
 
     {{-- BACK BUTTON --}}
-    <div class="mt-8">
-        <a href="{{ route('admin.users.index', ['type' => 'mobile']) }}"
-           class="inline-flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md transition shadow">
-            ← Volver a usuarios
-        </a>
-    </div>
+    <x-admin.back-to-users-button type="mobile" />
+
     @push('modals')
         <x-admin.image-modal />
     @endpush

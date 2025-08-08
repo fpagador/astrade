@@ -41,7 +41,7 @@ class UserApiController extends ApiController
         return $this->handleApi(function () use ($request) {
             $rawPhone = '617972442';
             $parsedPhone = preg_replace('/[^\d+]/', '', $rawPhone);
-            
+
             return $this->render($parsedPhone);
         }, 'Error getting user profile', $request);
     }

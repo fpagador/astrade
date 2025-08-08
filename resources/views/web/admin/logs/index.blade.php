@@ -10,17 +10,7 @@
     <hr class="border-gray-300 mb-6">
 
     {{-- ALERTS --}}
-    @if(session('error'))
-        <div class="w-full bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-6 text-base font-semibold">
-            <strong>{{ session('error') }}</strong>
-        </div>
-    @endif
-
-    @if ($errors->has('general'))
-        <div class="w-full bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-6 text-base font-semibold">
-            <strong>{{ $errors->first('general') }}</strong>
-        </div>
-    @endif
+    <x-admin.alert-messages />
 
     {{-- FILTERS --}}
     <form method="GET" action="{{ route('admin.logs.index') }}"

@@ -7,17 +7,8 @@
     <hr class="border-gray-300 mb-6">
 
     {{-- ALERTS --}}
-    @if(session('error'))
-        <div class="w-full bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-6 text-base font-semibold">
-            <strong>{{ session('error') }}</strong>
-        </div>
-    @endif
+    <x-admin.alert-messages />
 
-    @if ($errors->has('general'))
-        <div class="w-full bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-6 text-base font-semibold">
-            <strong>{{ $errors->first('general') }}</strong>
-        </div>
-    @endif
     {{-- FILTERS --}}
     <form method="GET" class="mb-6 flex flex-wrap gap-4">
         <input type="text" name="user" placeholder="Buscar por usuario"

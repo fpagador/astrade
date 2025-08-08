@@ -6,28 +6,45 @@
     <h1 class="text-2xl font-semibold mb-6">Edit User</h1>
 
     {{-- ALERTS --}}
-    @if(session('error'))
-        <div class="w-full bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-6 text-base font-semibold">
-            <strong>{{ session('error') }}</strong>
-        </div>
-    @endif
-
-    @if ($errors->has('general'))
-        <div class="w-full bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-6 text-base font-semibold">
-            <strong>{{ $errors->first('general') }}</strong>
-        </div>
-    @endif
+    <x-admin.alert-messages />
 
     <x-form.form-wrapper action="{{ route('admin.users.update', $user->id) }}" method="PUT" class="max-w-lg mx-auto bg-white p-6 rounded shadow">
-        @csrf
-        @method('PUT')
         <input type="hidden" name="id" value="{{ $user->id }}">
 
+        <!-- Name -->
         <x-form.input label="Nombre" name="name" required value="{{ old('name', $user->name) }}" />
+
+        <!-- Surname -->
         <x-form.input label="Apellidos" name="surname" required value="{{ old('surname', $user->surname) }}" />
-        <x-form.input label="DNI" name="dni" required value="{{ old('dni', $user->dni) }}" />
-        <x-form.input label="Email" name="email" required type="email" value="{{ old('email', $user->email) }}" />
-        <x-form.input label="Teléfono" name="phone" required value="{{ old('phone', $user->phone) }}" />
+
+        <!-- DNI -->
+        <x-form.input
+            label="DNI"
+            name="dni"
+            required
+            value="{{ old('dni', $user->dni) }}"
+            tooltip="Debe contener 8 números y 1 letra (ejemplo: 12345678A)."
+        />
+
+        <!-- email-->
+        <x-form.input
+            label="Email"
+            name="email"
+            required
+            value="{{ old('email', $user->email) }}"
+            tooltip="Debe contener un '@' y un '.' para ser válido."
+        />
+
+        <!-- Phone -->
+        <x-form.input
+            label="Teléfono"
+            name="phone"
+            required
+            value="{{ old('phone', $user->phone) }}"
+            tooltip="Debe contener al menos 9 números."
+        />
+
+        <!-- Username -->
         <x-form.input label="Username" name="username" required value="{{ old('username', $user->username) }}" />
 
         <!-- Role -->
@@ -56,7 +73,9 @@
                 </div>
             @endif
         </div>
+
         {{-- Fields that are only displayed when creating a user of type "user" --}}
+
         <!-- Company -->
         <x-form.select
             label="Empresa"

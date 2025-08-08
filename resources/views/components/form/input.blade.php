@@ -1,27 +1,17 @@
-@props([
-'label' => '',
-'name',
-'type' => 'text',
-'value' => '',
-'required' => false,
-])
+@props(['label' => '', 'name', 'type' => 'text', 'value' => '', 'required' => false])
 
 <div class="mb-4">
     @if ($label)
-        <div class="flex items-center gap-1">
-            <label for="{{ $name }}" class="block font-medium mb-1">
-                {{ $label }}{{ $required ? ' *' : '' }}
-            </label>
-            @if ($attributes->get('tooltip'))
-                <span
-                    class="text-gray-400 cursor-pointer"
-                    x-data
-                    x-tooltip="{{ $attributes->get('tooltip') }}"
-                >
-            <i data-lucide="info" class="w-4 h-4"></i>
-        </span>
+        <label for="{{ $name }}" class="block font-medium mb-1 flex items-center gap-1">
+            {{ $label }}{{ $required ? ' *' : '' }}
+
+            @if ($attributes->has('tooltip'))
+                <x-tooltip-info
+                    title="Información sobre {{ $label }}"
+                    text="{{ $attributes->get('tooltip') }}"
+                />
             @endif
-        </div>
+        </label>
     @endif
 
     <input

@@ -7,17 +7,7 @@
         <h1 class="text-2xl font-semibold mb-6 text-gray-800">Editar Tarea para {{ $task->user->name }}</h1>
 
         {{-- ALERTS --}}
-        @if(session('error'))
-            <div class="w-full bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-6 text-base font-semibold">
-                <strong>{{ session('error') }}</strong>
-            </div>
-        @endif
-
-        @if ($errors->has('general'))
-            <div class="w-full bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-6 text-base font-semibold">
-                <strong>{{ $errors->first('general') }}</strong>
-            </div>
-        @endif
+        <x-admin.alert-messages />
 
         <x-form.form-wrapper action="{{ route('admin.tasks.update', $task->id) }}" method="PUT" class="space-y-6">
 

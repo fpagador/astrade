@@ -57,6 +57,8 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
     Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
     Route::get('users/{user}/edit-password', [UserController::class, 'editPassword'])->name('users.edit-password');
     Route::put('users/{user}/update-password', [UserController::class, 'updatePassword'])->name('users.update-password');
+    Route::post('users/validate-field', [UserController::class, 'validateField'])
+        ->name('users.validate-field');
 
     /*
     |--------------------------------------------------------------------------

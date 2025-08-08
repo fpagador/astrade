@@ -12,6 +12,8 @@
     <style>[x-cloak] { display: none !important; }</style>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body class="bg-gray-100 text-gray-900 font-sans min-h-screen flex flex-col" x-data="{ sidebarOpen: false }" data-page="{{ str_replace('.', '-', Route::currentRouteName()) }}">
 

@@ -7,6 +7,8 @@ use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserPasswordRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
+use Beste\Json;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -14,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use App\Models\Role;
 use App\Models\Company;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends WebController
 {
@@ -289,5 +292,81 @@ class UserController extends WebController
         ]);
 
         return redirect()->route('admin.users.index')->with('success', 'Contraseña actualizada correctamente.');
+    }
+
+    /**
+     * Validate a single field from the request using StoreUserRequest rules.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function validateField(Request $request): JsonResponse
+    {
+        try {
+            $field = $request->input('field');
+            $value = $request->input('value');
+
+            // Instantiate the FormRequest to access rules and messages
+            $formRequest = new StoreUserRequest();
+
+            // Get all rules keys (all possible fields)
+            $allFields = array_keys($formRequest->rules());
+
+            // Prepare data with all relevant fields from the request (needed for conditional validation)
+            $requestData = $request->only($allFields);
+
+            // Override the field to be validated with the provided value
+            $requestData[$field] = $value;
+
+            // If validating password or confirmation, ensure both are present
+            if (in_array($field, ['password', 'password_confirmation'])) {
+                $requestData['password'] = $request->input('password');
+                $requestData['password_confirmation'] = $request->input('password_confirmation');
+            }
+
+            // Get all validation rules
+            $rules = $formRequest->rules();
+
+            // Adjust unique rules to ignore current user if user_id is provided (for update scenarios)
+            if (isset($requestData['user_id'])) {
+                foreach (['dni', 'email', 'username'] as $uniqueField) {
+                    if (isset($rules[$uniqueField]) && is_array($rules[$uniqueField])) {
+                        foreach ($rules[$uniqueField] as &$rule) {
+                            if (str_starts_with($rule, 'unique:')) {
+                                // Ignore current user by ID in unique validation
+                                $rule = "unique:users,{$uniqueField}," . $requestData['user_id'];
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Check that the field is valid (exists in rules)
+            if (!isset($rules[$field])) {
+                return response()->json(['error' => 'Invalid field provided.'], 422);
+            }
+
+            // Prepare validation for only the single field
+            $singleRule = [$field => $rules[$field]];
+
+            // Filter messages relevant to the current field
+            $messages = $formRequest->messages();
+            $singleMessages = array_filter($messages, function($key) use ($field) {
+                return str_starts_with($key, $field . '.');
+            }, ARRAY_FILTER_USE_KEY);
+
+            // Run validation
+            $validator = Validator::make($requestData, $singleRule, $singleMessages);
+
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()->first($field)], 422);
+            }
+
+            // Validation passed
+            return response()->json(['success' => true]);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Server error during validation.'], 500);
+        }
     }
 }

@@ -42,7 +42,13 @@ class StoreUserRequest extends FormRequest
             ],
             'phone' => $isUser ? ['required', 'string', 'regex:/^\d{9,}$/'] : 'nullable',
             'username' => 'required|string|unique:users,username',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_\-])[A-Za-z\d@$!%*?&.#_\-]{8,}$/'
+            ],
             'photo' => 'nullable|image|max:2048',
             'role_id' => 'required|exists:roles,id',
 

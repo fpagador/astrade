@@ -7,11 +7,7 @@
 
     <hr class="border-gray-300 mb-6">
     {{-- ALERTS --}}
-    @if(session('success'))
-        <div class="w-full bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded mb-6 text-base font-semibold">
-            <strong>{{ session('success') }}</strong>
-        </div>
-    @endif
+    <x-admin.alert-messages />
 
     {{-- FILTERS --}}
     <form method="GET" action="{{ route('admin.task_completion_logs.index') }}" class="bg-white p-4 rounded shadow mb-6 flex flex-wrap gap-4 items-end">

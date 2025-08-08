@@ -78,11 +78,6 @@
         </div>
 
         {{-- BACK BUTTON --}}
-        <div class="mt-8">
-            <a href="{{ url()->previous()  }}"
-               class="inline-flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md transition shadow">
-                ← Volver a usuarios
-            </a>
-        </div>
+        <x-admin.back-to-users-button type="mobile" />
     </div>
 @endsection

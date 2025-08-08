@@ -6,45 +6,42 @@
     <h1 class="text-2xl font-semibold mb-6">Nuevo Usuario</h1>
 
     {{-- ALERTS --}}
-    @if(session('error'))
-        <div class="w-full bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-6 text-base font-semibold">
-            <strong>{{ session('error') }}</strong>
-        </div>
-    @endif
-
-    @if ($errors->has('general'))
-        <div class="w-full bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-6 text-base font-semibold">
-            <strong>{{ $errors->first('general') }}</strong>
-        </div>
-    @endif
+    <x-admin.alert-messages />
 
     <x-form.form-wrapper action="{{ route('admin.users.store') }}" method="POST" class="max-w-lg mx-auto bg-white p-6 rounded shadow">
         <input type="hidden" name="type" value="{{ request('type', 'mobile') }}">
 
+        <!-- Name -->
         <x-form.input label="Nombre" name="name" required />
+
+        <!-- Surname -->
         <x-form.input label="Apellido" name="surname" required />
 
         <!-- DNI -->
-        <label for="dni" class="block font-medium mb-1">
-            DNI *
-            <x-tooltip-info title="Información sobre el DNI" text="Debe contener 8 números y 1 letra (ejemplo: 12345678A)." />
-        </label>
-        <x-form.input name="dni" required />
+        <x-form.input
+            label="DNI"
+            name="dni"
+            required
+            tooltip="Debe contener 8 números y 1 letra (ejemplo: 12345678A)."
+        />
 
         <!-- email-->
-        <label for="email" class="block font-medium mb-1">
-            Email *
-            <x-tooltip-info title="Información sobre el Email" text="Debe contener un '@' y un '.' para ser válido." />
-        </label>
-        <x-form.input name="email" type="email" required />
+        <x-form.input
+            label="Email"
+            name="email"
+            required
+            tooltip="Debe contener un '@' y un '.' para ser válido."
+        />
 
         <!-- Phone -->
-        <label for="phone" class="block font-medium mb-1">
-            Teléfono *
-            <x-tooltip-info title="Información sobre el Teléfono" text="Debe contener al menos 9 números." />
-        </label>
-        <x-form.input name="phone" required />
+        <x-form.input
+            label="Teléfono"
+            name="phone"
+            required
+            tooltip="Debe contener al menos 9 números."
+        />
 
+        <!-- Username -->
         <x-form.input label="Usuario" name="username" required />
 
         <!-- Rol -->
@@ -62,21 +59,18 @@
         </div>
 
         <!-- Password -->
-        <label for="password" class="block font-medium mb-1">
-            Contraseña *
-            <x-tooltip-info title="Información sobre la contraseña" text="Mínimo 8 caracteres. Recomendado: letras y números." />
-        </label>
-        <x-form.input name="password" type="password" required />
+        <x-form.input
+            label="Contraseña"
+            name="password"
+            type="password"
+            required tooltip="La contraseña debe tener al menos 8 caracteres, incluidas mayúsculas, minúsculas, números y caracteres especiales."
+        />
 
         <!-- Password Confirmation -->
         <x-form.input label="Confirmar contraseña" name="password_confirmation" type="password" required />
 
         <!-- Photo -->
-        <label for="password" class="block font-medium mb-1">
-            Foto *
-            <x-tooltip-info title="Información sobre la foto" text="Archivo de imagen máximo 2MB" />
-        </label>
-        <x-form.input name="photo" type="file" />
+        <x-form.input label="Foto" name="photo" type="file" />
 
         {{-- Fields that are only displayed when creating a user of type "user" --}}
         <!-- Company -->
@@ -129,4 +123,9 @@
         <x-form.button-group submit-text="Crear" />
 
     </x-form.form-wrapper>
+    <script>
+        window.routes = {
+            validateField: "{{ route('admin.users.validate-field') }}"
+        };
+    </script>
 @endsection
