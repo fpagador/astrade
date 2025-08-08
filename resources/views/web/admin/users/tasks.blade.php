@@ -149,6 +149,7 @@
                             {{-- VIEW PICTOGRAM --}}
                             @if ($task->pictogram_path)
                                 <button
+                                    type="button"
                                     @click="$dispatch('open-image', '{{ asset('storage/' . $task->pictogram_path) }}')"
                                     title="Ver pictograma"
                                     class="ml-2 text-gray-600 hover:text-gray-900"
@@ -235,15 +236,12 @@
 
     {{-- BACK BUTTON --}}
     <div class="mt-8">
-        <a href="{{ route('admin.users.index') }}"
+        <a href="{{ route('admin.users.index', ['type' => 'mobile']) }}"
            class="inline-flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md transition shadow">
             ← Volver a usuarios
         </a>
     </div>
     @push('modals')
         <x-admin.image-modal />
-    @endpush
-    @push('scripts')
-        <script src="{{ asset('js/task.js') }}"></script>
     @endpush
 @endsection

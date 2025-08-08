@@ -21,7 +21,12 @@ class UserApiController extends ApiController
     public function profile(Request $request): JsonResponse
     {
         return $this->handleApi(function () use ($request) {
-            return $this->render($request->user());
+            $user = $request->user()
+                ->load([
+                    'role:id,role_name',
+                    'company.phones'
+                ]);
+            return $this->render($user);
         }, 'Error getting user profile', $request);
     }
 
@@ -41,22 +46,6 @@ class UserApiController extends ApiController
             return $this->render($user, 'Profile updated successfully');
         }, 'Error updating user profile', $request);
     }
-
-    /**
-     * View another user's profile by ID.
-     *
-     * @param int $id
-     * @return JsonResponse
-     */
-    /*
-    public function show(int $id): JsonResponse
-    {
-        return $this->handleApi(function () use ($id) {
-            $user = User::with('roles', 'notificationPreference')->findOrFail($id);
-            return $this->render($user);
-        }, 'Error al obtener el perfil del usuario');
-    }
-    */
 
     /**
      * Update FCM Token

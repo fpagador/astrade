@@ -19,76 +19,58 @@
             </div>
         @endif
 
-        <form action="{{ route('admin.tasks.update', $task->id) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
-            @csrf
-            @method('PUT')
+        <x-form.form-wrapper action="{{ route('admin.tasks.update', $task->id) }}" method="PUT" class="space-y-6">
 
             <input type="hidden" name="user_id" value="{{ $task->user_id }}">
             <input type="hidden" name="assigned_by" value="{{ $task->assigned_by }}">
 
             {{-- TITLE --}}
-            <div>
-                <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Título</label>
-                <input type="text" name="title" id="title" value="{{ old('title', $task->title) }}"
-                       class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-indigo-500 focus:outline-none"
-                       required>
-            </div>
+            <x-form.input
+                label="Título"
+                name="title"
+                value="{{ old('title', $task->title) }}"
+                required
+            />
 
             {{-- DESCRIPTION --}}
-            <div>
-                <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-                <textarea name="description" id="description" rows="4"
-                          class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-indigo-500 focus:outline-none">{{ old('description', $task->description) }}</textarea>
-            </div>
+            <x-form.textarea
+                label="Descripción"
+                name="description"
+                rows="4"
+            >
+                {{ old('description', $task->description) }}
+            </x-form.textarea>
 
             {{-- PLANNING DETAILS --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
-                    <input type="date" name="scheduled_date" value="{{ old('scheduled_date', optional($task->scheduled_date)->format('Y-m-d')) }}">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Hora</label>
-                    <input type="time" name="scheduled_time" value="{{ old('scheduled_time', optional($task->scheduled_time)->format('H:i')) }}">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Duración estimada (min)</label>
-                    <input type="number" name="estimated_duration_minutes" min="1" class="form-input w-full"
-                           value="{{ old('estimated_duration_minutes', $task->estimated_duration_minutes) }}">
-                </div>
+                <x-form.input type="date" name="scheduled_date" label="Fecha"
+                              value="{{ old('scheduled_date', optional($task->scheduled_date)->format('Y-m-d')) }}" />
+
+                <x-form.input type="time" name="scheduled_time" label="Hora"
+                              value="{{ old('scheduled_time', optional($task->scheduled_time)->format('H:i')) }}" />
+
+                <x-form.input type="number" name="estimated_duration_minutes" label="Duración estimada (min)"
+                              min="1"
+                              value="{{ old('estimated_duration_minutes', $task->estimated_duration_minutes) }}" />
             </div>
 
-            {{-- PICTOGRAM --}}
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Pictograma</label>
-
-                @if ($task->pictogram_path)
-                    <div class="relative group h-20 aspect-square inline-block">
-                        <img
-                            src="{{ asset('storage/' . $task->pictogram_path) }}"
-                            @click="$dispatch('open-image', '{{ asset('storage/' . $task->pictogram_path) }}')"
-                            title="Ver Pictograma actual"
-                            class="h-full max-w-full object-contain rounded cursor-pointer transition group-hover:brightness-110"
-                        />
-
-                        {{-- Icono de lupa al hacer hover --}}
-                        <div class="absolute inset-0 flex items-center justify-center bg-black/30 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none">
-                            <i data-lucide="search" class="w-5 h-5 text-white"></i>
-                        </div>
-                    </div>
-                @endif
-                <input type="file" name="pictogram" accept="image/*" class="form-input w-full mt-2">
-            </div>
-
-            {{-- ORDER AND STATE --}}
+            {{-- PICTOGRAM AND STATE --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Orden</label>
-                    <input type="number" name="order" min="0" class="form-input w-full" value="{{ old('order', $task->order ?? 0) }}">
+                    <x-form.file label="Pictograma" name="pictogram" accept="image/*" />
+
+                    @if ($task->pictogram_path)
+                        <div class="mt-2">
+                            <img src="{{ asset('storage/' . $task->pictogram_path) }}"
+                                 @click="$dispatch('open-image', '{{ asset('storage/' . $task->pictogram_path) }}')"
+                                 class="h-20 w-20 object-contain rounded cursor-pointer transition hover:brightness-110"
+                                 title="Ver pictograma actual">
+                        </div>
+                    @endif
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-                    <select name="status" class="form-select w-full">
+                    <select name="status" class="form-select w-full mt-2">
                         <option value="">Seleccionar</option>
                         @foreach(\App\Enums\TaskStatus::cases() as $status)
                             <option value="{{ $status->value }}" {{ old('status', $task->status) === $status->value ? 'selected' : '' }}>
@@ -101,17 +83,10 @@
 
             {{-- RECURRENT --}}
             <div x-data="{ recurrent: {{ old('is_recurrent', $task->recurrentTask ? 'true' : 'false') }} }" class="border-t pt-6 mt-6">
-                <label class="inline-flex items-center mb-4">
-                    {{-- Hidden para enviar siempre el valor 0 cuando está desmarcado --}}
-                    <input type="hidden" name="is_recurrent" value="0">
-
-                    <input type="checkbox" x-model="recurrent" name="is_recurrent" value="1" class="form-checkbox text-indigo-600"
-                        {{ old('is_recurrent', $task->is_recurrent) ? 'checked' : '' }}>
-                    <span class="ml-2 text-sm text-gray-700">¿Tarea recurrente?</span>
-                </label>
+                <x-form.checkbox name="is_recurrent" x-model="recurrent" value="1" label="¿Tarea recurrente?" />
 
                 <div x-show="recurrent" x-cloak class="space-y-4 bg-gray-50 p-4 rounded border border-gray-200">
-                    {{-- Días de la semana --}}
+                    {{-- Days of the week --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Días de la semana</label>
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm text-gray-600">
@@ -131,16 +106,10 @@
 
                     {{-- DATES --}}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de inicio</label>
-                            <input type="date" name="recurrent_start_date" class="form-input w-full"
-                                   value="{{ old('recurrent_start_date', optional($task->recurrentTask?->start_date)->format('Y-m-d')) }}">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de fin (opcional)</label>
-                            <input type="date" name="recurrent_end_date" class="form-input w-full"
-                                   value="{{ old('recurrent_end_date', optional($task->recurrentTask?->end_date)->format('Y-m-d')) }}">
-                        </div>
+                        <x-form.input type="date" name="recurrent_start_date" label="Fecha de inicio"
+                                      value="{{ old('recurrent_start_date', optional($task->recurrentTask?->start_date)->format('Y-m-d')) }}" />
+                        <x-form.input type="date" name="recurrent_end_date" label="Fecha de fin (opcional)"
+                                      value="{{ old('recurrent_end_date', optional($task->recurrentTask?->end_date)->format('Y-m-d')) }}" />
                     </div>
                 </div>
             </div>
@@ -172,10 +141,6 @@
                             <textarea class="form-textarea w-full" rows="2" :name="`subtasks[${index}][note]`" x-model="subtask.note"></textarea>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Orden</label>
-                                <input type="number" class="form-input w-full" :name="`subtasks[${index}][order]`" x-model="subtask.order">
-                            </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Estado</label>
                                 <select class="form-select w-full" :name="`subtasks[${index}][status]`" x-model="subtask.status">
@@ -221,18 +186,9 @@
                 </button>
             </div>
 
-            {{-- ACTIONS --}}
-            <div class="flex justify-end space-x-4 pt-6">
-                <a href="{{ route('admin.users.tasks', $task->user_id) }}"
-                   class="inline-block px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-100">
-                    Cancelar
-                </a>
-                <button type="submit"
-                        class="inline-block px-4 py-2 bg-indigo-900 text-white rounded hover:bg-indigo-800">
-                    Guardar cambios
-                </button>
-            </div>
-        </form>
+            {{-- BUTTONS --}}
+            <x-form.button-group submit-text="Actualizar" />
+        </x-form.form-wrapper>
     </div>
     @push('modals')
         <x-admin.image-modal />

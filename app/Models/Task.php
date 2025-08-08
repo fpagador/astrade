@@ -29,7 +29,7 @@ use Illuminate\Database\Eloquent\Collection;
  * @property-read RecurrentTask|null $recurrentTask
  * @property-read Collection<Subtask> $subtasks
  * @property-read Collection<Notification> $notifications
- * @property-read Collection<Location> $locations
+ * @property-read Collection<Company> $companies
  */
 class Task extends Model
 {
@@ -107,12 +107,12 @@ class Task extends Model
     }
 
     /**
-     * Get the locations assigned to this task.
+     * Get the companies assigned to this task.
      *
      * @return BelongsToMany
      */
-    public function locations(): BelongsToMany
+    public function companies(): BelongsToMany
     {
-        return $this->belongsToMany(Location::class, 'location_tasks', 'task_id', 'location_id');
+        return $this->belongsToMany(Company::class, 'company_tasks', 'task_id', 'company_id');
     }
 }

@@ -18,7 +18,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         //For Testing
-        $this->call([TestDataSeeder::class]);
+        $this->call([
+            CleanDataSeeder::class,
+            TestDataSeeder::class
+        ]);
 
     }
 }

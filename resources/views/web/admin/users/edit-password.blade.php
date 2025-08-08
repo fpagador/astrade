@@ -55,7 +55,7 @@
 
                 {{-- BUTTONS --}}
                 <div class="flex gap-2 flex items-center justify-between">
-                    <a href="{{ route('admin.users.index') }}"
+                    <a href="{{ route('admin.users.index', ['type' => 'mobile']) }}"
                        class="mt-1 inline-block px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition shadow">
                         Cancelar
                     </a>
@@ -71,7 +71,7 @@
 
     {{-- BACK BUTTON --}}
     <div class="mt-8">
-        <a href="{{ route('admin.users.index') }}"
+        <a href="{{ route('admin.users.index', ['type' => 'mobile']) }}"
            class="inline-flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md transition shadow">
             ← Volver a usuarios
         </a>

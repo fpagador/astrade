@@ -29,10 +29,10 @@ class RolePermissionSeeder extends Seeder
             ['code' => 'change_password', 'description' => 'Cambiar contraseña de otros usuarios'],
             ['code' => 'view_logs', 'description' => 'Ver tabla de logs'],
 
-            ['code' => 'view_location', 'description' => 'Ver ubicaciones'],
-            ['code' => 'create_location', 'description' => 'Crear ubicaciones'],
-            ['code' => 'edit_location', 'description' => 'Editar ubicaciones'],
-            ['code' => 'delete_location', 'description' => 'Eliminar ubicaciones'],
+            ['code' => 'view_company', 'description' => 'Ver Empresas'],
+            ['code' => 'create_company', 'description' => 'Crear Empresas'],
+            ['code' => 'edit_company', 'description' => 'Editar Empresas'],
+            ['code' => 'delete_company', 'description' => 'Eliminar Empresas'],
         ];
 
         foreach ($permissions as $perm) {

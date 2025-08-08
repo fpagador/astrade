@@ -10,6 +10,17 @@ class UserPolicy
     use HandlesAuthorization;
 
     /**
+     * Determines whether the user can see the user list
+     *
+     * @param  User  $user
+     * @return bool
+     */
+    public function viewAdmin(User $user): bool
+    {
+        return $user->hasRole('admin');
+    }
+
+    /**
      * Allow users to manage their own profile, admins can manage anyone.
      *
      * @param  User  $user

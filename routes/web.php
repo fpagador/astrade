@@ -9,7 +9,7 @@ use App\Http\Controllers\Web\Admin\TaskController;
 use App\Http\Controllers\Web\Admin\CalendarController;
 use App\Http\Controllers\Web\Admin\NotificationController;
 use App\Http\Controllers\Web\Admin\LogController;
-use App\Http\Controllers\Web\Admin\LocationController;
+use App\Http\Controllers\Web\Admin\CompanyController;
 use App\Http\Controllers\Web\Admin\TaskCompletionLogController;
 
 /*
@@ -51,15 +51,12 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
-    Route::get('/users/{id}', [UserController::class, 'show'])->name('users.show');
-    Route::get('/users/{id}/edit', [UserController::class, 'edit'])->name('users.edit');
+    Route::get('/users/{user}/show', [UserController::class, 'show'])->name('users.show');
+    Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
     Route::get('users/{user}/edit-password', [UserController::class, 'editPassword'])->name('users.edit-password');
     Route::put('users/{user}/update-password', [UserController::class, 'updatePassword'])->name('users.update-password');
-
-    Route::delete('users/{user}/tasks/{task?}', [UserTaskController::class, 'destroy'])->name('users.tasks.destroy');
-
 
     /*
     |--------------------------------------------------------------------------
@@ -67,11 +64,11 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
     |--------------------------------------------------------------------------
     */
     Route::get('/users/{id}/tasks', [UserTaskController::class, 'index'])->name('users.tasks');
-
     Route::prefix('users/{userId}/tasks')->name('users.tasks.')->group(function () {
         Route::get('create', [UserTaskController::class, 'create'])->name('create');
         Route::post('', [UserTaskController::class, 'store'])->name('store');
     });
+    Route::delete('users/{user}/tasks/{task?}', [UserTaskController::class, 'destroy'])->name('users.tasks.destroy');
 
     /*
     |--------------------------------------------------------------------------
@@ -84,7 +81,6 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
     Route::post('/users/{id}/task', [TaskController::class, 'store'])->name('tasks.store');
     Route::get('/tasks/{id}/edit', [TaskController::class, 'edit'])->name('tasks.edit');
     Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
-    Route::delete('/tasks/{id}', [TaskController::class, 'destroy'])->name('tasks.destroy');
 
 
     /*
@@ -105,15 +101,15 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
 
     /*
     |--------------------------------------------------------------------------
-    | Locations
+    | Companies
     |--------------------------------------------------------------------------
     */
-    Route::get('/locations', [LocationController::class, 'index'])->name('locations.index');
-    Route::get('/location/create', [LocationController::class, 'create'])->name('locations.create');
-    Route::post('/location', [LocationController::class, 'store'])->name('locations.store');
-    Route::get('/location/{location}/edit', [LocationController::class, 'edit'])->name('locations.edit');
-    Route::put('/location/{location}', [LocationController::class, 'update'])->name('locations.update');
-    Route::delete('/location/{location}', [LocationController::class, 'destroy'])->name('locations.destroy');
+    Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
+    Route::get('/companies/create', [CompanyController::class, 'create'])->name('companies.create');
+    Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
+    Route::get('/companies/{company}/edit', [CompanyController::class, 'edit'])->name('companies.edit');
+    Route::put('/companies/{company}', [CompanyController::class, 'update'])->name('companies.update');
+    Route::delete('/companies/{company}', [CompanyController::class, 'destroy'])->name('companies.destroy');
 
     /*
     |--------------------------------------------------------------------------

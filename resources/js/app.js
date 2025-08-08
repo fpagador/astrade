@@ -6,7 +6,11 @@ createIcons({ icons });
 import Alpine from 'alpinejs';
 
 // Add a js file to the task view
-import { cloneTaskForm, editTaskForm, imageModal } from './task';
+import {
+    cloneTaskForm,
+    editTaskForm,
+    imageModal
+} from './task';
 
 window.Alpine = Alpine;
 

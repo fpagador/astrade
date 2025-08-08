@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Editar Usuario')
+@section('title', 'Edit User')
 
 @section('content')
-    <h1 class="text-2xl font-semibold mb-6">Editar Usuario</h1>
+    <h1 class="text-2xl font-semibold mb-6">Edit User</h1>
 
     {{-- ALERTS --}}
     @if(session('error'))
@@ -19,49 +19,108 @@
     @endif
 
     <x-form.form-wrapper action="{{ route('admin.users.update', $user->id) }}" method="PUT" class="max-w-lg mx-auto bg-white p-6 rounded shadow">
+        @csrf
+        @method('PUT')
         <input type="hidden" name="id" value="{{ $user->id }}">
 
-        <x-form.input label="Nombre" name="name" required value="{{ $user->name }}" />
-        <x-form.input label="Apellido" name="surname" required value="{{ $user->surname }}" />
-        <x-form.input label="DNI" name="dni" required value="{{ $user->dni }}" />
-        <x-form.input label="Email" name="email" type="email" value="{{ $user->email }}" />
-        <x-form.input label="Teléfono" name="phone" required value="{{ $user->phone }}" />
-        <x-form.input label="Usuario" name="username" required value="{{ $user->username }}" />
-        <div>
-            <label for="role" class="block font-medium mb-1">Rol</label>
-            <select name="role_id" id="role" required class="w-full border rounded px-3 py-2 focus:ring-indigo-400 focus:outline-none">
+        <x-form.input label="First Name" name="name" required value="{{ old('name', $user->name) }}" />
+        <x-form.input label="Last Name" name="surname" required value="{{ old('surname', $user->surname) }}" />
+        <x-form.input label="DNI" name="dni" required value="{{ old('dni', $user->dni) }}" />
+        <x-form.input label="Email" name="email" required type="email" value="{{ old('email', $user->email) }}" />
+        <x-form.input label="Phone" name="phone" required value="{{ old('phone', $user->phone) }}" />
+        <x-form.input label="Username" name="username" required value="{{ old('username', $user->username) }}" />
+
+        <!-- Role -->
+        <div class="mb-4">
+            <label for="role_id" class="block font-medium mb-1">Rol <span class="text-red-600">*</span></label>
+            <select name="role_id" id="role_id" required {{ request('role') ? 'disabled' : '' }} class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
                 @foreach($assignableRoles as $role)
-                    <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
-                        {{ ucfirst($role->role_name) }}
+                    <option value="{{ $role->id }}"
+                            data-role-name="{{ $role->role_name }}"
+                        {{ old('role_id', $defaultRole ?? ($user->role_id ?? '')) == $role->id ? 'selected' : '' }}>
+                        {{ \App\Enums\RoleEnum::from($role->role_name)->label() }}
                     </option>
                 @endforeach
             </select>
         </div>
-        <x-form.input label="Foto" name="photo" type="file" />
-        <x-form.input label="Horario de trabajo" name="work_schedule" value="{{ $user->work_schedule }}" />
-        <x-form.input label="Tipo de contrato" name="contract_type" value="{{ $user->contract_type }}" />
-        <x-form.input label="Fecha de inicio de contrato" name="contract_start_date" type="date" value="{{ $user->contract_start_date }}" />
 
-        <div class="mb-4">
-            <label for="notification_type" class="block font-medium mb-1">Tipo de notificación</label>
-            <select name="notification_type" id="notification_type" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                <option value="none" {{ old('notification_type', $user->notification_type) == 'none' ? 'selected' : '' }}>Ninguna</option>
-                <option value="visual" {{ old('notification_type', $user->notification_type) == 'visual' ? 'selected' : '' }}>Visual</option>
-                <option value="visual_audio" {{ old('notification_type', $user->notification_type) == 'visual_audio' ? 'selected' : '' }}>Visual y Audio</option>
-            </select>
-            @error('notification_type')
-            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-            @enderror
+        <!-- Photo -->
+        <div class="gap-4">
+            <x-form.file label="Photo" name="photo" accept="image/*" />
+            @if ($user->photo)
+                <div class="mb-4">
+                    <img src="{{ asset('storage/' . $user->photo) }}"
+                         @click="$dispatch('open-image', '{{ asset('storage/' . $user->photo) }}')"
+                         class="h-20 w-20 object-contain rounded cursor-pointer transition hover:brightness-110"
+                         title="Ver foto actual">
+                </div>
+            @endif
         </div>
+        {{-- Fields that are only displayed when creating a user of type "user" --}}
+        <!-- Company -->
+        <x-form.select
+            label="Company"
+            name="company_id"
+            class="user-only"
+            :options="$companies->pluck('name', 'id')->prepend('-- Select a company --', '')->toArray()"
+            :selected="old('company_id', $user->company_id)"
+        />
 
-        <div class="mb-4 flex items-center space-x-2">
-            <input type="checkbox" name="can_receive_notifications" id="can_receive_notifications" value="1" {{ old('can_receive_notifications', $user->can_receive_notifications) ? 'checked' : '' }} class="rounded focus:ring-indigo-400" />
-            <label for="can_receive_notifications" class="font-medium">Puede recibir notificaciones</label>
-        </div>
+        <!-- Work schedule -->
+        <x-form.textarea
+            label="Work Schedule"
+            name="work_schedule"
+            class="user-only"
+        >{{ old('work_schedule', $user->work_schedule) }}</x-form.textarea>
 
-        <div class="flex space-x-4 mt-6">
-            <button type="submit" class="bg-indigo-900 text-white px-4 py-2 rounded hover:bg-indigo-800 flex-1">Actualizar</button>
-            <a href="{{ route('admin.users.index') }}" class="bg-red-900 text-white px-4 py-2 rounded hover:bg-red-800 flex-1 text-center">Cancelar</a>
-        </div>
+        <!-- Contract Type -->
+        <x-form.select
+            label="Contract Type"
+            name="contract_type"
+            class="user-only"
+            :options="[
+                '' => '-- Select a type --',
+                'Temporal' => 'Temporal',
+                'Indefinido' => 'Indefinite',
+            ]"
+            :selected="old('contract_type', $user->contract_type)"
+        />
+
+        <!-- Contract Start Date -->
+        <x-form.input
+            label="Contract Start Date"
+            name="contract_start_date"
+            type="date"
+            class="user-only"
+            value="{{ old('contract_start_date', optional($user?->contract_start_date)->format('Y-m-d')) }}"
+        />
+
+        <!-- Checkbox: Can receive notifications -->
+        <x-form.checkbox
+            name="can_receive_notifications"
+            label="Can receive notifications"
+            class="user-only"
+            :checked="old('can_receive_notifications', $user->can_receive_notifications)"
+        />
+
+        <!-- Notification type -->
+        <x-form.select
+            label="Notification Type"
+            name="notification_type"
+            class="user-only"
+            :options="[
+                'none' => 'None',
+                'visual' => 'Visual',
+                'visual_audio' => 'Visual and Audio',
+            ]"
+            :selected="old('notification_type', $user->notification_type)"
+        />
+
+        {{-- Buttons --}}
+        <x-form.button-group submit-text="Update" />
     </x-form.form-wrapper>
+
+    @push('modals')
+        <x-admin.image-modal />
+    @endpush
 @endsection

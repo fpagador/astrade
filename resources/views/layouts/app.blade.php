@@ -13,7 +13,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gray-100 text-gray-900 font-sans min-h-screen flex flex-col" x-data="{ sidebarOpen: false }">
+<body class="bg-gray-100 text-gray-900 font-sans min-h-screen flex flex-col" x-data="{ sidebarOpen: false }" data-page="{{ str_replace('.', '-', Route::currentRouteName()) }}">
 
 {{-- Offcanvas Overlay --}}
 <div
@@ -38,11 +38,24 @@
 
         <nav class="mt-6 px-4 space-y-2 text-sm">
             <x-admin.nav-link route="admin.dashboard" icon="layout-dashboard" label="Dashboard" />
-            <x-admin.nav-link route="admin.users.index" icon="users" label="Usuarios" />
+            @can('viewAdmin', \App\Models\User::class)
+                <x-admin.nav-link
+                    route="admin.users.index"
+                    :parameters="['type' => 'management']"
+                    icon="users"
+                    label="Usuarios de Gestión"
+                />
+            @endcan
+            <x-admin.nav-link
+                route="admin.users.index"
+                :parameters="['type' => 'mobile']"
+                icon="users"
+                label="Usuarios Móviles"
+            />
             <x-admin.nav-link route="admin.tasks.index" icon="plus-square" label="Tareas" />
             <x-admin.nav-link route="admin.calendar.index" icon="calendar-days" label="Calendario" />
             <x-admin.nav-link route="admin.notifications.index" icon="bell" label="Notificaciones" />
-            <x-admin.nav-link route="admin.locations.index" icon="map-pin" label="Ubicaciones" />
+            <x-admin.nav-link route="admin.companies.index" icon="map-pin" label="Empresas" />
             <x-admin.nav-link route="admin.task_completion_logs.index" icon="check-circle" label="Registro de Finalización de Tareas" />
             @can('viewLogs', \App\Models\Log::class)
             <x-admin.nav-link route="admin.logs.index" icon="file-text" label="Logs" />

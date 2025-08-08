@@ -13,30 +13,46 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use App\Models\Role;
+use App\Models\Company;
 
 class UserController extends WebController
 {
     /**
-     * Display a paginated list of users with optional filters.
+     * Display a paginated list of manager users with optional filters.
      *
      * @param Request $request
      * @return View|RedirectResponse
      */
     public function index(Request $request): View|RedirectResponse
     {
-        return $this->tryCatch(function () use ( $request) {
+        return $this->tryCatch(function () use ($request) {
+            auth()->user();
+            $type = $request->get('type'); // 'mobile' or 'management'
+
             $query = User::query()->with('role');
 
+            if ($type === 'mobile') {
+                // Mobile users only
+                $query->whereHas('role', fn($q) => $q->where('role_name', 'user'));
+            } else {
+                // By default 'management' for users with admin role
+                $this->authorize('viewAdmin', User::class);
+                $query->whereHas('role', fn($q) =>
+                $q->whereIn('role_name', ['admin', 'manager'])
+                );
+            }
+
+            //Common filters
             if ($request->filled('name')) {
                 $query->where('name', 'like', '%' . $request->name . '%');
             }
 
-            if ($request->filled('dni')) {
-                $query->where('dni', 'like', '%' . $request->dni . '%');
-            }
-
             if ($request->filled('email')) {
                 $query->where('email', 'like', '%' . $request->email . '%');
+            }
+
+            if ($request->filled('dni')) {
+                $query->where('dni', 'like', '%' . $request->dni . '%');
             }
 
             if ($request->filled('role')) {
@@ -45,30 +61,67 @@ class UserController extends WebController
                 });
             }
 
-            $users = $query->paginate(15);
+            if ($request->filled('company_id')) {
+                $query->where('company_id', $request->company_id);
+            }
+
+            $users = $query->paginate(15)->appends($request->query());
+
+            //Dynamic view by type
+            if ($type === 'mobile') {
+                $companies = Company::orderBy('name')->get();
+                return view('web.admin.users.mobile', compact('users', 'companies'));
+            }
 
             return view('web.admin.users.index', compact('users'));
         });
     }
 
     /**
-     * Show the form for creating a new user.
+     * Show the user profile.
      *
+     * @param User $user
+     * @param Request $request
      * @return View
      */
-    public function create(): View
+    public function show(User $user, Request $request): View
+    {
+        $type = $request->get('type', 'mobile');
+
+        return view('web.admin.users.show', compact('user', 'type'));
+    }
+
+    /**
+     * Show the form for creating a new user.
+     *
+     * @param Request $request
+     * @return View
+     */
+    public function create(Request $request): View
     {
         $authUser = auth()->user();
 
-        $assignableRoleNames = match (true) {
-            $authUser->hasRole('admin') => ['manager', 'user'],
-            $authUser->hasRole('manager') => ['user'],
-            default => [],
-        };
+        // If you come from the mobile users view (passed role=user)
+        if ($request->input('role') === 'user') {
+            $assignableRoleNames = ['user'];
+        } else {
+            $assignableRoleNames = match (true) {
+                $authUser->hasRole('admin') => ['admin', 'manager'],
+                $authUser->hasRole('manager') => ['user'],
+                default => [],
+            };
+        }
 
         $assignableRoles = Role::whereIn('role_name', $assignableRoleNames)->get();
+        $companies = Company::all();
 
-        return view('web.admin.users.create', compact('assignableRoles'));
+        $defaultRole = null;
+
+        if ($request->filled('role')) {
+            $defaultRole = Role::where('role_name', $request->role)->first()?->id;
+        }
+
+        return view('web.admin.users.create', compact('assignableRoles', 'companies', 'defaultRole'));
     }
 
     /**
@@ -81,6 +134,7 @@ class UserController extends WebController
     {
         return $this->tryCatch(function () use ($request) {
             $validated = $request->validated();
+
             $authUser = auth()->user();
 
             // Determine roles that the authenticated user can assign
@@ -98,33 +152,39 @@ class UserController extends WebController
             }
 
             if ($request->hasFile('photo')) {
-                $photoPath = $request->file('photo')->store('users', 'public');
+                $photoPath = $request->file('photo')->store('photos', 'public');
                 $validated['photo'] = $photoPath;
             }
 
             $validated['password'] = bcrypt($validated['password']);
+
             $validated['can_receive_notifications'] = $request->has('can_receive_notifications');
+            if (!$validated['can_receive_notifications']) {
+                $validated['notification_type'] = 'none';
+            }
             $validated['role_id'] = $request->role_id;
 
             User::create($validated);
+            $type = $request->input('type', 'mobile');
 
-            return redirect()->route('admin.users.index');
+            return redirect()->route('admin.users.index', ['type' => $type]);
         }, route('admin.users.create'), 'Usuario creado correctamente.');
     }
 
     /**
      * Show the form for editing the specified user.
      *
+     * @param Request $request
      * @param int $id
      * @return View|RedirectResponse
      */
-    public function edit(int $id): View|RedirectResponse
+    public function edit(Request $request, int $id): View|RedirectResponse
     {
-        return $this->tryCatch(function () use ($id) {
+        return $this->tryCatch(function () use ($request, $id) {
             $authUser = auth()->user();
 
             $assignableRoleNames = match (true) {
-                $authUser->hasRole('admin') => ['manager', 'user'],
+                $authUser->hasRole('admin') => ['admin','manager', 'user'],
                 $authUser->hasRole('manager') => ['user'],
                 default => [],
             };
@@ -132,7 +192,17 @@ class UserController extends WebController
             $assignableRoles = Role::whereIn('role_name', $assignableRoleNames)->get();
 
             $user = User::findOrFail($id);
-            return view('web.admin.users.edit', compact('user','assignableRoles'));
+
+            $defaultRole = $request->role
+                ? Role::where('role_name', $request->role)->first()?->id
+                : $user->role_id;
+
+            $companies = Company::all();
+            return view('web.admin.users.edit', compact(
+                'user',
+                'assignableRoles',
+                'defaultRole',
+                'companies'));
         }, route('admin.users.index'));
     }
 
@@ -153,7 +223,7 @@ class UserController extends WebController
                 if ($user->photo) {
                     Storage::disk('public')->delete($user->photo);
                 }
-                $validated['photo'] = $request->file('photo')->store('users', 'public');
+                $validated['photo'] = $request->file('photo')->store('photos', 'public');
             }
 
             if ($request->filled('password')) {
@@ -164,7 +234,9 @@ class UserController extends WebController
 
             $user->update($validated);
 
-            return redirect()->route('admin.users.index');
+            $type = $request->input('type', 'mobile');
+
+            return redirect()->route('admin.users.index', ['type' => $type]);
         }, route('admin.users.index'), 'Usuario actualizado correctamente.');
     }
 

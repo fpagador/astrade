@@ -29,6 +29,7 @@ Route::middleware(['auth:sanctum', 'role:admin|manager|user|'])->group(function 
     | Task
     |--------------------------------------------------------------------------
     */
+    Route::get('/tasks', [TaskApiController::class, 'allTasksWithSubtasks']);
     Route::get('/tasks/today', [TaskApiController::class, 'tasksToday']);
     Route::get('/tasks/plan/{num}', [TaskApiController::class, 'plannedTasks'])->whereNumber('num');
     Route::get('/tasks/{task_id}', [TaskApiController::class, 'show']);
@@ -61,14 +62,11 @@ Route::middleware(['auth:sanctum', 'role:admin|manager|user|'])->group(function 
 
     /*
    |--------------------------------------------------------------------------
-   | Locations
+   | Companies
    |--------------------------------------------------------------------------
    */
-    // View locations associated with a task
-    Route::get('/tasks/{task_id}/locations', [TaskApiController::class, 'getLocationsByTask']);
-
-    // Associate location(s) to a task
-    Route::post('/tasks/{task_id}/locations', [TaskApiController::class, 'attachLocations']);
+    // View companies associated with a task
+    Route::get('/tasks/{task_id}/companies', [TaskApiController::class, 'getCompaniesByTask']);
 
     // Logout
     Route::post('/logout', [AuthController::class, 'logout']);

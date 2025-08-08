@@ -9,7 +9,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
- * Class Location
+ * Class Company
  *
  * @property int $id
  * @property string $name
@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Collection;
  *
  * @property-read Collection<Task> $tasks
  */
-class Location extends Model
+class Company extends Model
 {
     use HasFactory;
 
@@ -26,28 +26,44 @@ class Location extends Model
     protected $fillable = ['name', 'address', 'description'];
 
     /**
-     * The tasks associated with this location.
+     * The tasks associated with this company.
      *
      * @return BelongsToMany<Task>
      */
     public function tasks(): BelongsToMany
     {
-        return $this->belongsToMany(Task::class, 'location_tasks','location_id','task_id');
+        return $this->belongsToMany(Task::class, 'company_tasks','company_id','task_id');
     }
 
     /**
      * Boot the model and handle model events.
      *
-     * Automatically detach related tasks when a Location is deleted,
-     * to clean up the pivot table `location_tasks`.
+     * Automatically detach related tasks when a Company is deleted,
+     * to clean up the pivot table `company_tasks`.
      *
      * @return void
      */
     protected static function booted(): void
     {
-        static::deleting(function (Location $location): void {
-            $location->tasks()->detach();
+        static::deleting(function (Company $company): void {
+            $company->tasks()->detach();
         });
+    }
+
+    /**
+     * Get the users that belong to the company.
+     */
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
+
+    /**
+     * Get the phones that belong to the company.
+     */
+    public function phones()
+    {
+        return $this->hasMany(CompanyPhone::class);
     }
 
 }

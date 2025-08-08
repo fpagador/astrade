@@ -1,12 +1,12 @@
 <?php
 namespace Database\Factories;
 
-use App\Models\Location;
+use App\Models\Company;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class LocationFactory extends Factory
+class CompanyFactory extends Factory
 {
-    protected $model = Location::class;
+    protected $model = Company::class;
 
     public function definition(): array
     {

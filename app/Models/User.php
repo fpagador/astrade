@@ -43,7 +43,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name', 'surname', 'dni', 'email', 'username', 'password', 'photo',
         'work_schedule', 'contract_type', 'contract_start_date',
-        'notification_type', 'can_receive_notifications', 'role_id',
+        'notification_type', 'can_receive_notifications', 'role_id', 'phone'
     ];
 
     /** @var array<int, string> */
@@ -179,5 +179,13 @@ class User extends Authenticatable
         }
 
         return $this->role->permissions->contains('code', $permissionCode);
+    }
+
+    /**
+     * Get the company the user belongs to.
+     */
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
     }
 }

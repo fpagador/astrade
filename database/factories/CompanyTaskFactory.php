@@ -1,20 +1,20 @@
 <?php
 namespace Database\Factories;
 
-use App\Models\LocationTask;
+use App\Models\CompanyTask;
 use App\Models\Task;
-use App\Models\Location;
+use App\Models\Company;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class LocationTaskFactory extends Factory
+class CompanyTaskFactory extends Factory
 {
-    protected $model = LocationTask::class;
+    protected $model = CompanyTask::class;
 
     public function definition(): array
     {
         return [
             'task_id' => Task::factory(),
-            'location_id' => Location::factory(),
+            'location_id' => Company::factory(),
         ];
     }
 }
