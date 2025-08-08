@@ -117,7 +117,7 @@
         />
 
         {{-- Buttons --}}
-        <x-form.button-group submit-text="Update" />
+        <x-form.button-group submit-text="Actualizar" />
     </x-form.form-wrapper>
 
     @push('modals')
