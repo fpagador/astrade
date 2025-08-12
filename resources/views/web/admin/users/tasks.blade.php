@@ -9,7 +9,7 @@
         </h1>
 
         @can('create',\App\Models\User::class)
-        <a href="{{ route('admin.tasks.create', ['userId' => $user->id]) }}"
+        <a href="{{ route('admin.tasks.create', ['userId' => $user->id, 'date' => $date]) }}"
            class="inline-block mb-4 px-4 py-2 bg-indigo-900 text-white rounded hover:bg-indigo-800">
             Nueva tarea
         </a>
@@ -20,6 +20,21 @@
 
     {{-- ALERTS --}}
     <x-admin.alert-messages />
+
+    <div class="flex items-center gap-4 mb-6">
+        <a href="{{ route('admin.users.tasks', ['id' => $user->id, 'date' => \Carbon\Carbon::parse($date)->subDay()->toDateString()]) }}"
+           class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Anterior</a>
+
+        <a href="{{ route('admin.users.tasks', ['id' => $user->id, 'date' => \Carbon\Carbon::today()->toDateString()]) }}"
+           class="px-3 py-1 bg-indigo-900 text-white rounded hover:bg-indigo-800">Hoy</a>
+
+        <a href="{{ route('admin.users.tasks', ['id' => $user->id, 'date' => \Carbon\Carbon::parse($date)->addDay()->toDateString()]) }}"
+           class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Siguiente</a>
+
+        <span class="ml-4 font-semibold text-gray-700">
+        {{ \Carbon\Carbon::parse($date)->locale('es')->isoFormat('dddd, D [de] MMMM [de] YYYY') }}
+    </span>
+    </div>
 
     {{-- FILTERS--}}
     <form method="GET" class="bg-white p-4 rounded shadow mb-6 flex flex-wrap gap-4 items-end">
@@ -51,7 +66,7 @@
             </button>
         </div>
         <div>
-            <a href="{{ route('admin.users.tasks', $user->id) }}"
+            <a href="{{ route('admin.users.tasks', ['id' => $user->id, 'date' => $date]) }}"
                class="mt-1 inline-block px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition shadow">
                 Limpiar
             </a>
@@ -61,6 +76,7 @@
     <form id="bulk-delete-form" action="{{ route('admin.users.tasks.destroy', $user->id) }}" method="POST">
         @csrf
         @method('DELETE')
+        <input type="hidden" name="date" value="{{ $date }}">
 
         <div class="flex justify-between items-center mb-2 p-4">
             <div class="flex items-start">
@@ -88,15 +104,37 @@
                     };
                 @endphp
 
-                <div x-data="{ open: false }" class="bg-white rounded shadow p-4 @if($progressPercent === 100) border-2 border-green-500 @endif">
+                <div
+                    x-data="{ open: false }"
+                    class="bg-white rounded shadow p-4 @if($progressPercent === 100) border-2 border-green-500 @endif"
+                    style="background-color: {{ $task->color }};"
+                >
                     <div class="flex items-start justify-between mb-2">
                         <input type="checkbox" name="selected_tasks[]" value="{{ $task->id }}" class="task-checkbox mr-2">
                     </div>
+
                     {{-- MAIN TASK --}}
                     <div class="flex justify-between items-center">
                         <div>
                             <h2 class="text-xl font-semibold text-gray-800">{{ $task->title }}</h2>
                             <h5 class="text-lm font-semibold text-gray-700">{{ $task->description }}</h5>
+
+                            <p class="text-sm text-gray-600">
+                                @if($task->scheduled_time)
+                                    Hora inicio: {{ \Carbon\Carbon::parse($task->scheduled_time)->format('H:i') }}
+                                @else
+                                    Hora inicio: No asignada
+                                @endif
+
+                                @if($task->estimated_duration_minutes)
+                                    · Duración estimada: {{ $task->estimated_duration_minutes }} minutos
+                                @endif
+                            </p>
+
+                            @php
+                                $timeKey = $task->scheduled_time ? $task->scheduled_time->format('H:i') : 'no_hora';
+                                $isConflict = isset($timeCounts[$timeKey]) && $timeCounts[$timeKey] > 1;
+                            @endphp
 
                             <p class="text-sm text-gray-600">
                                 Estado: <span class="capitalize">{{ status_label($task->status) }}</span> ·
@@ -125,8 +163,18 @@
                         </div>
 
                         <div class="flex items-center gap-3">
+                            {{-- SQUARE ALERT BUTTON --}}
+                            @if($isConflict)
+                                <button title="Conflicto de horario con otra tarea"
+                                        class="w-8 h-8 flex items-center justify-center bg-yellow-200 border-2 border-red-600 text-red-800 rounded-none hover:bg-yellow-300 transition"
+                                        type="button"
+                                >
+                                    <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                                </button>
+                            @endif
+
                             {{-- EDIT --}}
-                            <a href="{{ route('admin.tasks.edit', $task->id) }}" title="Editar">
+                            <a href="{{ route('admin.tasks.edit', ['id' => $task->id, 'date' => $date]) }}" title="Editar">
                                 <i data-lucide="pencil" class="w-5 h-5 text-indigo-800 hover:text-indigo-900 transition"></i>
                             </a>
 
@@ -143,8 +191,8 @@
                             @endif
 
                             {{-- DELETE --}}
-                            <form action="{{ route('admin.users.tasks.destroy', [$user->id, $task->id]) }}" method="POST"
-                                  onsubmit="return confirm('¿Está seguro de eliminar esta tarea del usuario {{ $user->name }}?');">
+                            <form action="{{ route('admin.users.tasks.destroy', ['user' => $user->id, 'task' => $task->id, 'date' => $date]) }}"
+                                  method="POST" onsubmit="return confirm('¿Está seguro de eliminar esta tarea del usuario {{ $user->name }}?');">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" title="Eliminar">

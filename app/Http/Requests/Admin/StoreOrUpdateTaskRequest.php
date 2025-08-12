@@ -24,12 +24,13 @@ class StoreOrUpdateTaskRequest extends FormRequest
         return [
             'title' => 'required|string',
             'description' => 'nullable|string',
-            'scheduled_date' => 'nullable|date',
-            'scheduled_time' => 'nullable',
+            'scheduled_date' => 'required|date',
+            'scheduled_time' => 'required',
             'estimated_duration_minutes' => 'nullable|integer',
             'pictogram_path' => 'nullable|string',
             'order' => 'nullable|integer',
-            'status' => 'nullable|string',
+            'status' => 'required|string',
+            'color' => 'nullable|string',
 
             // Recurrente
             'is_recurrent' => 'nullable|boolean',
@@ -46,10 +47,27 @@ class StoreOrUpdateTaskRequest extends FormRequest
             'subtasks.*.description' => 'nullable|string',
             'subtasks.*.note' => 'nullable|string',
             'subtasks.*.order' => 'nullable|integer',
-            'subtasks.*.status' => 'nullable|string',
+            'subtasks.*.status' => 'required|string',
 
             // Pictograma
             'pictogram' => 'nullable|image|max:2048',
+        ];
+    }
+
+    /**
+     * Custom validation messages.
+     *
+     * @return array<string, string>
+     */
+    public function messages()
+    {
+        return [
+            'title.required' => 'El campo título es obligatorio.',
+            'scheduled_date.required' => 'La fecha es obligatoria.',
+            'scheduled_time.required' => 'La hora es obligatoria.',
+            'status.required' => 'El estado es obligatorio.',
+            'subtasks.*.title.required' => 'El título de la subtarea es obligatorio.',
+            'subtasks.*.status.required' => 'El estado de la subtarea es obligatorio.'
         ];
     }
 }

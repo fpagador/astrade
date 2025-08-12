@@ -41,6 +41,7 @@ class Task extends Model
         'assigned_by',
         'title',
         'description',
+        'color',
         'scheduled_date',
         'scheduled_time',
         'estimated_duration_minutes',
@@ -114,5 +115,35 @@ class Task extends Model
     public function companies(): BelongsToMany
     {
         return $this->belongsToMany(Company::class, 'company_tasks', 'task_id', 'company_id');
+    }
+
+    /**
+     * Get the predefined color palette for tasks.
+     *
+     * These colors have been selected to be visually appealing and friendly for children with autism,
+     * offering a variety of soft and bright hues that are easy to distinguish.
+     *
+     * @return array<string>
+     */
+    public static function getColors(): array
+    {
+        return [
+            '#FFFFFF', // White
+            '#FF6B6B', // Light Coral
+            '#FFB347', // Pastel Orange
+            '#FFD93D', // Mustard Yellow
+            '#6BCB77', // Medium Sea Green
+            '#4D96FF', // Cornflower Blue
+            '#989EFA', // Light Periwinkle
+            '#F593C4', // Orchid Pink
+            '#00CED1', // Dark Turquoise
+            '#ADFF2F', // Green Yellow
+            '#FF8C00', // Dark Orange
+            '#20B2AA', // Light Sea Green
+            '#D6C2FC', // Lavender
+            '#CFB0B0', // Pale Rose
+            '#00BFFF', // Deep Sky Blue
+            '#F4A460', // Sandy Brown
+        ];
     }
 }

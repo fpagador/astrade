@@ -5,12 +5,13 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Web\Admin\DashboardController;
 use App\Http\Controllers\Web\Admin\UserController;
 use App\Http\Controllers\Web\Admin\UserTaskController;
-use App\Http\Controllers\Web\Admin\TaskController;
 use App\Http\Controllers\Web\Admin\CalendarController;
 use App\Http\Controllers\Web\Admin\NotificationController;
 use App\Http\Controllers\Web\Admin\LogController;
 use App\Http\Controllers\Web\Admin\CompanyController;
 use App\Http\Controllers\Web\Admin\TaskCompletionLogController;
+use Illuminate\Http\Request;
+use App\Models\Task;
 
 /*
 |--------------------------------------------------------------------------
@@ -66,24 +67,24 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
     |--------------------------------------------------------------------------
     */
     Route::get('/users/{id}/tasks', [UserTaskController::class, 'index'])->name('users.tasks');
-    Route::prefix('users/{userId}/tasks')->name('users.tasks.')->group(function () {
-        Route::get('create', [UserTaskController::class, 'create'])->name('create');
-        Route::post('', [UserTaskController::class, 'store'])->name('store');
-    });
+    Route::get('/users/task/create/{userId?}', [UserTaskController::class, 'create'])->name('tasks.create');
+    Route::get('/users/task/{task}/json', [UserTaskController::class, 'json'])->name('tasks.json');
+    Route::post('/users/{id}/task', [UserTaskController::class, 'store'])->name('tasks.store');
     Route::delete('users/{user}/tasks/{task?}', [UserTaskController::class, 'destroy'])->name('users.tasks.destroy');
+    Route::get('/tasks/{id}/edit', [UserTaskController::class, 'edit'])->name('tasks.edit');
+    Route::put('/tasks/{task}', [UserTaskController::class, 'update'])->name('tasks.update');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Task Management
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
-    Route::get('/users/task/create/{userId?}', [TaskController::class, 'create'])->name('tasks.create');
-    Route::get('/users/task/{task}/json', [TaskController::class, 'json'])->name('tasks.json');
-    Route::post('/users/{id}/task', [TaskController::class, 'store'])->name('tasks.store');
-    Route::get('/tasks/{id}/edit', [TaskController::class, 'edit'])->name('tasks.edit');
-    Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
+    Route::get('users/{userId}/tasks/check-conflict', function($userId, Request $request) {
+        $date = $request->query('scheduled_date');
+        $time = $request->query('scheduled_time');
 
+        $exists = Task::where('user_id', $userId)
+            ->where('scheduled_date', $date)
+            ->where('scheduled_time', $time)
+            ->exists();
+
+        return response()->json(['conflict' => $exists]);
+    });
 
     /*
     |--------------------------------------------------------------------------

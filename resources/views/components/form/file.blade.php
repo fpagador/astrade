@@ -17,7 +17,7 @@
         id="{{ $name }}"
         {{ $accept ? "accept=$accept" : '' }}
         {{ $required ? 'required' : '' }}
-        {{ $attributes->merge(['class' => 'w-full mt-2']) }}
+        {{ $attributes->merge(['class' => 'w-full']) }}
     />
     @error($name)
     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>

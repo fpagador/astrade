@@ -54,7 +54,6 @@
                 icon="users"
                 label="Usuarios Móviles"
             />
-            <x-admin.nav-link route="admin.tasks.index" icon="plus-square" label="Tareas" />
             <x-admin.nav-link route="admin.calendar.index" icon="calendar-days" label="Calendario" />
             <x-admin.nav-link route="admin.notifications.index" icon="bell" label="Notificaciones" />
             <x-admin.nav-link route="admin.companies.index" icon="map-pin" label="Empresas" />
