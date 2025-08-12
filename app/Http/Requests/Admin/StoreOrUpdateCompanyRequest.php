@@ -25,6 +25,9 @@ class StoreOrUpdateCompanyRequest extends FormRequest
             'name' => 'required|string|max:255',
             'address' => 'nullable|string|max:500',
             'description' => 'nullable|string|max:500',
+            'phones' => ['array'],
+            'phones.*.name' => ['required', 'string', 'max:255'],
+            'phones.*.phone_number' => ['required', 'string', 'max:255']
         ];
     }
 }

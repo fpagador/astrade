@@ -56,7 +56,8 @@ class CompanyController extends WebController
     {
         return $this->tryCatch(function () use ( $request) {
             $validated = $request->validated();
-            Company::create($validated);
+            $company = Company::create($validated);
+            $this->addPhones($request, $company);
 
             return redirect()->route('admin.companies.index');
         }, route('admin.companies.create'), 'Ubicación creada correctamente.');
@@ -85,6 +86,7 @@ class CompanyController extends WebController
         return $this->tryCatch(function () use ( $request, $company) {
             $validated = $request->validated();
             $company->update($validated);
+            $this->addPhones($request, $company);
 
             return redirect()->route('admin.companies.index');
         }, route('admin.companies.create'), 'Ubicación actualizada correctamente.');
@@ -103,6 +105,23 @@ class CompanyController extends WebController
 
             return redirect()->route('admin.companies.index');
         }, route('admin.companies.index'), 'Ubicación eliminada correctamente.');
+    }
+
+    public function addPhones(StoreOrUpdateCompanyRequest $request, Company $company)
+    {
+        if ($request->has('phones')) {
+            $phonesData = array_filter($request->input('phones'), function($phone) {
+                return !empty($phone['name']) || !empty($phone['phone_number']);
+            });
+
+            $company->phones()->delete();
+            foreach ($phonesData as $phone) {
+                $company->phones()->create([
+                    'name' => $phone['name'] ?? null,
+                    'phone_number' => $phone['phone_number'] ?? null,
+                ]);
+            }
+        }
     }
 
 }

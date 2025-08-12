@@ -21,12 +21,20 @@
     {{-- ALERTS --}}
     <x-admin.alert-messages />
 
+    @php
+        $isTodaySelected = \Carbon\Carbon::parse($date)->isToday();
+    @endphp
     <div class="flex items-center gap-4 mb-6">
         <a href="{{ route('admin.users.tasks', ['id' => $user->id, 'date' => \Carbon\Carbon::parse($date)->subDay()->toDateString()]) }}"
            class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Anterior</a>
 
         <a href="{{ route('admin.users.tasks', ['id' => $user->id, 'date' => \Carbon\Carbon::today()->toDateString()]) }}"
-           class="px-3 py-1 bg-indigo-900 text-white rounded hover:bg-indigo-800">Hoy</a>
+           class="px-3 py-1 rounded transition
+       {{ $isTodaySelected
+           ? 'bg-indigo-900 text-white hover:bg-indigo-800'
+           : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }}">
+            Hoy
+        </a>
 
         <a href="{{ route('admin.users.tasks', ['id' => $user->id, 'date' => \Carbon\Carbon::parse($date)->addDay()->toDateString()]) }}"
            class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Siguiente</a>

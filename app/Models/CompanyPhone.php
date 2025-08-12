@@ -23,9 +23,8 @@ use Illuminate\Support\Carbon;
 class CompanyPhone extends Model
 {
     protected $fillable = [
-        'company_id',
         'phone_number',
-        'label',
+        'name',
     ];
 
     /**

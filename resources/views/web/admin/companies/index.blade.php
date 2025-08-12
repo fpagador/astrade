@@ -41,19 +41,27 @@
     </form>
 
     {{-- TABLE HEADER --}}
-    <div class="grid grid-cols-[2fr_3fr_3fr_1fr] bg-indigo-900 text-white font-medium text-sm rounded-t-md px-4 py-2">
+    <div class="grid grid-cols-[2fr_3fr_3fr_3fr_1fr] bg-indigo-900 text-white font-medium text-sm rounded-t-md px-4 py-2">
         <div>Nombre</div>
         <div>Dirección</div>
         <div>Descripción</div>
+        <div>Teléfonos</div>
         <div>Acciones</div>
     </div>
 
     {{-- ROWS --}}
     @foreach($companies as $company)
-        <div class="grid grid-cols-[2fr_3fr_3fr_1fr] items-center px-4 py-3 border-b hover:bg-indigo-50 text-sm bg-white">
+        <div class="grid grid-cols-[2fr_3fr_3fr_3fr_1fr] items-center px-4 py-3 border-b hover:bg-indigo-50 text-sm bg-white">
             <div class="px-2">{{ $company->name }}</div>
             <div class="px-2">{{ $company->address ?? '-' }}</div>
             <div class="px-2">{{ $company->description ?? '-' }}</div>
+            <div class="px-2 space-y-1">
+                @foreach($company->phones as $phone)
+                    <div>
+                        <span class="font-semibold">{{ $phone->name }}:</span> {{ $phone->phone_number }}
+                    </div>
+                @endforeach
+            </div>
             <div class="flex justify-center gap-2 px-2">
                 {{-- EDIT --}}
                 <a href="{{ route('admin.companies.edit', $company->id) }}" title="Editar">
