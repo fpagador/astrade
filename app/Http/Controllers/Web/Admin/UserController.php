@@ -354,14 +354,12 @@ class UserController extends WebController
             }
 
             // Check that the field is valid (exists in rules)
-            if (!isset($rules[$field])) {
-                return response()->json(['error' => 'Invalid field provided.'], 422);
-            }
-
-            // Prepare single field validation
-            if ($field === 'password_confirmation') {
-                $singleRule = ['password' => $rules['password']];
-                $requestData['password_confirmation'] = $value;
+            if ($field === 'password' || $field === 'password_confirmation') {
+                $singleRule = [
+                    'password' => $rules['password'],
+                ];
+                $requestData['password'] = $request->input('password');
+                $requestData['password_confirmation'] = $request->input('password_confirmation');
             } else {
                 $singleRule = [$field => $rules[$field]];
             }

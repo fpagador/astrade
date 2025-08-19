@@ -1,15 +1,8 @@
-/*
-|--------------------------------------------------------------------------
-| Create and Edit User -- create.blade.php edit.blade.php
-|--------------------------------------------------------------------------
-*/
 document.addEventListener('DOMContentLoaded', function () {
     const page = document.body.dataset.page;
     const userPages = ['admin-users-create', 'admin-users-edit', 'admin-users-edit-password'];
-
     if (!userPages.includes(page)) return;
 
-    // --- Field logic according to role ---
     const roleSelect = document.getElementById('role_id') || document.getElementById('role');
     const userOnlyFields = document.querySelectorAll('.user-only');
     const checkbox = document.getElementById('can_receive_notifications');
@@ -19,7 +12,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const selectedOption = roleSelect?.options[roleSelect.selectedIndex];
         const selectedRole = selectedOption?.dataset?.roleName?.toLowerCase();
         const isUser = selectedRole === 'user';
-
         userOnlyFields.forEach(el => {
             el.style.display = isUser ? 'block' : 'none';
         });
@@ -28,9 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function toggleNotificationType() {
         if (!checkbox || !notificationTypeSelect) return;
         notificationTypeSelect.disabled = !checkbox.checked;
-        if (!checkbox.checked) {
-            notificationTypeSelect.value = 'none';
-        }
+        if (!checkbox.checked) notificationTypeSelect.value = 'none';
     }
 
     if (roleSelect) {
@@ -61,6 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function validateField(input) {
         if (input.closest('.user-only') && input.style.display === 'none') return;
+
         const field = input.name;
         const value = input.value;
 
@@ -76,13 +67,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const password = document.querySelector('[name="password"]');
         const confirmation = document.querySelector('[name="password_confirmation"]');
-
         const passwordValue = password?.value || '';
         const confirmationValue = confirmation?.value || '';
 
-        if (!passwordValue || !confirmationValue) {
-            if (password) removeError(password);
-            if (confirmation) removeError(confirmation);
+        if ((field === 'password' || field === 'password_confirmation') && (!passwordValue || !confirmationValue)) {
+            removeError(password);
+            removeError(confirmation);
             return;
         }
 
@@ -92,18 +82,20 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        // Prepara datos para enviar
+        const data = { field, value };
+        if (field === 'password' || field === 'password_confirmation') {
+            data.password = passwordValue;
+            data.password_confirmation = confirmationValue;
+        }
+
         fetch(window.routes.validateField, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': csrfToken
             },
-            body: JSON.stringify({
-                field,
-                value,
-                password: document.querySelector('[name="password"]')?.value,
-                password_confirmation: document.querySelector('[name="password_confirmation"]')?.value
-            })
+            body: JSON.stringify(data)
         })
             .then(res => res.json())
             .then(data => {
@@ -113,15 +105,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     removeError(input);
                 }
             })
-            .catch(err => {
-                console.error(err);
-            });
+            .catch(err => console.error(err));
     }
 
     // Inputs to be validated in real time
     const inputs = document.querySelectorAll(
         '#dni, #email, #username, #phone, [name="password"], [name="password_confirmation"]'
     );
+
     inputs.forEach(input => {
         input.addEventListener('blur', function () {
             validateField(this);
