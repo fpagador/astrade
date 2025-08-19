@@ -55,7 +55,7 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
         Route::post('/', [UserController::class, 'store'])->name('store');
         Route::get('/{user}/show', [UserController::class, 'show'])->name('show');
         Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
-        Route::put('/user}', [UserController::class, 'update'])->name('update');
+        Route::put('/{user}', [UserController::class, 'update'])->name('update');
         Route::delete('/{id}', [UserController::class, 'destroy'])->name('destroy');
         Route::get('/{user}/edit-password', [UserController::class, 'editPassword'])->name('edit-password');
         Route::put('/{user}/update-password', [UserController::class, 'updatePassword'])->name('update-password');

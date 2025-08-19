@@ -77,71 +77,83 @@
         {{-- Fields that are only displayed when creating a user of type "user" --}}
 
         <!-- Company -->
-        <x-form.select
-            label="Empresa"
-            name="company_id"
-            class="user-only"
-            :options="$companies->pluck('name', 'id')->prepend('-- Selecciona una empresa --', '')->toArray()"
-            :selected="old('company_id', $user->company_id)"
-        />
+        <div class="mb-4 user-only">
+            <x-form.select
+                label="Empresa"
+                name="company_id"
+                :options="$companies->pluck('name', 'id')->prepend('-- Selecciona una empresa --', '')->toArray()"
+                :selected="old('company_id', $user->company_id)"
+            />
+        </div>
 
         <!-- Work Calendar -->
-        <x-form.select
-            label="Calendario laboral"
-            name="work_calendar_template_id"
-            :options="$workCalendarTemplante->pluck('name', 'id')->prepend('-- Selecciona una plantilla --', '')->toArray()"
-            :selected="old('work_calendar_template_id', $user->work_calendar_template_id)"
-        />
+        <div class="mb-4 user-only">
+            <x-form.select
+                label="Calendario laboral"
+                name="work_calendar_template_id"
+                :options="$workCalendarTemplante->pluck('name', 'id')->prepend('-- Selecciona una plantilla --', '')->toArray()"
+                :selected="old('work_calendar_template_id', $user->work_calendar_template_id)"
+            />
+        </div>
 
         <!-- Work schedule -->
-        <x-form.textarea
-            label="Horario de trabajo"
-            name="work_schedule"
-            class="user-only"
-        >{{ old('work_schedule', $user->work_schedule) }}</x-form.textarea>
+        <div class="mb-4 user-only">
+            <x-form.textarea
+                label="Horario de trabajo"
+                name="work_schedule"
+            >{{ old('work_schedule', $user->work_schedule) }}</x-form.textarea>
+        </div>
 
         <!-- Contract Type -->
-        <x-form.select
-            label="Tipo de contrato"
-            name="contract_type"
-            class="user-only"
-            :options="[
-                '' => '-- Selecciona un tipo --',
-                'Temporal' => 'Temporal',
-                'Indefinido' => 'Indefinido',
-            ]"
-            :selected="old('contract_type', $user->contract_type)"
-        />
+        <div class="mb-4 user-only">
+            <x-form.select
+                label="Tipo de contrato"
+                name="contract_type"
+                class="user-only"
+                :options="[
+                    '' => '-- Selecciona un tipo --',
+                    'Temporal' => 'Temporal',
+                    'Indefinido' => 'Indefinido',
+                ]"
+                :selected="old('contract_type', $user->contract_type)"
+            />
+        </div>
 
         <!-- Contract Start Date -->
-        <x-form.input
-            label="Fecha de inicio de contrato"
-            name="contract_start_date"
-            type="date"
-            class="user-only"
-            value="{{ old('contract_start_date', optional($user?->contract_start_date)->format('Y-m-d')) }}"
-        />
+        <div class="mb-4 user-only">
+            <x-form.input
+                label="Fecha de inicio de contrato"
+                name="contract_start_date"
+                type="date"
+                class="user-only"
+                value="{{ old('contract_start_date', optional($user?->contract_start_date)->format('Y-m-d')) }}"
+            />
+        </div>
 
         <!-- Checkbox: Can receive notifications -->
+        <div class="mb-4 user-only">
         <x-form.checkbox
             name="can_receive_notifications"
             label="Puede recibir notificaciones"
             class="user-only"
             :checked="old('can_receive_notifications', $user->can_receive_notifications)"
         />
+        </div>
 
         <!-- Notification type -->
-        <x-form.select
-            label="Tipo de notificación"
-            name="notification_type"
-            class="user-only"
-            :options="[
-                'none' => 'None',
-                'visual' => 'Visual',
-                'visual_audio' => 'Visual y Audio',
-            ]"
-            :selected="old('notification_type', $user->notification_type)"
-        />
+        <div class="mb-4 user-only">
+            <x-form.select
+                label="Tipo de notificación"
+                name="notification_type"
+                class="user-only"
+                :options="[
+                    'none' => 'None',
+                    'visual' => 'Visual',
+                    'visual_audio' => 'Visual y Audio',
+                ]"
+                :selected="old('notification_type', $user->notification_type)"
+            />
+        </div>
 
         {{-- Buttons --}}
         <x-form.button-group submit-text="Actualizar" />

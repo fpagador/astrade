@@ -9,8 +9,6 @@
     <x-admin.alert-messages />
 
     <x-form.form-wrapper action="{{ route('admin.users.store') }}" method="POST" class="max-w-lg mx-auto bg-white p-6 rounded shadow">
-        <input type="hidden" name="type" value="{{ request('type', 'mobile') }}">
-
         <!-- Name -->
         <x-form.input label="Nombre" name="name" required />
 
@@ -74,57 +72,74 @@
 
         {{-- Fields that are only displayed when creating a user of type "user" --}}
         <!-- Company -->
-        <x-form.select
-            name="company_id"
-            label="Empresa"
-            :options="$companies->pluck('name', 'id')->prepend('-- Selecciona una empresa --', '')->toArray()"
-            required
-        />
+        <div class="mb-4 user-only">
+            <x-form.select
+                name="company_id"
+                label="Empresa"
+                :options="$companies->pluck('name', 'id')->prepend('-- Selecciona una empresa --', '')->toArray()"
+            />
+        </div>
 
         <!-- Work Calendar -->
-        <x-form.select
-            name="workCalendar_id"
-            label="Calendario Laboral"
-            :options="$workCalendarTemplante->pluck('name', 'id')->prepend('-- Selecciona un calendario laboral --', '')->toArray()"
-        />
+        <div class="mb-4 user-only">
+            <x-form.select
+                name="workCalendar_id"
+                label="Calendario Laboral"
+                :options="$workCalendarTemplante->pluck('name', 'id')->prepend('-- Selecciona un calendario laboral --', '')->toArray()"
+            />
+        </div>
 
         <!-- Work schedule -->
-        <x-form.textarea
-            name="work_schedule"
-            label="Horario de trabajo"
-            class="user-only"
-        />
+        <div class="mb-4 user-only">
+            <x-form.textarea
+                name="work_schedule"
+                label="Horario de trabajo"
+            />
+        </div>
 
         <!-- Contract Type -->
-        <x-form.select
-            name="contract_type"
-            label="Tipo de contrato"
-            :options="[
-                '' => '-- Selecciona un tipo --',
-                'Temporal' => 'Temporal',
-                'Indefinido' => 'Indefinido'
-            ]"
-        />
+        <div class="mb-4 user-only">
+            <x-form.select
+                name="contract_type"
+                label="Tipo de contrato"
+                :options="[
+                    '' => '-- Selecciona un tipo --',
+                    'Temporal' => 'Temporal',
+                    'Indefinido' => 'Indefinido'
+                ]"
+            />
+        </div>
 
         <!-- Contract Start Date -->
-        <x-form.input label="Fecha de inicio de contrato" name="contract_start_date" type="date" value="{{ old('contract_start_date') }}" />
+        <div class="mb-4 user-only">
+            <x-form.input
+                label="Fecha de inicio de contrato"
+                name="contract_start_date"
+                type="date"
+                value="{{ old('contract_start_date') }}"
+            />
+        </div>
 
         <!-- Checkbox: Can receive notifications -->
-        <x-form.checkbox
-            name="can_receive_notifications"
-            label="Puede recibir notificaciones"
-        />
+        <div class="mb-4 user-only">
+            <x-form.checkbox
+                name="can_receive_notifications"
+                label="Puede recibir notificaciones"
+            />
+        </div>
 
         <!-- Notification type -->
-        <x-form.select
-            name="notification_type"
-            label="Tipo de notificación"
-            :options="[
-                'none' => 'Ninguna',
-                'visual' => 'Visual',
-                'visual_audio' => 'Visual y Audio'
-            ]"
-        />
+        <div class="mb-4 user-only">
+            <x-form.select
+                name="notification_type"
+                label="Tipo de notificación"
+                :options="[
+                    'none' => 'Ninguna',
+                    'visual' => 'Visual',
+                    'visual_audio' => 'Visual y Audio'
+                ]"
+            />
+        </div>
 
         {{-- Buttons --}}
         <x-form.button-group submit-text="Crear" />

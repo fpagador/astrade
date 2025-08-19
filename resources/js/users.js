@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function validateField(input) {
+        if (input.closest('.user-only') && input.style.display === 'none') return;
         const field = input.name;
         const value = input.value;
 
@@ -72,6 +73,18 @@ document.addEventListener('DOMContentLoaded', function () {
             password: 'Contraseña',
             password_confirmation: 'Confirmar contraseña',
         };
+
+        const password = document.querySelector('[name="password"]');
+        const confirmation = document.querySelector('[name="password_confirmation"]');
+
+        const passwordValue = password?.value || '';
+        const confirmationValue = confirmation?.value || '';
+
+        if (!passwordValue || !confirmationValue) {
+            if (password) removeError(password);
+            if (confirmation) removeError(confirmation);
+            return;
+        }
 
         if (!value) {
             const label = fieldLabels[field] || field;
@@ -88,7 +101,8 @@ document.addEventListener('DOMContentLoaded', function () {
             body: JSON.stringify({
                 field,
                 value,
-                password: document.querySelector('[name="password"]')?.value
+                password: document.querySelector('[name="password"]')?.value,
+                password_confirmation: document.querySelector('[name="password_confirmation"]')?.value
             })
         })
             .then(res => res.json())

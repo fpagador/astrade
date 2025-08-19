@@ -150,7 +150,7 @@ class UserController extends WebController
 
             // Determine roles that the authenticated user can assign
             $allowedRoleNames = match (true) {
-                $authUser->hasRole('admin') => ['manager', 'user'],
+                $authUser->hasRole('admin') => ['admin', 'manager', 'user'],
                 $authUser->hasRole('manager') => ['user'],
                 default => [],
             };
@@ -176,7 +176,7 @@ class UserController extends WebController
             $validated['role_id'] = $request->role_id;
 
             User::create($validated);
-            $type = $request->input('type', 'mobile');
+            $type = $role->role_name === 'user' ? 'mobile' : 'management';
 
             return redirect()->route('admin.users.index', ['type' => $type]);
         }, route('admin.users.create'), 'Usuario creado correctamente.');
@@ -249,7 +249,7 @@ class UserController extends WebController
 
             $user->update($validated);
 
-            $type = $request->input('type', 'mobile');
+            $type = $request->input('role_id') === 'user' ? 'mobile' : 'management';
 
             return redirect()->route('admin.users.index', ['type' => $type]);
         }, route('admin.users.index'), 'Usuario actualizado correctamente.');
@@ -358,8 +358,13 @@ class UserController extends WebController
                 return response()->json(['error' => 'Invalid field provided.'], 422);
             }
 
-            // Prepare validation for only the single field
-            $singleRule = [$field => $rules[$field]];
+            // Prepare single field validation
+            if ($field === 'password_confirmation') {
+                $singleRule = ['password' => $rules['password']];
+                $requestData['password_confirmation'] = $value;
+            } else {
+                $singleRule = [$field => $rules[$field]];
+            }
 
             // Filter messages relevant to the current field
             $messages = $formRequest->messages();
