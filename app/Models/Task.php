@@ -46,7 +46,6 @@ class Task extends Model
         'scheduled_time',
         'estimated_duration_minutes',
         'pictogram_path',
-        'order',
         'status',
         'recurrent_task_id'
     ];

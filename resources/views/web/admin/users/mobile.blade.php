@@ -60,7 +60,7 @@
     </form>
 
     @php
-        $gridCols = 'grid-cols-[1fr_1fr_1fr_2fr_1fr_2fr_1fr_auto]';
+        $gridCols = 'grid-cols-[1fr_1fr_1fr_2fr_1fr_2fr_2fr]';
     @endphp
     {{-- TABLE HEADER --}}
     <div class="grid {{ $gridCols }} bg-indigo-900 text-white font-medium text-sm rounded-t-md px-4 py-2">
@@ -70,7 +70,6 @@
         <div>Email</div>
         <div>Teléfono</div>
         <div>Empresa</div>
-        <div>Rol</div>
         <div>Acciones</div>
     </div>
 
@@ -98,8 +97,6 @@
                 @endif
             </div>
 
-            <div class="truncate whitespace-nowrap overflow-hidden max-w-xs">{{ $user->role ? \App\Enums\RoleEnum::from($user->role->role_name)->label() : '' }}</div>
-
             <div class="flex gap-2 truncate whitespace-nowrap overflow-hidden max-w-xs">
                 {{-- VIEW USER --}}
                 <a href="{{ route('admin.users.show', ['user' => $user->id, 'type' => request('type', 'mobile')]) }}" title="Ver usuario">
@@ -122,6 +119,11 @@
                         <i data-lucide="list-todo" class="w-5 h-5 text-indigo-800 hover:text-indigo-900 transition"></i>
                     </a>
                 @endif
+
+                {{-- VIEW/ASSIGN VACATIONS --}}
+                <a href="{{ route('admin.users.vacations', $user->id) }}" title="Ver/Asignar vacaciones">
+                    <i data-lucide="calendar" class="w-5 h-5 text-green-600 hover:text-green-700 transition"></i>
+                </a>
 
                 {{-- DELETE --}}
                 <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('¿Está seguro de eliminar este usuario?');">

@@ -12,6 +12,7 @@ class LogController extends WebController
     /**
      * Display a list of logs.
      *
+     * @param Request $request
      * @return View
      */
     public function index(Request $request): View

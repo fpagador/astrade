@@ -37,6 +37,8 @@ class UpdateUserRequest extends FormRequest
             'notification_type' => 'nullable|in:none,visual,visual_audio',
             'can_receive_notifications' => 'nullable|boolean',
             'phone' => 'nullable|string|max:20',
+            'company_id' => 'nullable|exists:companies,id',
+            'work_calendar_template_id' => 'nullable|exists:work_calendar_templates,id',
         ];
     }
 

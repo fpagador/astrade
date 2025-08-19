@@ -12,6 +12,7 @@ use App\Models\Company;
 use App\Models\CompanyTask;
 use App\Models\CompanyPhone;
 use App\Models\TaskCompletionLog;
+use App\Models\WorkCalendarTemplate;
 
 class TestDataSeeder extends Seeder
 {
@@ -19,20 +20,34 @@ class TestDataSeeder extends Seeder
     {
         $password = 'TestPass2025!';
 
-        // Crear solo si no existen
-        if (Company::count() < 3) {
-            $companies = Company::factory()->count(3)->create();
-        } else {
-            $companies = Company::all()->take(3);
+        // Crear empresas
+        $companies = Company::factory()->count(3)->create();
+
+        // Teléfonos de empresas
+        foreach ($companies as $company) {
+            for ($i = 0; $i < rand(1, 2); $i++) {
+                CompanyPhone::create([
+                    'company_id' => $company->id,
+                    'phone_number' => fake()->phoneNumber(),
+                    'name' => fake()->optional()->words(2, true),
+                ]);
+            }
         }
+
+        // Plantillas laborales
+        $templates = WorkCalendarTemplate::factory()
+            ->count(3)
+            ->withDays()
+            ->create();
 
         // Crear 20 usuarios con contraseña y empresa asignada
         $users = collect();
         for ($i = 0; $i < 20; $i++) {
             $users->push(User::factory()->create([
-                'company_id' => null, // por defecto null
+                'company_id' => null,
+                'work_calendar_template_id' => null,
                 'password' => Hash::make($password),
-                'role_id' => 3,       // asignar user como rol inicial
+                'role_id' => 3,
             ]));
         }
 
@@ -42,34 +57,27 @@ class TestDataSeeder extends Seeder
             'dni' => '01035080L',
             'role_id' => 1,
             'company_id' => null, // Admin sin empresa
+            'work_calendar_template_id' => null, // Admin sin calendar
         ]);
 
         // Resto de usuarios: manager o user
         foreach ($users->skip(1) as $user) {
-            $newRole = rand(2, 3);
-            $companyId = ($newRole === 3) ? $companies->random()->id : null; // solo user tiene empresa
-
+            $newRole = rand(2, 3); // 2 = manager, 3 = user
             $user->update([
                 'role_id' => $newRole,
-                'company_id' => $companyId,
             ]);
+
+            if ($newRole === 3) {
+                // Solo usuarios tipo user tienen empresa y plantilla laboral
+                $user->update([
+                    'company_id' => $companies->random()->id,
+                    'work_calendar_template_id' => $templates->random()->id,
+                ]);
+            }
         }
 
         // Usuarios tipo "user"
         $userUsers = $users->where('role_id', 3)->values();
-
-        // Asociar teléfonos a empresas
-        foreach ($companies as $index => $company) {
-            // Añadir teléfonos a empresa
-            $phoneCount = rand(1, 2);
-            for ($i = 0; $i < $phoneCount; $i++) {
-                CompanyPhone::create([
-                    'company_id' => $company->id,
-                    'phone_number' => fake()->phoneNumber(),
-                    'name' => fake()->optional()->words(2, true),
-                ]);
-            }
-        }
 
         // Tareas para usuarios tipo "user"
         foreach ($userUsers as $user) {

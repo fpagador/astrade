@@ -54,6 +54,7 @@ class StoreUserRequest extends FormRequest
 
             //Conditional fields:
             'company_id' => $isUser ? 'required|exists:companies,id' : 'nullable',
+            'work_calendar_template_id' => $isUser ? 'required|exists:companies,id' : 'nullable',
             'work_schedule' => $isUser ? 'required|string|max:255' : 'nullable',
             'contract_type' => $isUser ? 'required|in:Temporal,Indefinido' : 'nullable',
             'contract_start_date' => $isUser ? 'required|date' : 'nullable',

@@ -18,7 +18,6 @@ return new class extends Migration {
     $table->time('scheduled_time')->nullable();
     $table->integer('estimated_duration_minutes')->nullable();
     $table->string('pictogram_path')->nullable();
-    $table->integer('order')->nullable();
     $table->enum('status', ['pending', 'completed'])->default('pending');
     $table->foreignId('recurrent_task_id')->nullable()->constrained('recurrent_tasks')->nullOnDelete();
     $table->timestamps();

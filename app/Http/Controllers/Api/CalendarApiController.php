@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use App\Models\Calendar;
-use App\Http\Requests\Calendar\VacationRequest;
 use App\Http\Controllers\Api\Traits\HandlesApiErrors;
-use App\Http\Requests\Calendar\CalendarTypeRequest;
+use App\Models\UserVacation;
+use App\Models\WorkCalendarDay;
 
 class CalendarApiController extends ApiController
 {
@@ -15,37 +15,49 @@ class CalendarApiController extends ApiController
     /**
      * Returns the vacation, holiday or sick_leave days recorded for the authenticated user
      *
-     * @param CalendarTypeRequest $request
+     * @param Request $request
      * @param string $type
      * @return JsonResponse
      */
-    public function getCalendarByType(CalendarTypeRequest $request, string $type)
+    public function getCalendarByType(Request $request, string $type): JsonResponse
     {
         return $this->handleApi(function () use ($request, $type) {
-            $calendarType = Calendar::where('user_id', $request->user()->id)
-                ->where('type', $type)->get();
+            if ($type === 'vacation') {
+                // Días de vacaciones del usuario
+                $vacations = UserVacation::where('user_id', $request->user()->id)->get();
+                return $this->render($vacations);
+            }
 
-            return $this->render($calendarType);
+            // Días del calendario de trabajo (según la plantilla asignada al usuario)
+            $user = $request->user();
+            $templateId = $user->work_calendar_template_id;
+
+            $calendarDays = WorkCalendarDay::where('template_id', $templateId)
+                ->where('day_type', $type)
+                ->get();
+
+            return $this->render($calendarDays);
         }, 'Error getting ' . $type . ' from user', $request);
     }
 
     /**
      * Registers a new vacation for the authenticated user.
      *
-     * @param VacationRequest $request
+     * @param Request $request
      * @return JsonResponse
      */
-    public function storeVacation(VacationRequest $request)
+    public function storeVacation(Request $request)
     {
         return $this->handleApi(function () use ($request) {
-            $data = $request->validated();
+            $request->validate([
+                'date' => 'required|date|after_or_equal:today',
+                'description' => 'nullable|string|max:255',
+            ]);
 
-            $vacation = $request->user()->calendar()->create([
-                'date' => $data['start_date'],
-                'day_type' => 'vacation',
-                'reason' => $data['reason'] ?? null,
-                'type' => 'vacation',
-                'description' => 'Registered vacation',
+            $vacation = UserVacation::create([
+                'user_id' => $request->user()->id,
+                'date' => $request->date,
+                'description' => $request->description,
             ]);
 
             return $this->render($vacation, 'Vacation successfully recorded');

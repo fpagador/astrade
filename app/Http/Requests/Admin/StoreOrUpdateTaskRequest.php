@@ -28,8 +28,6 @@ class StoreOrUpdateTaskRequest extends FormRequest
             'scheduled_time' => 'required',
             'estimated_duration_minutes' => 'nullable|integer',
             'pictogram_path' => 'nullable|string',
-            'order' => 'nullable|integer',
-            'status' => 'required|string',
             'color' => 'nullable|string',
 
             // Recurrente
@@ -47,7 +45,6 @@ class StoreOrUpdateTaskRequest extends FormRequest
             'subtasks.*.description' => 'nullable|string',
             'subtasks.*.note' => 'nullable|string',
             'subtasks.*.order' => 'nullable|integer',
-            'subtasks.*.status' => 'required|string',
 
             // Pictograma
             'pictogram' => 'nullable|image|max:2048',

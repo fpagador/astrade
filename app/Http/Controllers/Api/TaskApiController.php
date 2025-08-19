@@ -47,7 +47,7 @@ class TaskApiController extends ApiController
                 ->get();
 
             if ($tasks->isEmpty()) {
-                return $this->render(null, 'This user has no tasks for today', 204);
+                return $this->render(null, 'This user has no tasks for today', 200);
             }
             return $this->render($tasks);
 
@@ -75,7 +75,7 @@ class TaskApiController extends ApiController
                 ->get();
 
             if ($tasks->isEmpty()) {
-                return $this->render(null, 'This user has no tasks scheduled for the following'. $days .' days', 204);
+                return $this->render(null, 'This user has no tasks scheduled for the following'. $days .' days', 200);
             }
             return $this->render($tasks);
         }, 'Error getting scheduled tasks', $request);
@@ -144,7 +144,7 @@ class TaskApiController extends ApiController
             }
 
             if (!$task->user->company) {
-                return $this->render(null, 'No company associated with this task', 204);
+                return $this->render(null, 'No company associated with this task', 200);
             }
 
             return $this->render($task->user->company);

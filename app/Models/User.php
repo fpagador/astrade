@@ -27,13 +27,18 @@ use Illuminate\Database\Eloquent\Collection;
  * @property string|null $notification_type
  * @property bool $can_receive_notifications
  * @property int|null $role_id
+ * @property int|null $company_id
+ * @property int|null $work_calendar_template_id
+ * @property string|null $phone
  * @property-read Role|null $role
+ * @property-read Company|null $company
+ * @property-read WorkCalendarTemplate|null $workCalendarTemplate
  * @property-read NotificationPreference|null $notificationPreferences
- * @property-read Collection<Calendar> $calendar
  * @property-read Collection<Notification> $notifications
  * @property-read Collection<Task> $tasks
  * @property-read Collection<TaskCompletionLog> $logs
  * @property-read Collection<Task> $assignedTasks
+ * @property-read Collection<UserVacation> $vacations
  */
 class User extends Authenticatable
 {
@@ -43,7 +48,8 @@ class User extends Authenticatable
     protected $fillable = [
         'name', 'surname', 'dni', 'email', 'username', 'password', 'photo',
         'work_schedule', 'contract_type', 'contract_start_date',
-        'notification_type', 'can_receive_notifications', 'role_id', 'phone'
+        'notification_type', 'can_receive_notifications', 'role_id', 'phone',
+        'company_id', 'work_calendar_template_id'
     ];
 
     /** @var array<int, string> */
@@ -85,16 +91,6 @@ class User extends Authenticatable
     public function notifications(): HasMany
     {
         return $this->hasMany(Notification::class);
-    }
-
-    /**
-     * Get the user's calendar entries.
-     *
-     * @return HasMany
-     */
-    public function calendar(): HasMany
-    {
-        return $this->hasMany(Calendar::class);
     }
 
     /**
@@ -187,5 +183,25 @@ class User extends Authenticatable
     public function company()
     {
         return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * Get the work calendars templates assigned to the user.
+     *
+     * @return BelongsTo
+     */
+    public function workCalendarTemplate(): BelongsTo
+    {
+        return $this->belongsTo(WorkCalendarTemplate::class, 'work_calendar_template_id');
+    }
+
+    /**
+     * Get all vacation days for the user.
+     *
+     * @return HasMany
+     */
+    public function vacations(): HasMany
+    {
+        return $this->hasMany(UserVacation::class);
     }
 }

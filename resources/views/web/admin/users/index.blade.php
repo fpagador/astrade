@@ -5,7 +5,7 @@
 @section('content')
     @can('viewAdmin', \App\Models\User::class)
         <div class="flex items-center justify-between mb-6">
-            <h1 class="text-3xl font-semibold mb-6">Usuarios</h1>
+            <h1 class="text-3xl font-semibold mb-6">Usuarios de Gestión Interna</h1>
 
             @can('create', \App\Models\User::class)
             <a href="{{ route('admin.users.create') }}"

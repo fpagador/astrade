@@ -85,6 +85,14 @@
             :selected="old('company_id', $user->company_id)"
         />
 
+        <!-- Work Calendar -->
+        <x-form.select
+            label="Calendario laboral"
+            name="work_calendar_template_id"
+            :options="$workCalendarTemplante->pluck('name', 'id')->prepend('-- Selecciona una plantilla --', '')->toArray()"
+            :selected="old('work_calendar_template_id', $user->work_calendar_template_id)"
+        />
+
         <!-- Work schedule -->
         <x-form.textarea
             label="Horario de trabajo"

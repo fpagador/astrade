@@ -5,13 +5,13 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Web\Admin\DashboardController;
 use App\Http\Controllers\Web\Admin\UserController;
 use App\Http\Controllers\Web\Admin\UserTaskController;
-use App\Http\Controllers\Web\Admin\CalendarController;
-use App\Http\Controllers\Web\Admin\NotificationController;
+use App\Http\Controllers\Web\Admin\UserVacationController;
 use App\Http\Controllers\Web\Admin\LogController;
 use App\Http\Controllers\Web\Admin\CompanyController;
 use App\Http\Controllers\Web\Admin\TaskCompletionLogController;
 use Illuminate\Http\Request;
 use App\Models\Task;
+use App\Http\Controllers\Web\Admin\WorkCalendarTemplateController;
 
 /*
 |--------------------------------------------------------------------------
@@ -49,41 +49,50 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
     | User Management
     |--------------------------------------------------------------------------
     */
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
-    Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
-    Route::post('/users', [UserController::class, 'store'])->name('users.store');
-    Route::get('/users/{user}/show', [UserController::class, 'show'])->name('users.show');
-    Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
-    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
-    Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
-    Route::get('users/{user}/edit-password', [UserController::class, 'editPassword'])->name('users.edit-password');
-    Route::put('users/{user}/update-password', [UserController::class, 'updatePassword'])->name('users.update-password');
-    Route::post('users/validate-field', [UserController::class, 'validateField'])
-        ->name('users.validate-field');
+    Route::prefix('users')->name('users.')->group(function () {
+        Route::get('/', [UserController::class, 'index'])->name('index');
+        Route::get('/create', [UserController::class, 'create'])->name('create');
+        Route::post('/', [UserController::class, 'store'])->name('store');
+        Route::get('/{user}/show', [UserController::class, 'show'])->name('show');
+        Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
+        Route::put('/user}', [UserController::class, 'update'])->name('update');
+        Route::delete('/{id}', [UserController::class, 'destroy'])->name('destroy');
+        Route::get('/{user}/edit-password', [UserController::class, 'editPassword'])->name('edit-password');
+        Route::put('/{user}/update-password', [UserController::class, 'updatePassword'])->name('update-password');
+        Route::post('/validate-field', [UserController::class, 'validateField'])->name('validate-field');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Tasks by users
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/users/{id}/tasks', [UserTaskController::class, 'index'])->name('users.tasks');
-    Route::get('/users/task/create/{userId?}', [UserTaskController::class, 'create'])->name('tasks.create');
-    Route::get('/users/task/{task}/json', [UserTaskController::class, 'json'])->name('tasks.json');
-    Route::post('/users/{id}/task', [UserTaskController::class, 'store'])->name('tasks.store');
-    Route::delete('users/{user}/tasks/{task?}', [UserTaskController::class, 'destroy'])->name('users.tasks.destroy');
-    Route::get('/tasks/{id}/edit', [UserTaskController::class, 'edit'])->name('tasks.edit');
-    Route::put('/tasks/{task}', [UserTaskController::class, 'update'])->name('tasks.update');
+        /*
+        |--------------------------------------------------------------------------
+        | Holidays per user
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/{user}/vacations', [UserVacationController::class, 'index'])->name('vacations');
+        Route::post('/{user}/vacations', [UserVacationController::class, 'store'])->name('vacations.store');
 
-    Route::get('users/{userId}/tasks/check-conflict', function($userId, Request $request) {
-        $date = $request->query('scheduled_date');
-        $time = $request->query('scheduled_time');
+        /*
+        |--------------------------------------------------------------------------
+        | Tasks by users
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/{id}/tasks', [UserTaskController::class, 'index'])->name('tasks');
+        Route::get('/task/create/{userId?}', [UserTaskController::class, 'create'])->name('tasks.create');
+        Route::get('/task/{task}/json', [UserTaskController::class, 'json'])->name('tasks.json');
+        Route::post('/{id}/task', [UserTaskController::class, 'store'])->name('tasks.store');
+        Route::delete('/{user}/tasks/{task?}', [UserTaskController::class, 'destroy'])->name('tasks.destroy');
+        Route::get('/task/{id}/edit', [UserTaskController::class, 'edit'])->name('tasks.edit');
+        Route::put('/task/{task}', [UserTaskController::class, 'update'])->name('tasks.update');
 
-        $exists = Task::where('user_id', $userId)
-            ->where('scheduled_date', $date)
-            ->where('scheduled_time', $time)
-            ->exists();
+        Route::get('/{userId}/tasks/check-conflict', function($userId, Request $request) {
+            $date = $request->query('scheduled_date');
+            $time = $request->query('scheduled_time');
 
-        return response()->json(['conflict' => $exists]);
+            $exists = Task::where('user_id', $userId)
+                ->where('scheduled_date', $date)
+                ->where('scheduled_time', $time)
+                ->exists();
+
+            return response()->json(['conflict' => $exists]);
+        });
     });
 
     /*
@@ -91,28 +100,32 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
     | Work Calendar
     |--------------------------------------------------------------------------
     */
-    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
+    Route::prefix('calendars')->name('calendars.')->group(function () {
+        Route::get('/', [WorkCalendarTemplateController::class, 'index'])->name('index');
+        Route::get('/create', [WorkCalendarTemplateController::class, 'create'])->name('create');
+        Route::post('/', [WorkCalendarTemplateController::class, 'store'])->name('store');
+        Route::get('/{template}/edit', [WorkCalendarTemplateController::class, 'edit'])->name('edit');
+        Route::put('/{template}', [WorkCalendarTemplateController::class, 'update'])->name('update');
+        Route::delete('/{template}', [WorkCalendarTemplateController::class, 'destroy'])->name('destroy');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Notifications
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/notificaciones', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::get('/notificaciones/crear', [NotificationController::class, 'create'])->name('notifications.create');
-    Route::post('/notificaciones', [NotificationController::class, 'store'])->name('notifications.store');
+        // Managing days within the template
+        Route::post('/{template}/days', [WorkCalendarTemplateController::class, 'addDay'])->name('days.add');
+        Route::delete('/{template}/days/{day}', [WorkCalendarTemplateController::class, 'removeDay'])->name('days.remove');
+    });
 
     /*
     |--------------------------------------------------------------------------
     | Companies
     |--------------------------------------------------------------------------
     */
-    Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
-    Route::get('/companies/create', [CompanyController::class, 'create'])->name('companies.create');
-    Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
-    Route::get('/companies/{company}/edit', [CompanyController::class, 'edit'])->name('companies.edit');
-    Route::put('/companies/{company}', [CompanyController::class, 'update'])->name('companies.update');
-    Route::delete('/companies/{company}', [CompanyController::class, 'destroy'])->name('companies.destroy');
+    Route::prefix('companies')->name('companies.')->group(function () {
+        Route::get('/', [CompanyController::class, 'index'])->name('index');
+        Route::get('/create', [CompanyController::class, 'create'])->name('create');
+        Route::post('/', [CompanyController::class, 'store'])->name('ompanies.store');
+        Route::get('/{company}/edit', [CompanyController::class, 'edit'])->name('edit');
+        Route::put('/{company}', [CompanyController::class, 'update'])->name('update');
+        Route::delete('/{company}', [CompanyController::class, 'destroy'])->name('destroy');
+    });
 
     /*
     |--------------------------------------------------------------------------

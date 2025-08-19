@@ -36,8 +36,12 @@
         <x-admin.alert-messages />
 
         {{-- MAIN FORM --}}
-        <x-form.form-wrapper action="{{ route('admin.tasks.store', ['id' => $user->id, 'date' => $date])  }}" method="POST" class="space-y-6">
+        <x-form.form-wrapper
+            action="{{ route('admin.tasks.store', ['id' => $user->id, 'date' => $date])  }}"
+            method="POST"
+            class="space-y-6">
             @csrf
+
             <input type="hidden" name="user_id" value="{{ $user->id }}">
             <input type="hidden" name="assigned_by" value="{{ auth()->id() }}">
 

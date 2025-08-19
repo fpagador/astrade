@@ -81,6 +81,13 @@
             required
         />
 
+        <!-- Work Calendar -->
+        <x-form.select
+            name="workCalendar_id"
+            label="Calendario Laboral"
+            :options="$workCalendarTemplante->pluck('name', 'id')->prepend('-- Selecciona un calendario laboral --', '')->toArray()"
+        />
+
         <!-- Work schedule -->
         <x-form.textarea
             name="work_schedule"

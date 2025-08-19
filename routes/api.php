@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Route;
 
 // Public login
 Route::post('/login', [AuthController::class, 'login']);
+// Refresh token
+Route::post('/refresh', [AuthController::class, 'refresh']);
 
 // Routes for authenticated mobile users (role: user)
 
@@ -24,6 +26,7 @@ Route::middleware(['auth:sanctum', 'role:admin|manager|user|'])->group(function 
     */
     Route::get('/profile', [UserApiController::class, 'profile']);
     Route::get('/phone', [UserApiController::class, 'getPhone']);
+
     /*
     |--------------------------------------------------------------------------
     | Task
@@ -51,7 +54,7 @@ Route::middleware(['auth:sanctum', 'role:admin|manager|user|'])->group(function 
     | Calendar / vacation, holiday and sick_leave
     |--------------------------------------------------------------------------
     */
-    Route::get('/calendar/{type}', [CalendarApiController::class, 'getCalendarByType']);
+    Route::get('/calendars/{type}', [CalendarApiController::class, 'getCalendarByType']);
 
     /*
    |--------------------------------------------------------------------------

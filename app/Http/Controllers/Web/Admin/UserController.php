@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserPasswordRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
+use App\Models\WorkCalendarTemplate;
 use Beste\Json;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -117,6 +118,7 @@ class UserController extends WebController
 
         $assignableRoles = Role::whereIn('role_name', $assignableRoleNames)->get();
         $companies = Company::all();
+        $workCalendarTemplante = WorkCalendarTemplate::orderBy('year', 'desc')->get();
 
         $defaultRole = null;
 
@@ -124,7 +126,13 @@ class UserController extends WebController
             $defaultRole = Role::where('role_name', $request->role)->first()?->id;
         }
 
-        return view('web.admin.users.create', compact('assignableRoles', 'companies', 'defaultRole'));
+        return view('web.admin.users.create', compact(
+            'assignableRoles',
+            'companies',
+            'defaultRole',
+            'workCalendarTemplante'
+            )
+        );
     }
 
     /**
@@ -201,11 +209,15 @@ class UserController extends WebController
                 : $user->role_id;
 
             $companies = Company::all();
+            $workCalendarTemplante = WorkCalendarTemplate::orderBy('year', 'desc')->get();
+
             return view('web.admin.users.edit', compact(
                 'user',
                 'assignableRoles',
                 'defaultRole',
-                'companies'));
+                'companies',
+                'workCalendarTemplante'
+            ));
         }, route('admin.users.index'));
     }
 

@@ -182,7 +182,7 @@
                             @endif
 
                             {{-- EDIT --}}
-                            <a href="{{ route('admin.tasks.edit', ['id' => $task->id, 'date' => $date]) }}" title="Editar">
+                            <a href="{{ route('admin.users.task.edit', ['id' => $task->id, 'date' => $date]) }}" title="Editar">
                                 <i data-lucide="pencil" class="w-5 h-5 text-indigo-800 hover:text-indigo-900 transition"></i>
                             </a>
 
