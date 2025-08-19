@@ -24,7 +24,6 @@ class TaskFactory extends Factory
             'scheduled_time' => $this->faker->time('H:i'),
             'estimated_duration_minutes' => $this->faker->numberBetween(15, 180),
             'pictogram_path' => null,
-            'order' => $this->faker->numberBetween(1, 10),
             'status' => $status,
             'recurrent_task_id' => null,
         ];
