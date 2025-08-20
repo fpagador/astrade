@@ -9,7 +9,7 @@
         </h1>
 
         @can('create',\App\Models\User::class)
-        <a href="{{ route('admin.tasks.create', ['userId' => $user->id, 'date' => $date]) }}"
+        <a href="{{ route('admin.users.tasks.create', ['userId' => $user->id, 'date' => $date]) }}"
            class="inline-block mb-4 px-4 py-2 bg-indigo-900 text-white rounded hover:bg-indigo-800">
             Nueva tarea
         </a>
@@ -182,7 +182,7 @@
                             @endif
 
                             {{-- EDIT --}}
-                            <a href="{{ route('admin.users.task.edit', ['id' => $task->id, 'date' => $date]) }}" title="Editar">
+                            <a href="{{ route('admin.users.tasks.edit', ['id' => $task->id, 'date' => $date]) }}" title="Editar">
                                 <i data-lucide="pencil" class="w-5 h-5 text-indigo-800 hover:text-indigo-900 transition"></i>
                             </a>
 
@@ -275,7 +275,7 @@
     @endif
 
     {{-- BACK BUTTON --}}
-    <x-admin.back-to-users-button type="mobile" />
+    <x-admin.back-to-users-button :type="\App\Enums\UserTypeEnum::mobile->value" />
 
     @push('modals')
         <x-admin.image-modal />

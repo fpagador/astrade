@@ -26,11 +26,15 @@
                 <x-form.input label="Confirmar contraseña" name="password_confirmation" type="password" required />
 
                 {{-- BUTTONS --}}
-                <x-form.button-group submit-text="Actualizar" />
+                <x-form.button-group
+                    submit-text="Actualizar"
+                    :cancelRoute="route('admin.users.index', ['type' => \App\Enums\UserTypeEnum::mobile->value])"
+                />
+
             </x-form.form-wrapper>
         </div>
     </div>
 
     {{-- BACK BUTTON --}}
-    <x-admin.back-to-users-button type="mobile" />
+    <x-admin.back-to-users-button :type="\App\Enums\UserTypeEnum::mobile->value" />
 @endsection

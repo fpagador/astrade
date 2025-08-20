@@ -78,6 +78,6 @@
         </div>
 
         {{-- BACK BUTTON --}}
-        <x-admin.back-to-users-button type="mobile" />
+        <x-admin.back-to-users-button :type="\App\Enums\UserTypeEnum::mobile->value" />
     </div>
 @endsection

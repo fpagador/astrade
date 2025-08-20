@@ -40,6 +40,6 @@
         </div>
 
         {{-- Buttons --}}
-        <x-form.button-group submit-text="Actualizar" />
+        <x-form.button-group submit-text="Actualizar" :cancelRoute="route('admin.companies.index')"/>
     </x-form.form-wrapper>
 @endsection

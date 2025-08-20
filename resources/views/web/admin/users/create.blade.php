@@ -54,6 +54,9 @@
                     </option>
                 @endforeach
             </select>
+            @if (request('role'))
+                <input type="hidden" name="role_id" value="{{ $defaultRole ?? ($user->role_id ?? '') }}">
+            @endif
         </div>
 
         <!-- Password -->
@@ -83,7 +86,7 @@
         <!-- Work Calendar -->
         <div class="mb-4 user-only">
             <x-form.select
-                name="workCalendar_id"
+                name="work_calendar_template_id"
                 label="Calendario Laboral"
                 :options="$workCalendarTemplante->pluck('name', 'id')->prepend('-- Selecciona un calendario laboral --', '')->toArray()"
             />
@@ -122,6 +125,7 @@
 
         <!-- Checkbox: Can receive notifications -->
         <div class="mb-4 user-only">
+            <input type="hidden" name="can_receive_notifications" value="0">
             <x-form.checkbox
                 name="can_receive_notifications"
                 label="Puede recibir notificaciones"
@@ -142,7 +146,10 @@
         </div>
 
         {{-- Buttons --}}
-        <x-form.button-group submit-text="Crear" />
+        @php
+            $type = request('type', 'management');
+        @endphp
+        <x-form.button-group submit-text="Crear" :cancelRoute="route('admin.users.index', ['type' => $type])"  />
 
     </x-form.form-wrapper>
     <script>

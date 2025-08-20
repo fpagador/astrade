@@ -37,6 +37,6 @@
         </div>
 
         {{-- Buttons --}}
-        <x-form.button-group submit-text="Crear" />
+        <x-form.button-group submit-text="Crear" :cancelRoute="route('admin.companies.index')"/>
     </x-form.form-wrapper>
 @endsection

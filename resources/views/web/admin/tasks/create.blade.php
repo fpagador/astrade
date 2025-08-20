@@ -37,7 +37,7 @@
 
         {{-- MAIN FORM --}}
         <x-form.form-wrapper
-            action="{{ route('admin.tasks.store', ['id' => $user->id, 'date' => $date])  }}"
+            action="{{ route('admin.users.tasks.store', ['id' => $user->id, 'date' => $date])  }}"
             method="POST"
             class="space-y-6">
             @csrf
@@ -161,7 +161,7 @@
             </div>
 
             {{-- ACTIONS --}}
-            <x-form.button-group submit-text="Crear" />
+            <x-form.button-group submit-text="Crear" :cancelRoute="route('admin.users.tasks', ['id' => $user->id])" />
         </x-form.form-wrapper>
     </div>
     @push('modals')

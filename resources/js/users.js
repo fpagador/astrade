@@ -70,11 +70,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const passwordValue = password?.value || '';
         const confirmationValue = confirmation?.value || '';
 
-        if ((field === 'password' || field === 'password_confirmation') && (!passwordValue || !confirmationValue)) {
+        /*if ((field === 'password' || field === 'password_confirmation') && (!passwordValue || !confirmationValue)) {
             removeError(password);
             removeError(confirmation);
             return;
-        }
+        }*/
 
         if (!value) {
             const label = fieldLabels[field] || field;
@@ -116,6 +116,10 @@ document.addEventListener('DOMContentLoaded', function () {
     inputs.forEach(input => {
         input.addEventListener('blur', function () {
             validateField(this);
+            if (this.name === 'password') {
+                const confirmation = document.querySelector('[name="password_confirmation"]');
+                if (confirmation && confirmation.value) validateField(confirmation);
+            }
         });
     });
 });

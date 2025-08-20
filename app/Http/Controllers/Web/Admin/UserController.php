@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Web\Admin;
 
+use App\Enums\RoleEnum;
+use App\Enums\UserTypeEnum;
 use App\Http\Controllers\Web\WebController;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserPasswordRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
 use App\Models\WorkCalendarTemplate;
-use Beste\Json;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,7 +36,7 @@ class UserController extends WebController
 
             $query = User::query()->with('role');
 
-            if ($type === 'mobile') {
+            if ($type === UserTypeEnum::mobile->value) {
                 // Mobile users only
                 $query->whereHas('role', fn($q) => $q->where('role_name', 'user'));
             } else {
@@ -72,7 +73,7 @@ class UserController extends WebController
             $users = $query->paginate(15)->appends($request->query());
 
             //Dynamic view by type
-            if ($type === 'mobile') {
+            if ($type === UserTypeEnum::mobile->value) {
                 $companies = Company::orderBy('name')->get();
                 return view('web.admin.users.mobile', compact('users', 'companies'));
             }
@@ -90,7 +91,7 @@ class UserController extends WebController
      */
     public function show(User $user, Request $request): View
     {
-        $type = $request->get('type', 'mobile');
+        $type = $request->get('type', UserTypeEnum::mobile->value);
 
         return view('web.admin.users.show', compact('user', 'type'));
     }
@@ -106,7 +107,7 @@ class UserController extends WebController
         $authUser = auth()->user();
 
         // If you come from the mobile users view (passed role=user)
-        if ($request->input('role') === 'user') {
+        if ($request->input('role') === RoleEnum::user->value ) {
             $assignableRoleNames = ['user'];
         } else {
             $assignableRoleNames = match (true) {
@@ -176,7 +177,7 @@ class UserController extends WebController
             $validated['role_id'] = $request->role_id;
 
             User::create($validated);
-            $type = $role->role_name === 'user' ? 'mobile' : 'management';
+            $type = $role->role_name === RoleEnum::user->value ? UserTypeEnum::mobile->value : UserTypeEnum::management->value;
 
             return redirect()->route('admin.users.index', ['type' => $type]);
         }, route('admin.users.create'), 'Usuario creado correctamente.');
@@ -249,7 +250,8 @@ class UserController extends WebController
 
             $user->update($validated);
 
-            $type = $request->input('role_id') === 'user' ? 'mobile' : 'management';
+            $role = Role::findOrFail($request->input('role_id'));
+            $type = $role->role_name === RoleEnum::user->value ? UserTypeEnum::mobile->value : UserTypeEnum::management->value;
 
             return redirect()->route('admin.users.index', ['type' => $type]);
         }, route('admin.users.index'), 'Usuario actualizado correctamente.');
@@ -318,16 +320,15 @@ class UserController extends WebController
             $field = $request->input('field');
             $value = $request->input('value');
 
-            // Instantiate the FormRequest to access rules and messages
+            // Usa el FormRequest para obtener reglas y mensajes
+            /** @var StoreUserRequest $formRequest */
             $formRequest = new StoreUserRequest();
+            $rules = $formRequest->rules();
+            $messages = $formRequest->messages();
 
-            // Get all rules keys (all possible fields)
-            $allFields = array_keys($formRequest->rules());
-
-            // Prepare data with all relevant fields from the request (needed for conditional validation)
+            // Prepara datos base
+            $allFields = array_keys($rules);
             $requestData = $request->only($allFields);
-
-            // Override the field to be validated with the provided value
             $requestData[$field] = $value;
 
             // If validating password or confirmation, ensure both are present
@@ -336,51 +337,44 @@ class UserController extends WebController
                 $requestData['password_confirmation'] = $request->input('password_confirmation');
             }
 
-            // Get all validation rules
-            $rules = $formRequest->rules();
-
-            // Adjust unique rules to ignore current user if user_id is provided (for update scenarios)
-            if (isset($requestData['user_id'])) {
-                foreach (['dni', 'email', 'username'] as $uniqueField) {
-                    if (isset($rules[$uniqueField]) && is_array($rules[$uniqueField])) {
-                        foreach ($rules[$uniqueField] as &$rule) {
-                            if (str_starts_with($rule, 'unique:')) {
-                                // Ignore current user by ID in unique validation
-                                $rule = "unique:users,{$uniqueField}," . $requestData['user_id'];
-                            }
-                        }
-                    }
+            // Reglas por campo
+            if ($field === 'password') {
+                // Toma las reglas de password pero SIN 'confirmed'
+                $pwdRules = $rules['password'];
+                if (is_array($pwdRules)) {
+                    $pwdRules = array_values(array_filter($pwdRules, function ($r) {
+                        if (is_string($r)) return $r !== 'confirmed';
+                        return !($r);
+                    }));
                 }
-            }
-
-            // Check that the field is valid (exists in rules)
-            if ($field === 'password' || $field === 'password_confirmation') {
-                $singleRule = [
-                    'password' => $rules['password'],
-                ];
-                $requestData['password'] = $request->input('password');
-                $requestData['password_confirmation'] = $request->input('password_confirmation');
+                $singleRule = ['password' => $pwdRules];
+            } elseif ($field === 'password_confirmation') {
+                // Solo validar que coincida con password
+                $singleRule = ['password_confirmation' => ['same:password']];
             } else {
-                $singleRule = [$field => $rules[$field]];
+                $singleRule = [$field => $rules[$field] ?? []];
             }
 
-            // Filter messages relevant to the current field
-            $messages = $formRequest->messages();
-            $singleMessages = array_filter($messages, function($key) use ($field) {
+            // Mensajes solo del campo que se valida
+            $singleMessages = array_filter($messages, function ($key) use ($field) {
                 return str_starts_with($key, $field . '.');
             }, ARRAY_FILTER_USE_KEY);
 
-            // Run validation
+            // Asegura mensaje para 'same' si no existe
+            $singleMessages += [
+                'password_confirmation.same' => $messages['password_confirmation.same'] ?? 'La confirmación debe coincidir con la contraseña.',
+            ];
+
             $validator = Validator::make($requestData, $singleRule, $singleMessages);
 
             if ($validator->fails()) {
-                return response()->json(['error' => $validator->errors()->first($field)], 422);
+                $key = array_key_first($singleRule); // 'password' o 'password_confirmation' o el campo que toque
+                return response()->json(['error' => $validator->errors()->first($key)], 422);
             }
 
             // Validation passed
             return response()->json(['success' => true]);
-
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return response()->json(['error' => 'Server error during validation.'], 500);
         }
     }

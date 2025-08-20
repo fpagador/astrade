@@ -9,7 +9,7 @@
         {{-- ALERTS --}}
         <x-admin.alert-messages />
 
-        <x-form.form-wrapper action="{{ route('admin.users.task.update', $task->id) }}" method="PUT" class="space-y-6">
+        <x-form.form-wrapper action="{{ route('admin.users.tasks.update', $task->id) }}" method="PUT" class="space-y-6">
             <input type="hidden" name="date" value="{{ $date }}">
             <input type="hidden" name="user_id" value="{{ $task->user_id }}">
             <input type="hidden" name="assigned_by" value="{{ $task->assigned_by }}">
@@ -245,7 +245,7 @@
             </div>
 
             {{-- BUTTONS --}}
-            <x-form.button-group submit-text="Actualizar" />
+            <x-form.button-group submit-text="Actualizar"  :cancelRoute="route('admin.users.tasks', ['id' => $task->user_id])"/>
         </x-form.form-wrapper>
     </div>
     @push('modals')

@@ -34,7 +34,7 @@
             <button type="button" data-open-modal="confirmModal_vacationForm" class="bg-indigo-900 text-white px-4 py-2 rounded">
                 Guardar vacaciones
             </button>
-            <a href="{{ url()->previous() }}" class="bg-red-900 text-white px-4 py-2 rounded hover:bg-red-800 text-center">Cancelar</a>
+            <a href="{{ route('admin.users.index', ['type' => \App\Enums\UserTypeEnum::mobile->value]) }}" class="bg-red-900 text-white px-4 py-2 rounded hover:bg-red-800 text-center">Cancelar</a>
         </div>
 
         {{-- Confirmation modal --}}
@@ -47,5 +47,5 @@
     </x-form.form-wrapper>
 
     {{-- BACK BUTTON --}}
-    <x-admin.back-to-users-button type="mobile" />
+    <x-admin.back-to-users-button :type="\App\Enums\UserTypeEnum::mobile->value" />
 @endsection

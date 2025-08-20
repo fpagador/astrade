@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web\Admin;
 
+use App\Enums\UserTypeEnum;
 use App\Http\Controllers\Web\WebController;
 use App\Http\Requests\Admin\StoreOrUpdateTaskRequest;
 use App\Http\Requests\Admin\UserTaskFilterRequest;
@@ -88,7 +89,7 @@ class UserTaskController extends WebController
                 'timeCounts'
                 )
             );
-        }, route('admin.users.index'));
+        }, route('admin.users.index', ['type' => UserTypeEnum::mobile->value]));
     }
 
     /**
@@ -105,7 +106,7 @@ class UserTaskController extends WebController
             $colors = Task::getColors();
             $date = $request->query('date', now()->toDateString());
             return view('web.admin.tasks.create', compact('user', 'existingTasks', 'colors', 'date'));
-        }, route('admin.users.index'));
+        }, route('admin.users.index', ['type' => UserTypeEnum::mobile->value]));
     }
 
     /**
@@ -247,7 +248,7 @@ class UserTaskController extends WebController
                 'colors' => $colors,
                 'date' => $date
             ]);
-        }, route('admin.users.index'));
+        }, route('admin.users.index', ['type' => UserTypeEnum::mobile->value]));
 
     }
 
@@ -283,7 +284,7 @@ class UserTaskController extends WebController
                 'id' => $userId,
                 'date' => $request->input('date') ?? now()->toDateString()
             ]);
-        }, route('admin.tasks.edit', ['id' => $task->id]), 'Tarea actualizada con éxito.');
+        }, route('admin.users.tasks.edit', ['id' => $task->id]), 'Tarea actualizada con éxito.');
     }
 
     /**
@@ -508,12 +509,14 @@ class UserTaskController extends WebController
                 'order' => $task->order,
                 'status' => $task->status,
                 'pictogram_path' => $task->pictogram_path,
-                // Datos de recurrente
+
+                //Recurring data
                 'is_recurrent' => (bool) $task->recurrentTask,
                 'days_of_week' => $task->recurrentTask?->days_of_week ?? [],
                 'recurrent_start_date' => optional($task->recurrentTask)->start_date,
                 'recurrent_end_date' => optional($task->recurrentTask)->end_date,
-                // Subtareas
+
+                // Subtasks
                 'subtasks' => $task->subtasks
             ]
         ]);

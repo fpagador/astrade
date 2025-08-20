@@ -85,6 +85,7 @@ class StoreUserRequest extends FormRequest
             'password.required' => 'La contraseña es obligatoria.',
             'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
             'password.confirmed' => 'La confirmación de contraseña no coincide.',
+            'password_confirmation.same' => 'La confirmación debe coincidir con la contraseña.',
             'photo.image' => 'El archivo debe ser una imagen.',
             'photo.max' => 'La imagen no puede pesar más de 2MB.',
             'phone.required' => 'El teléfono es obligatorio.',

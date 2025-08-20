@@ -59,6 +59,9 @@
                     </option>
                 @endforeach
             </select>
+            @if (request('role'))
+                <input type="hidden" name="role_id" value="{{ $defaultRole ?? ($user->role_id ?? '') }}">
+            @endif
         </div>
 
         <!-- Photo -->
@@ -156,7 +159,10 @@
         </div>
 
         {{-- Buttons --}}
-        <x-form.button-group submit-text="Actualizar" />
+        @php
+            $type = request('type', 'management');
+        @endphp
+        <x-form.button-group submit-text="Actualizar" :cancelRoute="route('admin.users.index', ['type' => $type])"  />
     </x-form.form-wrapper>
 
     @push('modals')
