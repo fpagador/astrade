@@ -14,20 +14,8 @@
         class="max-w-5xl mx-auto bg-white p-6 rounded shadow"
     >
         @csrf
-        @method('PUT')
 
         <x-form.input label="Nombre de la plantilla" name="name" required tooltip='Ej: Calendario general Región de Murcia' />
-
-        <x-form.input
-            label="Año"
-            name="yearInput"
-            type="number"
-            min="2000"
-            max="2100"
-            value="{{ now()->year}}"
-            required
-            id="yearInput"
-        />
         <x-form.select name="status" label="Estado" :options="['draft' => 'Borrador', 'active' => 'Activo', 'inactive' => 'Inactivo']" :value="old('status', 'draft')" />
 
         <hr class="my-6">

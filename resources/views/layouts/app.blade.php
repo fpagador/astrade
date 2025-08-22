@@ -33,7 +33,7 @@
             {{-- Menú Usuarios para admin --}}
             @if(auth()->user()->hasRole('admin'))
                 <div x-data="{ open: @json(request()->routeIs('admin.users.*')) }" class="space-y-1">
-                    {{-- Botón principal Usuarios --}}
+                    {{-- Main button Users --}}
                     <button
                         @click="open = !open"
                         class="flex items-center gap-3 w-full py-2 px-4 rounded hover:bg-gray-700 transition
@@ -44,7 +44,7 @@
                         <i data-lucide="chevron-down" :class="{ 'rotate-180': open }" class="w-4 h-4 transition-transform"></i>
                     </button>
 
-                    {{-- Submenú --}}
+                    {{-- Submenu --}}
                     <div x-show="open" x-transition class="pl-8 mt-1 space-y-1">
                         @can('viewAdmin', \App\Models\User::class)
                             <x-admin.nav-link
@@ -65,7 +65,7 @@
                 </div>
             @endif
 
-            {{-- Menú Usuarios para manager --}}
+            {{-- Users menu for manager--}}
             @if(auth()->user()->hasRole('manager'))
                 <x-admin.nav-link
                     route="admin.users.index"
@@ -76,7 +76,7 @@
                 />
             @endif
 
-            {{-- Otros menús --}}
+            {{-- Other menus --}}
             <x-admin.nav-link route="admin.calendars.index" icon="calendar-days" label="Calendarios laborales" />
             <x-admin.nav-link route="admin.companies.index" icon="map-pin" label="Empresas" />
             <x-admin.nav-link route="admin.task_completion_logs.index" icon="check-circle" label="Registro de Finalización de Tareas" />

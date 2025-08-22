@@ -20,12 +20,29 @@ class UserVacationController extends WebController
     public function index(User $user): View|RedirectResponse
     {
         return $this->tryCatch(function () use ($user) {
+            $year = now()->year;
+
+            // User's vacation dates
             $vacationDates = $user->vacations()
                 ->pluck('date')
                 ->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))
                 ->toArray();
 
-            return view('web.admin.users.vacations', compact('user', 'vacationDates'));
+            // Active staff of the year
+            $template = \App\Models\WorkCalendarTemplate::where('year', $year)
+                ->where('status', 'active')
+                ->first();
+
+            $holidayDates = [];
+            if ($template) {
+                $holidayDates = $template->days()
+                    ->where('day_type', 'holiday')
+                    ->pluck('date')
+                    ->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))
+                    ->toArray();
+            }
+
+            return view('web.admin.users.vacations', compact('user', 'vacationDates', 'holidayDates'));
         }, route('admin.users.index'));
     }
 

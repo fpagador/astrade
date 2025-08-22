@@ -522,4 +522,74 @@ class UserTaskController extends WebController
         ]);
     }
 
+    /**
+     * Outlook-style calendar with mini calendar and daily columns.
+     * Clicking on a task loads the details below.
+     *
+     * @param int $userId
+     * @param Request $request
+     * @return View
+     */
+    public function calendar(int $userId, Request $request): View
+    {
+        return $this->tryCatch(function () use ($userId, $request) {
+            $user = User::findOrFail($userId);
+            $date = $request->input('date', now()->toDateString());
+
+            // Get user tasks
+            $tasks = Task::where('user_id', $userId)
+                ->orderBy('scheduled_date')
+                ->orderBy('scheduled_time')
+                ->get();
+
+            // Group tasks by date and prepare a simple array for Alpine
+            $tasksByDate = [];
+            foreach ($tasks as $task) {
+                $dateKey = $task->scheduled_date instanceof \Carbon\Carbon
+                    ? $task->scheduled_date->format('Y-m-d')
+                    : $task->scheduled_date;
+
+                $tasksByDate[$dateKey][] = [
+                    'id' => $task->id,
+                    'title' => $task->title,
+                    'description' => $task->description,
+                    'scheduled_time' => $task->scheduled_time ? $task->scheduled_time->format('H:i') : null,
+                    'color' => $task->color,
+                ];
+            }
+
+            return view('web.admin.users.tasks-calendar', compact('user', 'tasksByDate', 'date'));
+        }, route('admin.users.index', ['type' => UserTypeEnum::mobile->value]));
+    }
+
+    /**
+     * Returns the HTML fragment with the task details (including actions and subtasks).
+     *
+     * @param Task $task
+     * @param Request $request
+     * @return View
+     */
+    public function taskDetail(Task $task, Request $request): View
+    {
+        return $this->tryCatch(function () use ($task, $request) {
+            $task->load('subtasks');
+            $user = $task->user;
+            $date = $request->input('date', optional($task->scheduled_date)->format('Y-m-d') ?? now()->toDateString());
+
+            // Get all user tasks for date
+            $tasksForDay = Task::where('user_id', $user->id)
+                ->whereDate('scheduled_date', $date)
+                ->get();
+
+            //Count tasks per hour
+            $timeCounts = $tasksForDay->groupBy(function ($t) {
+                return $t->scheduled_time instanceof \Carbon\Carbon
+                    ? $t->scheduled_time->format('H:i')
+                    : ($t->scheduled_time ? Carbon::parse($t->scheduled_time)->format('H:i') : 'no_hora');
+            })->map(fn($group) => $group->count())->toArray();
+
+            return view('web.admin.users.partials.task-detail', compact('task','user','date', 'timeCounts'));
+        }, route('admin.users.index', ['type' => UserTypeEnum::mobile->value]));
+    }
+
 }

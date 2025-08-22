@@ -26,8 +26,8 @@ function formatDateToInput(dateString) {
 
 function formatTimeToInput(timeString) {
     if (!timeString) return '';
-    // Si viene en ISO, extraemos solo la hora y minutos
-    // Ejemplo: "2025-08-12T15:46:00.000000Z" -> "15:46"
+    // If it comes in ISO, we extract only the hour and minutes
+    // Example: "2025-08-12T15:46:00.000000Z" -> "15:46"
     const match = timeString.match(/T(\d{2}:\d{2})/);
     return match ? match[1] : timeString;
 }
@@ -73,6 +73,7 @@ export function cloneTaskForm() {
 
             const container = document.querySelector('#task-form-container');
             const conflictUrl = container?.dataset?.conflictCheckUrl || '';
+            const nonWorkingUrl = container?.dataset?.nonWorkingCheckUrl || '';
             let checkingConflict = false;
             let conflictChecked = false;
 
@@ -86,6 +87,7 @@ export function cloneTaskForm() {
                 }
                 e.preventDefault();
                 checkingConflict = true;
+
                 const userId = form.querySelector('input[name="user_id"]').value;
                 const scheduledDate = form.querySelector('input[name="scheduled_date"]').value;
                 const scheduledTime = form.querySelector('input[name="scheduled_time"]').value;
@@ -96,6 +98,30 @@ export function cloneTaskForm() {
                     return;
                 }
                 try {
+                    // === 1. Check if it is a non-working day ===
+                    const nonWorkingResponse = await fetch(
+                        nonWorkingUrl.replace('{userId}', userId) + `?scheduled_date=${scheduledDate}`
+                    );
+                    const nonWorkingData = await nonWorkingResponse.json();
+
+                    if (nonWorkingData.nonWorking) {
+                        const proceed = confirm('La fecha seleccionada corresponde a un día no laboral (festivo o vacaciones). ¿Desea continuar?');
+                        if (!proceed) {
+                            checkingConflict = false;
+                            return;
+                        }
+
+                        let flagInput = form.querySelector('input[name="is_non_working_day"]');
+                        if (!flagInput) {
+                            flagInput = document.createElement('input');
+                            flagInput.type = 'hidden';
+                            flagInput.name = 'is_non_working_day';
+                            flagInput.value = '1';
+                            form.appendChild(flagInput);
+                        }
+                    }
+
+                    // === 2. Check for time conflict ===
                     const url = conflictUrl.replace('{userId}', userId) + `?scheduled_date=${scheduledDate}&scheduled_time=${scheduledTime}`;
                     const response = await fetch(url);
                     const data = await response.json();
@@ -213,22 +239,42 @@ export function cloneTaskForm() {
 
 /*
 |--------------------------------------------------------------------------
-| EDIT TASK -- edit.blade.php
+| CREATE/EDIT TASK -- create/edit.blade.php
 |--------------------------------------------------------------------------
 */
 export function editTaskForm(initialSubtasks = []) {
     return {
-        subtasks: initialSubtasks.length ? initialSubtasks : [{ title: '', description: '', note: '', status: '', id: null }],
+        subtasks: initialSubtasks.length
+            ? initialSubtasks
+            : [{ title: '', description: '', note: '', status: '', id: null }],
         dragIndex: null,
-
         addSubtask() {
-            this.subtasks.push({ title: '', description: '', note: '',status: '', id: null });
+            this.subtasks.push({ title: '', description: '', note: '', status: '', id: null });
         },
         removeSubtask(index) {
             this.subtasks.splice(index, 1);
         },
         dragStart(event, index) {
+            if (!event.target.classList.contains('drag-handle')) {
+                event.preventDefault();
+                return;
+            }
+
             this.dragIndex = index;
+
+            const draggedElement = event.target.closest('.subtask');
+            const clone = draggedElement.cloneNode(true);
+            clone.style.position = 'absolute';
+            clone.style.top = '-9999px';
+            clone.style.left = '-9999px';
+            document.body.appendChild(clone);
+
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setDragImage(clone, event.offsetX, event.offsetY);
+
+            draggedElement.classList.add('opacity-50', 'shadow-lg');
+
+            setTimeout(() => document.body.removeChild(clone), 0);
         },
         dragOver(event) {
             event.preventDefault();
@@ -237,8 +283,18 @@ export function editTaskForm(initialSubtasks = []) {
             const draggedItem = this.subtasks.splice(this.dragIndex, 1)[0];
             this.subtasks.splice(index, 0, draggedItem);
             this.dragIndex = null;
+
+            document.querySelectorAll('.subtask').forEach(el => {
+                el.classList.remove('opacity-50', 'shadow-lg');
+            });
         },
-    };
+        dragEnd(event) {
+            document.querySelectorAll('.subtask').forEach(el => {
+                el.classList.remove('opacity-50', 'shadow-lg');
+            });
+            this.dragIndex = null;
+        }
+    }
 }
 
 export function imageModal() {
@@ -261,11 +317,6 @@ export function imageModal() {
     }
 }
 
-/*
-|--------------------------------------------------------------------------
-| COLOR PICKER -- create/edit.blade.php
-|--------------------------------------------------------------------------
-*/
 function initColorPicker() {
     const colorInput = document.getElementById('color-input');
     const swatches = document.querySelectorAll('.color-swatch');

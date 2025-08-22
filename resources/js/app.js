@@ -7,6 +7,8 @@ import './users';
 import { initCompaniesPhones } from './company';
 
 window.Alpine = Alpine;
+window.createIcons = createIcons;
+window.lucideIcons = icons;
 window.cloneTaskForm = cloneTaskForm;
 window.editTaskForm = editTaskForm;
 window.imageModal = imageModal;

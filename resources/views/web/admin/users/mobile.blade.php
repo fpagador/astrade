@@ -117,11 +117,9 @@
                 </a>
 
                 {{-- VIEW TASKS --}}
-                @if($user->hasRole('user'))
-                    <a href="{{ route('admin.users.tasks', $user->id) }}" title="Ver tareas">
-                        <i data-lucide="list-todo" class="w-5 h-5 text-indigo-800 hover:text-indigo-900 transition"></i>
-                    </a>
-                @endif
+                <a href="{{ route('admin.users.tasks', $user->id) }}" title="Ver tareas">
+                    <i data-lucide="list-todo" class="w-5 h-5 text-indigo-800 hover:text-indigo-900 transition"></i>
+                </a>
 
                 {{-- VIEW/ASSIGN VACATIONS --}}
                 <a href="{{ route('admin.users.vacations', $user->id) }}" title="Ver/Asignar vacaciones">
@@ -136,6 +134,11 @@
                         <i data-lucide="trash-2" class="w-5 h-5 text-red-600 hover:text-red-700 transition"></i>
                     </button>
                 </form>
+
+                {{-- VIEW TASKS CALENDAR --}}
+                <a href="{{ route('admin.users.tasks-calendar', $user->id) }}" title="Ver calendario de tareas">
+                    <i data-lucide="list-todo" class="w-5 h-5 text-indigo-800 hover:text-indigo-900 transition"></i>
+                </a>
             </div>
         </div>
     @endforeach

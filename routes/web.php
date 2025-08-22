@@ -12,6 +12,8 @@ use App\Http\Controllers\Web\Admin\TaskCompletionLogController;
 use Illuminate\Http\Request;
 use App\Models\Task;
 use App\Http\Controllers\Web\Admin\WorkCalendarTemplateController;
+use App\Models\WorkCalendarDay;
+use App\Models\UserVacation;
 
 /*
 |--------------------------------------------------------------------------
@@ -93,6 +95,27 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
 
             return response()->json(['conflict' => $exists]);
         });
+
+        Route::get('/{userId}/tasks/check-nonworking', function($userId, Request $request) {
+            $date = $request->query('scheduled_date');
+
+            $isHolidayOrWeekend = WorkCalendarDay::whereDate('date', $date)
+                ->whereIn('day_type', ['holiday'])
+                ->exists();
+
+            // 2. Revisar si el usuario tiene vacaciones ese día
+            $isVacation = UserVacation::where('user_id', $userId)
+                ->whereDate('date', $date)
+                ->exists();
+
+            return response()->json([
+                'nonWorking' => ($isHolidayOrWeekend || $isVacation),
+            ]);
+        });
+
+        //TASK CALENDAR
+        Route::get('/{id}/tasks-calendar', [UserTaskController::class, 'calendar'])->name('tasks-calendar');
+        Route::get('/tasks/{task}/detail', [UserTaskController::class, 'taskDetail'])->name('tasks.detail');
     });
 
     /*

@@ -11,6 +11,7 @@
         data-fetch-url="{{ url('/admin/users/task') }}"
         data-asset="{{ asset('storage') }}"
         data-conflict-check-url="{{ url('/admin/users/{userId}/tasks/check-conflict') }}"
+        data-non-working-check-url="{{ url('/admin/users/{userId}/tasks/check-nonworking') }}"
     >
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-2xl font-semibold text-gray-800">

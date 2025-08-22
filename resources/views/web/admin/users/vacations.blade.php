@@ -23,9 +23,9 @@
             mode="vacation"
             :year="now()->year"
             :selectedDates="$vacationDates"
+            :holidayDates="$holidayDates"
             :showCheckbox="true"
             checkboxLabel="Modo selección de vacaciones"
-            :showYearInput="true"
         />
 
         <input type="hidden" name="dates_json" id="selectedDates" value="{{ json_encode($vacationDates) }}">

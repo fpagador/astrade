@@ -19,18 +19,6 @@
         {{-- Name --}}
         <x-form.input label="Nombre de la plantilla" name="name" :value="old('name', $template->name)" required tooltip='Ej: Calendario general Región de Murcia' />
 
-        {{-- Year --}}
-        <x-form.input
-            label="Año"
-            name="year"
-            type="number"
-            min="2000"
-            max="2100"
-            :value="old('year', $template->year)"
-            required
-            id="yearInput"
-        />
-
         {{-- Status --}}
         <x-form.select
             name="status"
