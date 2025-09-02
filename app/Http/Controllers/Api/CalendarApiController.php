@@ -29,7 +29,7 @@ class CalendarApiController extends ApiController
      *     @OA\Parameter(
      *         name="type",
      *         in="path",
-     *         description="Type of calendar days: vacation, holiday,
+     *         description="Type of calendar days: vacation, holiday",
      *         required=true,
      *         @OA\Schema(type="string", enum={"vacation","holiday"})
      *     ),

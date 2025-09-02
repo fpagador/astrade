@@ -70,19 +70,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const passwordValue = password?.value || '';
         const confirmationValue = confirmation?.value || '';
 
-        /*if ((field === 'password' || field === 'password_confirmation') && (!passwordValue || !confirmationValue)) {
-            removeError(password);
-            removeError(confirmation);
-            return;
-        }*/
-
         if (!value) {
             const label = fieldLabels[field] || field;
             showError(input, `El campo ${label} es obligatorio.`);
             return;
         }
 
-        // Prepara datos para enviar
         const data = { field, value };
         if (field === 'password' || field === 'password_confirmation') {
             data.password = passwordValue;
