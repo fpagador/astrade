@@ -1,0 +1,837 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Astrade API",
+        "description": "Astrade API Documentation",
+        "contact": {
+            "email": "soporte@astrade.com"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8080/astrade/public",
+            "description": "Main API Server"
+        }
+    ],
+    "paths": {
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "User login",
+                "description": "Perform user authentication using ID and password.",
+                "operationId": "222b2625838e3c57e017987f73598fda",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "dni": {
+                                        "type": "string",
+                                        "example": "12345678A"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "secret"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "access_token": {
+                                            "type": "string",
+                                            "example": "token_value"
+                                        },
+                                        "token_type": {
+                                            "type": "string",
+                                            "example": "Bearer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid credentials"
+                    }
+                }
+            }
+        },
+        "/api/refresh": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Refresh authentication token",
+                "description": "Refresh the authentication token for the authenticated user.",
+                "operationId": "f6409cd8d794404a6410b0767432b0f4",
+                "responses": {
+                    "200": {
+                        "description": "Token refreshed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Token refreshed successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "new_token_value"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logout user",
+                "description": "Logout the authenticated user.",
+                "operationId": "ad65cbbd4e9f201619eae184a5961a98",
+                "responses": {
+                    "200": {
+                        "description": "Successfully logged out",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Successfully logged out"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/calendar/{type}": {
+            "get": {
+                "tags": [
+                    "Calendar"
+                ],
+                "summary": "Get user calendar days by type",
+                "description": "Returns the vacation, holiday, or sick_leave days recorded for the authenticated user.",
+                "operationId": "435f1760628a42060d9a59cd1cc0e855",
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "path",
+                        "description": "Type of calendar days: vacation, holiday, sick_leave",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "vacation",
+                                "holiday",
+                                "sick_leave"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Calendar days retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Vacation days retrieved successfully"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "date": {
+                                                        "type": "string",
+                                                        "format": "date",
+                                                        "example": "2025-09-01"
+                                                    },
+                                                    "description": {
+                                                        "type": "string",
+                                                        "example": "Family vacation"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/calendar/vacation": {
+            "post": {
+                "tags": [
+                    "Calendar"
+                ],
+                "summary": "Register a new vacation day",
+                "description": "Registers a new vacation for the authenticated user.",
+                "operationId": "a5a57a636dd56f76e75c83a59f943070",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-09-10"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Trip to the mountains"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Vacation successfully recorded",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Vacation successfully recorded"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "date": {
+                                                    "type": "string",
+                                                    "format": "date",
+                                                    "example": "2025-09-10"
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "example": "Trip to the mountains"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tasks/{task_id}/subtasks": {
+            "get": {
+                "tags": [
+                    "Subtasks"
+                ],
+                "summary": "Get all subtasks for a task",
+                "description": "Get subtasks of a task, sorted by order.",
+                "operationId": "63dfe15c7407697f05e76a0ed2c86136",
+                "parameters": [
+                    {
+                        "name": "task_id",
+                        "in": "path",
+                        "description": "ID of the task",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of subtasks",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/subtasks/{subtask_id}/status/{status}": {
+            "put": {
+                "tags": [
+                    "Subtasks"
+                ],
+                "summary": "Update subtask status",
+                "description": "/**\nUpdate the status of a subtask (completed or pending).\n\nRules:\n- Only the owner of the parent task can update the subtask.\n- If all subtasks are completed → parent task becomes completed.\n- If any subtask is pending → parent task becomes pending.",
+                "operationId": "02f47140fe0263e43b89178ae342050e",
+                "parameters": [
+                    {
+                        "name": "subtask_id",
+                        "in": "path",
+                        "description": "ID of the subtask",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 23
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "path",
+                        "description": "New status of the subtask",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "completed",
+                                "pending"
+                            ],
+                            "example": "pending"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Subtask status updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "422": {
+                        "description": "Invalid status"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tasks": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Get all tasks with subtasks for the authenticated user",
+                "description": "Get all tasks and their subtasks for the authenticated user.",
+                "operationId": "7eb70d8d671c33c68394b46c6494a1b0",
+                "responses": {
+                    "200": {
+                        "description": "List of tasks with subtasks",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tasks/today": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Get today's tasks for the authenticated user",
+                "description": "Returns the tasks scheduled for today for the authenticated user.",
+                "operationId": "63a783b546a4b4dd1c317b0d6486f1e9",
+                "responses": {
+                    "200": {
+                        "description": "List of today's tasks",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tasks/planned/{days}": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Get planned tasks for the next N days",
+                "description": "Returns the tasks planned for the next N days (maximum 30).",
+                "operationId": "63456f554584da75cd18e9c820a1b40f",
+                "parameters": [
+                    {
+                        "name": "days",
+                        "in": "path",
+                        "description": "Number of days to look ahead (max 30)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 7
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of planned tasks",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tasks/{task_id}": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Get details of a specific task",
+                "description": "Displays the details of a task for the authenticated user.",
+                "operationId": "bd69e9b15de99bcda89565ecb76a1337",
+                "parameters": [
+                    {
+                        "name": "task_id",
+                        "in": "path",
+                        "description": "ID of the task",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Task details with subtasks",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tasks/status/summary": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Get a summary of task statuses",
+                "description": "Returns a summary of the status of the user's tasks.",
+                "operationId": "85ec4e1c4649a074a948b3a16c004018",
+                "responses": {
+                    "200": {
+                        "description": "Summary of completed and pending tasks",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tasks/{taskId}/companies": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Get company associated with a specific task",
+                "description": "View companies associated with a specific task via URL param.",
+                "operationId": "5c8b7005b9a9754f8c48f87586670f59",
+                "parameters": [
+                    {
+                        "name": "taskId",
+                        "in": "path",
+                        "description": "ID of the task",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Company details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Task not found or not authorized"
+                    },
+                    "400": {
+                        "description": "No company associated with this task"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/logs/completions": {
+            "get": {
+                "tags": [
+                    "Logs"
+                ],
+                "summary": "Get completed tasks and subtasks history",
+                "description": "Retrieve the history of completed tasks and subtasks for the authenticated user.",
+                "operationId": "ff416588bc97083fc5b6a8ee927697d1",
+                "responses": {
+                    "200": {
+                        "description": "Task completion logs retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No task completion logs found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/profile": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get authenticated user profile",
+                "description": "Profile of the authenticated user.",
+                "operationId": "f69dd6dc34b5f56ee97b999ac23bbbd9",
+                "responses": {
+                    "200": {
+                        "description": "User profile retrieved",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/phone": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get authenticated user phone number",
+                "description": "Returns the user's phone number.",
+                "operationId": "88a29c5274de50c66398bd56f4ead232",
+                "responses": {
+                    "200": {
+                        "description": "User phone number retrieved",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/fcm/update": {
+            "post": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update the user's FCM token",
+                "description": "Update FCM Token",
+                "operationId": "595883acda24823919823687c2fdfb98",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "fcm_token"
+                                ],
+                                "properties": {
+                                    "fcm_token": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "FCM token updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/fcm/delete": {
+            "post": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Delete the user's FCM token",
+                "description": "Delete FCM Token",
+                "operationId": "a01d8bbc2d925d70bf7fef90cfb8f0dc",
+                "responses": {
+                    "200": {
+                        "description": "FCM token deleted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ApiResponse": {
+                "properties": {
+                    "success": {
+                        "description": "Returns a standardized JSON response",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Operation successful"
+                    },
+                    "data": {
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "description": "Enter the token in the format: Bearer {token}",
+                "name": "Authorization",
+                "in": "header",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Subtasks",
+            "description": "Endpoints for managing subtasks"
+        },
+        {
+            "name": "Tasks",
+            "description": "Endpoints for managing tasks"
+        },
+        {
+            "name": "Auth",
+            "description": "Auth"
+        },
+        {
+            "name": "Calendar",
+            "description": "Calendar"
+        },
+        {
+            "name": "Logs",
+            "description": "Logs"
+        },
+        {
+            "name": "User",
+            "description": "User"
+        }
+    ]
+}

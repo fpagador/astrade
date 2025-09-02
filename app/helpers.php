@@ -2,6 +2,10 @@
 
 use App\Enums\TaskStatus;
 
+if (!defined('DS')) {
+    define('DS', '/');
+}
+
 if (!function_exists('status_label')) {
     /**
      * Get the translated label for a TaskStatus enum value.

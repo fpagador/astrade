@@ -3,25 +3,45 @@
 namespace App\Http\Controllers\Api\Traits;
 
 use App\Models\Log;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
+use App\Exceptions\BusinessRuleException;
 
+/**
+ * Trait HandlesApiErrors
+ *
+ * Provides centralized error handling for API controllers, following
+ * the RFC 7807 "Problem Details for HTTP APIs" specification.
+ *
+ * Instead of returning inconsistent error JSON structures, this trait
+ * ensures that all errors are returned in a predictable, standardized
+ * format (problem+json).
+ */
 trait HandlesApiErrors
 {
     /**
-     * Executes a callback function capturing exceptions for centralized handling.
+     * Executes a callback with centralized error handling.
+     * If an exception occurs, it will be logged and a proper
+     * RFC 7807 problem response will be returned.
      *
      * @param callable $callback
      * @param string $errorMessage
-     * @param Request|null $logContext
+     * @param Request|null $request
      * @param callable|null $onSuccess
-     * @param callable|null $onFailure
+     * @param callable|null $onFailur
+     *
      * @return JsonResponse
      */
     protected function handleApi(
         callable $callback,
-        string $errorMessage = 'Internal Error',
+        string $errorMessage = 'Internal Server Error',
         ?Request $request = null,
         ?callable $onSuccess = null,
         ?callable $onFailure = null
@@ -35,11 +55,13 @@ trait HandlesApiErrors
 
             return $result;
         } catch (Throwable $e) {
-            //If the Request was passed, we use exceptionError to log
+            // Map exception type to an HTTP status code
+            $status = $this->mapExceptionToStatus($e);
+
+            // Log exception (with request context if available)
             if ($request) {
                 Log::exceptionError($request, $e, $errorMessage);
             } else {
-                // If there is no Request, we make a basic log
                 Log::record('error', $errorMessage, [
                     'exception' => $e->getMessage(),
                     'stack_trace' => $e->getTraceAsString(),
@@ -50,11 +72,91 @@ trait HandlesApiErrors
                 $onFailure($e);
             }
 
-            return response()->json([
-                'success' => false,
-                'message' => $errorMessage,
-                'data' => null,
-            ], 500);
+            // Return standardized RFC 7807 problem response
+            return $this->problemResponse(
+                type: env("L5_SWAGGER_CONST_HOST") . DS . "errors/$status",
+                title: Response::$statusTexts[$status] ?? 'Error',
+                status: $status,
+                detail: $e->getMessage() ?: $errorMessage,
+                instance: $request?->path(),
+                code: $this->mapExceptionToCode($e)
+            );
         }
+    }
+
+    /**
+     * Build and return a JSON response following RFC 7807 "Problem Details".
+     *
+     * @param string $type
+     * @param string $title
+     * @param int $status
+     * @param string|null $detail
+     * @param string|null $instance
+     * @param string|null $code
+     *
+     * @return JsonResponse
+     */
+    protected function problemResponse(
+        string $type,
+        string $title,
+        int $status,
+        ?string $detail = null,
+        ?string $instance = null,
+        ?string $code = null
+    ): JsonResponse {
+        $problem = [
+            'type' => $type,
+            'title' => $title,
+            'status' => $status,
+            'detail' => $detail,
+            'instance' => $instance ?? request()->path(),
+        ];
+
+        if ($code) {
+            $problem['code'] = $code;
+        }
+
+        return response()->json($problem, $status);
+    }
+
+    /**
+     * Map common Laravel exceptions to the appropriate HTTP status code.
+     *
+     * @param Throwable $e The exception to evaluate.
+     *
+     * @return int The corresponding HTTP status code.
+     */
+    protected function mapExceptionToStatus(Throwable $e): int
+    {
+        return match (true) {
+            $e instanceof BusinessRuleException => $e->getStatus(),
+            $e instanceof ModelNotFoundException     => 404, // Resource not found
+            $e instanceof AuthenticationException   => 401, // Unauthenticated
+            $e instanceof AuthorizationException    => 403, // Forbidden
+            $e instanceof ValidationException       => 422, // Validation error
+            $e instanceof HttpResponseException     => $e->getResponse()->getStatusCode(),
+            default                                 => 500, // Internal server error
+        };
+    }
+
+    /**
+     * Map exceptions to internal business codes.
+     * These codes are useful for the client
+     * to identify the exact type of error without relying solely
+     * on the HTTP code.
+     *
+     * @param Throwable $e
+     * @return string|null
+     */
+    protected function mapExceptionToCode(Throwable $e): ?string
+    {
+        return match (true) {
+            $e instanceof BusinessRuleException => 'BUSINESS_RULE_VIOLATION',
+            $e instanceof ModelNotFoundException     => 'RESOURCE_NOT_FOUND',
+            $e instanceof AuthenticationException   => 'AUTH_REQUIRED',
+            $e instanceof AuthorizationException    => 'ACCESS_DENIED',
+            $e instanceof ValidationException       => 'VALIDATION_FAILED',
+            default                                 => 'INTERNAL_ERROR',
+        };
     }
 }

@@ -4,64 +4,62 @@ namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use App\Http\Controllers\Api\Traits\HandlesApiErrors;
-use App\Models\UserVacation;
-use App\Models\WorkCalendarDay;
+use App\Services\CalendarService;
 
 class CalendarApiController extends ApiController
 {
-    use HandlesApiErrors;
+    protected CalendarService $calendarService;
 
+    public function __construct(CalendarService $calendarService)
+    {
+        $this->calendarService = $calendarService;
+    }
     /**
-     * Returns the vacation, holiday or sick_leave days recorded for the authenticated user
+     * Returns the vacation, holiday, or sick_leave days recorded for the authenticated user.
      *
      * @param Request $request
      * @param string $type
      * @return JsonResponse
+     *
+     * @OA\Get(
+     *     path="/api/calendar/{type}",
+     *     summary="Get user calendar days by type",
+     *     tags={"Calendar"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="type",
+     *         in="path",
+     *         description="Type of calendar days: vacation, holiday,
+     *         required=true,
+     *         @OA\Schema(type="string", enum={"vacation","holiday"})
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Calendar days retrieved successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Vacation days retrieved successfully"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="date", type="string", format="date", example="2025-09-01"),
+     *                     @OA\Property(property="description", type="string", example="Family vacation")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=500, description="Internal server error")
+     * )
      */
     public function getCalendarByType(Request $request, string $type): JsonResponse
     {
         return $this->handleApi(function () use ($request, $type) {
-            if ($type === 'vacation') {
-                // Días de vacaciones del usuario
-                $vacations = UserVacation::where('user_id', $request->user()->id)->get();
-                return $this->render($vacations);
-            }
-
-            // Días del calendario de trabajo (según la plantilla asignada al usuario)
-            $user = $request->user();
-            $templateId = $user->work_calendar_template_id;
-
-            $calendarDays = WorkCalendarDay::where('template_id', $templateId)
-                ->where('day_type', $type)
-                ->get();
-
-            return $this->render($calendarDays);
+            $data = $this->calendarService->getCalendarByType($request->user(), $type);
+            return $this->render($data);
         }, 'Error getting ' . $type . ' from user', $request);
     }
-
-    /**
-     * Registers a new vacation for the authenticated user.
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function storeVacation(Request $request)
-    {
-        return $this->handleApi(function () use ($request) {
-            $request->validate([
-                'date' => 'required|date|after_or_equal:today',
-                'description' => 'nullable|string|max:255',
-            ]);
-
-            $vacation = UserVacation::create([
-                'user_id' => $request->user()->id,
-                'date' => $request->date,
-                'description' => $request->description,
-            ]);
-
-            return $this->render($vacation, 'Vacation successfully recorded');
-        }, 'Error registering vacation', $request);
-    }
-
 }

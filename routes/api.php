@@ -2,19 +2,15 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CalendarApiController;
-use App\Http\Controllers\Api\NotificationApiController;
 use App\Http\Controllers\Api\SubtaskApiController;
 use App\Http\Controllers\Api\TaskCompletionLogApiController;
 use App\Http\Controllers\Api\TaskApiController;
 use App\Http\Controllers\Api\UserApiController;
-use App\Http\Controllers\Api\PushNotificationController;
 use Illuminate\Support\Facades\Route;
 
 
 // Public login
 Route::post('/login', [AuthController::class, 'login']);
-// Refresh token
-Route::post('/refresh', [AuthController::class, 'refresh']);
 
 // Routes for authenticated mobile users (role: user)
 
@@ -34,27 +30,19 @@ Route::middleware(['auth:sanctum', 'role:admin|manager|user|'])->group(function 
     */
     Route::get('/tasks', [TaskApiController::class, 'allTasksWithSubtasks']);
     Route::get('/tasks/today', [TaskApiController::class, 'tasksToday']);
-    Route::get('/tasks/plan/{num}', [TaskApiController::class, 'plannedTasks'])->whereNumber('num');
+    Route::get('/tasks/planned/{num}', [TaskApiController::class, 'plannedTasks'])->whereNumber('num');
     Route::get('/tasks/{task_id}', [TaskApiController::class, 'show']);
     Route::get('/tasks/{task_id}/subtasks', [SubtaskApiController::class, 'index']);
-    Route::patch('/subtasks/{subtask_id}/complete', [SubtaskApiController::class, 'complete']);
+    Route::put('/subtasks/{subtask_id}/status/{status}', [SubtaskApiController::class, 'updateStatus'])
+        ->where('status', 'completed|pending');
     Route::get('/tasks/status/summary', [TaskApiController::class, 'statusSummary']);
 
     /*
     |--------------------------------------------------------------------------
-    | Notification
+    | Calendar / vacation, holiday
     |--------------------------------------------------------------------------
     */
-    Route::get('/notifications/config', [NotificationApiController::class, 'config']);
-    Route::get('/notifications', [NotificationApiController::class, 'index']);
-    Route::post('/notifications/send', [NotificationApiController::class, 'sendNow']);
-
-    /*
-    |--------------------------------------------------------------------------
-    | Calendar / vacation, holiday and sick_leave
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/calendars/{type}', [CalendarApiController::class, 'getCalendarByType']);
+    Route::get('/calendar/{type}', [CalendarApiController::class, 'getCalendarByType']);
 
     /*
    |--------------------------------------------------------------------------
@@ -73,10 +61,7 @@ Route::middleware(['auth:sanctum', 'role:admin|manager|user|'])->group(function 
 
     // Logout
     Route::post('/logout', [AuthController::class, 'logout']);
-});
 
-Route::prefix('push')->controller(PushNotificationController::class)->group(function () {
-    Route::post('/to-device', 'sendToDevice');
-    Route::post('/to-multiple', 'sendToMultiple');
-    Route::post('/to-topic', 'sendToTopic');
+    // Refresh token
+    Route::post('/refresh', [AuthController::class, 'refresh']);
 });

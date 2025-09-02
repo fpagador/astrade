@@ -2,46 +2,62 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\User;
+use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Http\Requests\User\UpdateProfileRequest;
-use App\Http\Controllers\Api\Traits\HandlesApiErrors;
 
 class UserApiController extends ApiController
 {
-    use HandlesApiErrors;
+    protected UserService $service;
 
-    /**
-     * Profile of the authenticated user.
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function profile(Request $request): JsonResponse
+    public function __construct(UserService $service)
     {
-        return $this->handleApi(function () use ($request) {
-            $user = $request->user()
-                ->load([
-                    'role:id,role_name',
-                    'company.phones'
-                ]);
-            return $this->render($user);
-        }, 'Error getting user profile', $request);
+        $this->service = $service;
     }
 
     /**
      * Profile of the authenticated user.
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @OA\Get(
+     *     path="/api/profile",
+     *     summary="Get authenticated user profile",
+     *     tags={"User"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="User profile retrieved",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiResponse")
+     *     )
+     * )
+     *
+     */
+    public function profile(Request $request): JsonResponse
+    {
+        return $this->handleApi(function () use ($request) {
+            $user = $this->service->getProfile($request->user()->id);
+            return $this->render($user);
+        }, 'Error getting user profile', $request);
+    }
+
+    /**
+     * Returns the user's phone number.
+     *
+     * @OA\Get(
+     *     path="/api/phone",
+     *     summary="Get authenticated user phone number",
+     *     tags={"User"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="User phone number retrieved",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiResponse")
+     *     )
+     * )
      */
     public function getPhone(Request $request): JsonResponse
     {
         return $this->handleApi(function () use ($request) {
-            $rawPhone = '617972442';
-            $parsedPhone = preg_replace('/[^\d+]/', '', $rawPhone);
-
+            $parsedPhone = $this->service->getPhone($request->user());
             return $this->render($parsedPhone);
         }, 'Error getting user profile', $request);
     }
@@ -49,8 +65,24 @@ class UserApiController extends ApiController
     /**
      * Update FCM Token
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @OA\Post(
+     *     path="/api/fcm/update",
+     *     summary="Update the user's FCM token",
+     *     tags={"User"},
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"fcm_token"},
+     *             @OA\Property(property="fcm_token", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="FCM token updated",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiResponse")
+     *     )
+     * )
      */
     public function updateFcmToken(Request $request): JsonResponse
     {
@@ -59,30 +91,31 @@ class UserApiController extends ApiController
                 'fcm_token' => ['required', 'string'],
             ]);
 
-            /** @var User $user */
-            $user = $request->user();
-            $user->fcm_token = $request->input('fcm_token');
-            $user->save();
-
-            return $this->render($user, 'FCM token updated successfully');
+            return $this->render(
+                $this->service->updateFcmToken($request->user(), $request->input('fcm_token')),
+                'FCM token updated successfully');
         }, 'Error updating FCM token', $request);
     }
 
     /**
      * Delete FCM Token
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @OA\Post(
+     *     path="/api/fcm/delete",
+     *     summary="Delete the user's FCM token",
+     *     tags={"User"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="FCM token deleted",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiResponse")
+     *     )
+     * )
      */
     public function deleteFcmToken(Request $request): JsonResponse
     {
         return $this->handleApi(function () use ($request) {
-            /** @var User $user */
-            $user = $request->user();
-            $user->fcm_token = null;
-            $user->save();
-
-            return $this->render($user, 'FCM token deleted successfully');
+            return $this->render($this->service->deleteFcmToken($request->user()), 'FCM token deleted successfully');
         }, 'Error deleting FCM token', $request);
     }
 

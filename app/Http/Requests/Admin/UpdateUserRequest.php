@@ -27,7 +27,7 @@ class UpdateUserRequest extends FormRequest
             'name' => 'required|string|max:255',
             'surname' => 'required|string|max:255',
             'dni' => 'required|string|unique:users,dni,' . $userId,
-            'email' => 'nullable|email|unique:users,email,' . $userId,
+            'email' => 'required|email|unique:users,email,' . $userId,
             'username' => 'required|string|unique:users,username,' . $userId,
             'password' => 'nullable|string|min:8|confirmed',
             'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
@@ -36,7 +36,7 @@ class UpdateUserRequest extends FormRequest
             'contract_start_date' => 'nullable|date',
             'notification_type' => 'nullable|in:none,visual,visual_audio',
             'can_receive_notifications' => 'nullable|boolean',
-            'phone' => 'nullable|string|max:20',
+            'phone' => 'required|string|max:20',
             'company_id' => 'nullable|exists:companies,id',
             'work_calendar_template_id' => 'nullable|exists:work_calendar_templates,id',
         ];

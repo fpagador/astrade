@@ -1,107 +1,120 @@
 <?php
 namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Models\Subtask;
-use App\Models\TaskCompletionLog;
-use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Api\Traits\HandlesApiErrors;
+use Illuminate\Http\JsonResponse;
+use App\Services\SubtaskService;
 
+/**
+ * @OA\Tag(
+ *     name="Subtasks",
+ *     description="Endpoints for managing subtasks"
+ * )
+ *
+ * Controller to handle Subtask API endpoints.
+ */
 class SubtaskApiController extends ApiController
 {
-    use HandlesApiErrors;
+    protected SubtaskService $service;
 
-    /**
-     * Get subtasks of a task (sorted)
-     *
-     * @param int $task_id
-     * @return JsonResponse
-     */
-    public function index(int $task_id): JsonResponse
+    public function __construct(SubtaskService $service)
     {
-        return $this->handleApi(function () use ($task_id) {
-            $subtasks = Subtask::where('task_id', $task_id)
-                ->orderBy('order')
-                ->get();
-            return $this->render($subtasks);
+        $this->service = $service;
+    }
+    /**
+     * Get subtasks of a task, sorted by order.
+     *
+     * @param int $taskId
+     * @return JsonResponse
+     *
+     * @OA\Get(
+     *     path="/api/tasks/{task_id}/subtasks",
+     *     summary="Get all subtasks for a task",
+     *     tags={"Subtasks"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="task_id",
+     *         in="path",
+     *         description="ID of the task",
+     *         required=true,
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of subtasks",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiResponse")
+     *     )
+     * )
+     */
+    public function index(int $taskId): JsonResponse
+    {
+        return $this->handleApi(function () use ($taskId) {
+            return $this->render($this->service->getSubtasks($taskId));
         }, 'Error getting subtasks');
     }
 
     /**
-     * Get subtasks with images.
-     *
-     * @param int $task_id
-     * @return JsonResponse
-     */
-    public function byTask(int $task_id): JsonResponse
-    {
-        return $this->handleApi(function () use ($task_id) {
-            $subtasks = Subtask::with('images')
-                ->where('task_id', $task_id)
-                ->orderBy('order')
-                ->get();
-            return $this->render($subtasks);
-        }, 'Error getting subtasks with images');
-    }
-
     /**
-     * Mark a subtask as complete (sets the status to 'completed').
+     * Update the status of a subtask (completed or pending).
      *
-     * @param int $subtask_id
-     * @return JsonResponse
-     */
-    public function complete(int $subtask_id): JsonResponse
-    {
-        return $this->handleApi(function () use ($subtask_id) {
-            $user = auth()->user();
-            $subtask = Subtask::with('task')->findOrFail($subtask_id);
-
-            if (!$subtask->task || $subtask->task->user_id !== $user->id) {
-                return $this->render($subtask, 'You do not have permission to modify this subtask.',403);
-            }
-
-            // Check if already completed
-            if ($subtask->status === 'completed') {
-                return $this->render($subtask, 'This subtask is already completed.',400);
-            }
-
-            // Update status
-            $subtask->status = 'completed';
-            $subtask->save();
-
-            return $this->render($subtask, 'Subtask marked as completed');
-        }, 'Error marking subtask as completed');
-    }
-
-    /**
-     * Mark a subtask as completed and record the log.
+     * Rules:
+     * - Only the owner of the parent task can update the subtask.
+     * - If all subtasks are completed → parent task becomes completed.
+     * - If any subtask is pending → parent task becomes pending.
      *
      * @param Request $request
-     * @param int $subtask_id
+     * @param int $subtaskId
+     * @param string $status
      * @return JsonResponse
+     *
+     * @OA\Put(
+     *     path="/api/subtasks/{subtask_id}/status/{status}",
+     *     summary="Update subtask status",
+     *     tags={"Subtasks"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="subtask_id",
+     *         in="path",
+     *         description="ID of the subtask",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer",
+     *             example=23
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="status",
+     *         in="path",
+     *         description="New status of the subtask",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="string",
+     *             enum={"completed","pending"},
+     *             example="pending"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Subtask status updated successfully",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Forbidden"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Invalid status"
+     *     )
+     * )
      */
-    public function markComplete(Request $request, int $subtask_id): JsonResponse
+    public function updateStatus(Request $request, int $subtaskId, string $status): JsonResponse
     {
-        return $this->handleApi(function () use ($subtask_id, $request) {
-            $subtask = Subtask::findOrFail($subtask_id);
+        return $this->handleApi(function () use ($request, $subtaskId, $status) {
+            $updated = $this->service->updateStatusById($subtaskId, $status, $request->user()->id);
 
-            if (!in_array($subtask->status, ['pending', 'in_progress'])) {
-                return response()->json(['message' => 'Subtask already completed or invalid'], 400);
-            }
-
-            DB::transaction(function () use ($subtask, $request) {
-                $subtask->update(['status' => 'completed']);
-
-                TaskCompletionLog::create([
-                    'user_id'      => $request->user()->id,
-                    'task_id'      => $subtask->task_id,
-                    'subtask_id'   => $subtask->id,
-                    'completed_at' => now(),
-                ]);
-            });
-
-            return $this->render($subtask, 'Subtask completed successfully');
-        }, 'Error completing subtask', $request);
+            return $this->render($updated, "Subtask status updated to $status");
+        }, 'Error updating subtask status', $request);
     }
+
 }
