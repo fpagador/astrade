@@ -4,9 +4,9 @@ namespace App\Enums;
 
 enum CalendarStatus: string
 {
-    case Draft = 'draft';
-    case Active = 'active';
-    case Inactive = 'inactive';
+    case DRAFT = 'draft';
+    case ACTIVE = 'active';
+    case INACTIVE = 'inactive';
 
     /**
      * Get all values as array.
@@ -27,9 +27,9 @@ enum CalendarStatus: string
     public static function label(self $status): string
     {
         return match ($status) {
-            self::Draft => 'Borrador',
-            self::Active => 'Activo',
-            self::Inactive => 'Inactivo',
+            self::DRAFT => 'Borrador',
+            self::ACTIVE => 'Activo',
+            self::INACTIVE => 'Inactivo',
         };
     }
 }

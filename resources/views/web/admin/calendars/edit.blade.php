@@ -23,7 +23,7 @@
         <x-form.select
             name="status"
             label="Estado"
-            :options="['draft' => 'Borrador', 'active' => 'Activo', 'inactive' => 'Inactivo']"
+            :options="$statusOptions"
             :selected="old('status', $template->status)"
         />
 

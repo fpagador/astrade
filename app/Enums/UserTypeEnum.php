@@ -4,8 +4,8 @@ namespace App\Enums;
 
 enum UserTypeEnum: string
 {
-    case management = 'management';
-    case mobile = 'mobile';
+    case MANAGEMENT = 'management';
+    case MOBILE = 'mobile';
 
     /**
      * Get all values as array.

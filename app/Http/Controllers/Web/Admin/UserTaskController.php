@@ -89,7 +89,7 @@ class UserTaskController extends WebController
                 'timeCounts'
                 )
             );
-        }, route('admin.users.index', ['type' => UserTypeEnum::mobile->value]));
+        }, route('admin.users.index', ['type' => UserTypeEnum::MOBILE->value]));
     }
 
     /**
@@ -106,7 +106,7 @@ class UserTaskController extends WebController
             $colors = Task::getColors();
             $date = $request->query('date', now()->toDateString());
             return view('web.admin.tasks.create', compact('user', 'existingTasks', 'colors', 'date'));
-        }, route('admin.users.index', ['type' => UserTypeEnum::mobile->value]));
+        }, route('admin.users.index', ['type' => UserTypeEnum::MOBILE->value]));
     }
 
     /**
@@ -248,7 +248,7 @@ class UserTaskController extends WebController
                 'colors' => $colors,
                 'date' => $date
             ]);
-        }, route('admin.users.index', ['type' => UserTypeEnum::mobile->value]));
+        }, route('admin.users.index', ['type' => UserTypeEnum::MOBILE->value]));
 
     }
 
@@ -559,7 +559,7 @@ class UserTaskController extends WebController
             }
 
             return view('web.admin.users.tasks-calendar', compact('user', 'tasksByDate', 'date'));
-        }, route('admin.users.index', ['type' => UserTypeEnum::mobile->value]));
+        }, route('admin.users.index', ['type' => UserTypeEnum::MOBILE->value]));
     }
 
     /**
@@ -589,7 +589,7 @@ class UserTaskController extends WebController
             })->map(fn($group) => $group->count())->toArray();
 
             return view('web.admin.users.partials.task-detail', compact('task','user','date', 'timeCounts'));
-        }, route('admin.users.index', ['type' => UserTypeEnum::mobile->value]));
+        }, route('admin.users.index', ['type' => UserTypeEnum::MOBILE->value]));
     }
 
 }

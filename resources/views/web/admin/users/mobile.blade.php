@@ -7,7 +7,7 @@
         <h1 class="text-3xl font-semibold mb-6">Usuarios Móviles</h1>
 
         @can('create', \App\Models\User::class)
-            <a href="{{ route('admin.users.create', ['role' => \App\Enums\RoleEnum::user->value,'type' => request('type', \App\Enums\UserTypeEnum::mobile->value)]) }}"
+            <a href="{{ route('admin.users.create', ['role' => \App\Enums\RoleEnum::USER->value,'type' => request('type', \App\Enums\UserTypeEnum::MOBILE->value)]) }}"
                    class="inline-block mb-4 px-4 py-2 bg-indigo-900 text-white rounded hover:bg-indigo-800">
                 Nuevo Usuario
             </a>
@@ -106,7 +106,7 @@
                 {{-- EDIT --}}
                 <a href="{{ route('admin.users.edit', [
                             'user' => $user->id, 'role' => $user->role->role_name ?? null,
-                            'type' => request('type', \App\Enums\UserTypeEnum::mobile->value)]) }}"
+                            'type' => request('type', \App\Enums\UserTypeEnum::MOBILE->value)]) }}"
                    title="Editar">
                     <i data-lucide="pencil" class="w-5 h-5 text-indigo-800 hover:text-indigo-900 transition"></i>
                 </a>

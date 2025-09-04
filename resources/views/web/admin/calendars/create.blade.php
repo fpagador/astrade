@@ -16,7 +16,12 @@
         @csrf
 
         <x-form.input label="Nombre de la plantilla" name="name" required tooltip='Ej: Calendario general Región de Murcia' />
-        <x-form.select name="status" label="Estado" :options="['draft' => 'Borrador', 'active' => 'Activo', 'inactive' => 'Inactivo']" :value="old('status', 'draft')" />
+        <x-form.select
+            name="status"
+            label="Estado"
+            :options="$statusOptions"
+            :value="old('status', 'draft')"
+        />
 
         <hr class="my-6">
 

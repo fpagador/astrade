@@ -56,7 +56,10 @@ class WorkCalendarTemplateController extends WebController
      */
     public function create(): View
     {
-        return view('web.admin.calendars.create');
+        $statusOptions = collect(CalendarStatus::cases())
+            ->mapWithKeys(fn($case) => [$case->value => CalendarStatus::label($case)])
+            ->toArray();
+        return view('web.admin.calendars.create', compact('statusOptions'));
     }
 
     /**
@@ -94,7 +97,14 @@ class WorkCalendarTemplateController extends WebController
                 ->values()
                 ->toJson();
 
-            return view('web.admin.calendars.edit', compact('template', 'holidaysJson'));
+            $statusOptions = collect(CalendarStatus::cases())
+                ->filter(fn($case) =>
+                    $template->status === CalendarStatus::DRAFT->value || $case !== CalendarStatus::DRAFT
+                )
+                ->mapWithKeys(fn($case) => [$case->value => CalendarStatus::label($case)])
+                ->toArray();
+
+            return view('web.admin.calendars.edit', compact('template', 'holidaysJson', 'statusOptions'));
         }, route('admin.calendars.index'));
     }
 

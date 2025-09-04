@@ -2,10 +2,10 @@
 
 namespace App\Enums;
 
-enum TaskStatus: string
+enum ContractType: string
 {
-    case PENDING = 'pending';
-    case COMPLETED = 'completed';
+    case TEMPORARY = 'temporary';
+    case PERMANENT = 'permanent';
 
     /**
      * Get all values as array.
@@ -26,8 +26,8 @@ enum TaskStatus: string
     public static function label(self $status): string
     {
         return match ($status) {
-            self::PENDING => 'Pendiente',
-            self::COMPLETED => 'Completada',
+            self::TEMPORARY => 'Temporal',
+            self::PERMANENT => 'Indefinido',
         };
     }
 }

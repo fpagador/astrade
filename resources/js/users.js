@@ -1,3 +1,23 @@
+const photoInput = document.getElementById('photo');
+const photoFilename = document.getElementById('photo-filename');
+
+document.querySelectorAll('.toggle-password').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const target = document.querySelector(`[name="${btn.dataset.target}"]`);
+        const icon = btn.querySelector('svg');
+
+        if (target.type === 'password') {
+            target.type = 'text';
+            icon.setAttribute('data-lucide', 'eye-off');
+        } else {
+            target.type = 'password';
+            icon.setAttribute('data-lucide', 'eye');
+        }
+
+        window.createIcons({ icons: window.lucideIcons });
+    });
+});
+
 document.addEventListener('DOMContentLoaded', function () {
     const page = document.body.dataset.page;
     const userPages = ['admin-users-create', 'admin-users-edit', 'admin-users-edit-password'];
@@ -5,22 +25,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const roleSelect = document.getElementById('role_id') || document.getElementById('role');
     const userOnlyFields = document.querySelectorAll('.user-only');
-    const checkbox = document.getElementById('can_receive_notifications');
-    const notificationTypeSelect = document.getElementById('notification_type');
 
     function toggleUserFields() {
         const selectedOption = roleSelect?.options[roleSelect.selectedIndex];
         const selectedRole = selectedOption?.dataset?.roleName?.toLowerCase();
         const isUser = selectedRole === 'user';
         userOnlyFields.forEach(el => {
-            el.style.display = isUser ? 'block' : 'none';
+            el.style.display = isUser ? 'grid' : 'none';
         });
-    }
-
-    function toggleNotificationType() {
-        if (!checkbox || !notificationTypeSelect) return;
-        notificationTypeSelect.disabled = !checkbox.checked;
-        if (!checkbox.checked) notificationTypeSelect.value = 'none';
     }
 
     if (roleSelect) {
@@ -28,9 +40,15 @@ document.addEventListener('DOMContentLoaded', function () {
         toggleUserFields();
     }
 
-    if (checkbox && notificationTypeSelect) {
-        checkbox.addEventListener('change', toggleNotificationType);
-        toggleNotificationType();
+    // Select Photo
+    if (photoInput) {
+        photoInput.addEventListener('change', function() {
+            if (photoInput.files.length > 0) {
+                photoFilename.textContent = photoInput.files[0].name;
+            } else {
+                photoFilename.textContent = 'Ningún archivo seleccionado';
+            }
+        });
     }
 
     // --- REAL-TIME VALIDATION ---
@@ -49,6 +67,49 @@ document.addEventListener('DOMContentLoaded', function () {
         if (existing) existing.remove();
     }
 
+    // --- REAL-TIME PASSWORD VALIDATION ---
+    if (page === 'admin-users-edit-password') {
+        const password = document.querySelector('[name="password"]');
+        const passwordConfirmation = document.querySelector('[name="password_confirmation"]');
+
+        async function validatePasswordField(event) {
+            const field = event.target.name;
+            const data = {
+                field: field,
+                value: event.target.value,
+                password: password.value,
+                password_confirmation: passwordConfirmation.value
+            };
+
+            try {
+                const res = await fetch(window.routes.validatePassword, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const body = await res.json();
+                removeError(password);
+                removeError(passwordConfirmation);
+
+                if (body.error) {
+                    if (field === 'password') showError(password, body.error);
+                    if (field === 'password_confirmation') showError(passwordConfirmation, body.error);
+                }
+            } catch (err) {
+                console.error('Unexpected error:', err);
+            }
+        }
+
+        password.addEventListener('blur', validatePasswordField);
+        passwordConfirmation.addEventListener('blur', validatePasswordField);
+    }
+
+    // --- REAL-TIME FIELDS VALIDATION ---
     function validateField(input) {
         if (input.closest('.user-only') && input.style.display === 'none') return;
 
@@ -76,11 +137,31 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const data = { field, value };
+        const userIdInput = document.querySelector('input[name="id"]');
+        const userId = userIdInput ? userIdInput.value : null;
+
+        const typeInput = document.querySelector('input[name="type"]');
+        const type = typeInput ? typeInput.value : null;
+
+        const data = {
+            field: field,
+            value: value,
+            id: userId,
+            type: type
+        };
+
         if (field === 'password' || field === 'password_confirmation') {
             data.password = passwordValue;
             data.password_confirmation = confirmationValue;
         }
+
+        const otherFields = ['dni', 'email', 'username', 'phone'];
+        otherFields.forEach(f => {
+            if (f !== field) {
+                const el = document.querySelector(`[name="${f}"]`);
+                if (el) data[f] = el.value;
+            }
+        });
 
         fetch(window.routes.validateField, {
             method: 'POST',
@@ -102,17 +183,19 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Inputs to be validated in real time
-    const inputs = document.querySelectorAll(
-        '#dni, #email, #username, #phone, [name="password"], [name="password_confirmation"]'
-    );
+    if (['admin-users-create', 'admin-users-edit'].includes(page)) {
+        const inputs = document.querySelectorAll(
+            '#dni, #email, #username, #phone, [name="password"], [name="password_confirmation"]'
+        );
 
-    inputs.forEach(input => {
-        input.addEventListener('blur', function () {
-            validateField(this);
-            if (this.name === 'password') {
-                const confirmation = document.querySelector('[name="password_confirmation"]');
-                if (confirmation && confirmation.value) validateField(confirmation);
-            }
+        inputs.forEach(input => {
+            input.addEventListener('blur', function () {
+                validateField(this);
+                if (this.name === 'password') {
+                    const confirmation = document.querySelector('[name="password_confirmation"]');
+                    if (confirmation && confirmation.value) validateField(confirmation);
+                }
+            });
         });
-    });
+    }
 });

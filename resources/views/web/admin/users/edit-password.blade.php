@@ -15,15 +15,34 @@
             <x-form.form-wrapper action="{{ route('admin.users.update-password', $user->id) }}" method="PUT" class="max-w-lg mx-auto bg-white p-6 rounded shadow">
 
                 <!-- PASSWORD -->
-                <x-form.input
-                    label="Contraseña"
-                    name="password"
-                    type="password"
-                    required tooltip="La contraseña debe tener al menos 8 caracteres, incluidas mayúsculas, minúsculas, números y caracteres especiales."
-                />
+                <div class="relative">
+                    <x-form.input
+                        label="Contraseña"
+                        name="password"
+                        type="password"
+                        required tooltip="La contraseña debe tener al menos 6 caracteres, incluidas mayúsculas, minúsculas y números"
+                    />
+                    <button type="button"
+                            class="absolute right-3 top-9 text-gray-500 hover:text-gray-700 toggle-password"
+                            data-target="password">
+                        <i data-lucide="eye" class="w-5 h-5"></i>
+                    </button>
+                </div>
 
                 <!-- CONFIRM PASSWORD  -->
-                <x-form.input label="Confirmar contraseña" name="password_confirmation" type="password" required />
+                <div class="relative">
+                    <x-form.input
+                        label="Confirmar contraseña"
+                        name="password_confirmation"
+                        type="password"
+                        required
+                    />
+                    <button type="button"
+                            class="absolute right-3 top-9 text-gray-500 hover:text-gray-700 toggle-password"
+                            data-target="password_confirmation">
+                        <i data-lucide="eye" class="w-5 h-5"></i>
+                    </button>
+                </div>
 
                 {{-- BUTTONS --}}
                 <x-form.button-group
@@ -36,5 +55,10 @@
     </div>
 
     {{-- BACK BUTTON --}}
-    <x-admin.back-to-users-button :type="\App\Enums\UserTypeEnum::mobile->value" />
+    <x-admin.back-to-users-button :type="\App\Enums\UserTypeEnum::MOBILE->value" />
+    <script>
+        window.routes = {
+            validatePassword: "{{ route('admin.users.validate-password') }}"
+        };
+    </script>
 @endsection

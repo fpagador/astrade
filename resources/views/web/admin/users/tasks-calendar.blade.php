@@ -83,7 +83,7 @@
     <div id="task-detail-container" class="min-h-[40px]"></div>
 
     {{-- BACK BUTTON --}}
-    <x-admin.back-to-users-button :type="\App\Enums\UserTypeEnum::mobile->value" />
+    <x-admin.back-to-users-button :type="\App\Enums\UserTypeEnum::MOBILE->value" />
 
     <script>
         function calendarView() {
@@ -115,6 +115,11 @@
                 updateDisplayedDays(count) {
                     this.displayedDays = [];
                     const startDay = new Date(this.currentDate);
+
+                    const dayOfWeek = startDay.getDay();
+                    const diff = (dayOfWeek === 0 ? -6 : 1 - dayOfWeek);
+                    startDay.setDate(startDay.getDate() + diff);
+
                     for (let i = 0; i < count; i++) {
                         const day = new Date(startDay);
                         day.setDate(startDay.getDate() + i);
@@ -126,6 +131,9 @@
                             weekday: day.toLocaleDateString('es-ES', { weekday: 'short' })
                         });
                     }
+
+                    // Clear the detail panel when changing weeks
+                    document.getElementById('task-detail-container').innerHTML = '';
                 },
 
                 prevMonth() {
@@ -188,7 +196,7 @@
                         }
 
                         btn.addEventListener('click', () => {
-                            // 🔹 Always show the week starting from Monday
+                            // Always show the week starting from Monday
                             let monday = new Date(dayDate);
                             const dayOfWeek = monday.getDay();
                             const diff = (dayOfWeek === 0 ? -6 : 1 - dayOfWeek); // Sunday=0
@@ -196,6 +204,9 @@
 
                             this.currentDate = monday;
                             this.updateDisplayedDays(7);
+
+                            // Clear detail when changing day/week
+                            document.getElementById('task-detail-container').innerHTML = '';
                         });
 
                         mini.appendChild(btn);

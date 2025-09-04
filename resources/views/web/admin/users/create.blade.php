@@ -8,149 +8,168 @@
     {{-- ALERTS --}}
     <x-admin.alert-messages />
 
-    <x-form.form-wrapper action="{{ route('admin.users.store') }}" method="POST" class="max-w-lg mx-auto bg-white p-6 rounded shadow">
-        <!-- Name -->
-        <x-form.input label="Nombre" name="name" required />
+    <x-form.form-wrapper action="{{ route('admin.users.store') }}" method="POST" class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
+        @php
+            $type = request('type', '\App\Enums\UserTypeEnum::management->value');
+        @endphp
+        <input type="hidden" name="type" value="{{ $type}}">
 
-        <!-- Surname -->
-        <x-form.input label="Apellido" name="surname" required />
+        {{-- Grid for main fields --}}
+        <div class="grid gap-4 md:grid-cols-2">
+            <!-- Name -->
+            <x-form.input
+                label="Nombre"
+                name="name"
+                required
+                value="{{ old('name') }}"
+            />
+            <!-- Surname -->
+            <x-form.input
+                label="Apellido"
+                name="surname"
+                required
+                value="{{ old('surname') }}"
+            />
+            <!-- DNI -->
+            <x-form.input
+                label="DNI"
+                name="dni"
+                required
+                value="{{ old('dni') }}"
+                tooltip="Debe contener 8 números y 1 letra (ejemplo: 12345678A)."
+            />
+            <!-- Email -->
+            <x-form.input
+                label="Email"
+                name="email"
+                required
+                value="{{ old('email') }}"
+                tooltip="Debe contener un @ y un . para ser válido."
+            />
+            <!-- Password -->
+            <div class="relative">
+                <x-form.input
+                    label="Contraseña"
+                    name="password"
+                    type="password"
+                    required
+                    tooltip="La contraseña debe tener al menos 8 caracteres, incluidas mayúsculas, minúsculas, números y caracteres especiales."
+                />
+                <button type="button"
+                        class="absolute right-3 top-9 text-gray-500 hover:text-gray-700 toggle-password"
+                        data-target="password">
+                    <i data-lucide="eye" class="w-5 h-5"></i>
+                </button>
+            </div>
 
-        <!-- DNI -->
-        <x-form.input
-            label="DNI"
-            name="dni"
-            required
-            tooltip="Debe contener 8 números y 1 letra (ejemplo: 12345678A)."
-        />
+            <!-- Password Confirmation -->
+            <div class="relative">
+                <x-form.input
+                    label="Confirmar contraseña"
+                    name="password_confirmation"
+                    type="password"
+                    required
+                />
+                <button type="button"
+                        class="absolute right-3 top-9 text-gray-500 hover:text-gray-700 toggle-password"
+                        data-target="password_confirmation">
+                    <i data-lucide="eye" class="w-5 h-5"></i>
+                </button>
+            </div>
 
-        <!-- email-->
-        <x-form.input
-            label="Email"
-            name="email"
-            required
-            tooltip="Debe contener un '@' y un '.' para ser válido."
-        />
-
-        <!-- Phone -->
-        <x-form.input
-            label="Teléfono"
-            name="phone"
-            required
-            tooltip="Debe contener al menos 9 números."
-        />
-
-        <!-- Username -->
-        <x-form.input label="Usuario" name="username" required />
-
-        <!-- Rol -->
-        <div class="mb-4">
-            <label for="role_id" class="block font-medium mb-1">Rol <span class="text-red-600">*</span></label>
-            <select name="role_id" id="role_id" required {{ request('role') ? 'disabled' : '' }} class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                @foreach($assignableRoles as $role)
-                    <option value="{{ $role->id }}"
-                            data-role-name="{{ $role->role_name }}"
-                        {{ old('role_id', $defaultRole ?? ($user->role_id ?? '')) == $role->id ? 'selected' : '' }}>
-                        {{ \App\Enums\RoleEnum::from($role->role_name)->label() }}
-                    </option>
-                @endforeach
-            </select>
-            @if (request('role'))
-                <input type="hidden" name="role_id" value="{{ $defaultRole ?? ($user->role_id ?? '') }}">
-            @endif
+            <!-- Phone -->
+            <x-form.input
+                label="Teléfono"
+                name="phone"
+                required
+                value="{{ old('phone') }}"
+                type="number"
+                inputmode="numeric"
+                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,9)"
+                tooltip="Debe contener 9 dígitos."
+            />
+            <!-- Username -->
+            <x-form.input
+                label="Usuario"
+                name="username"
+                required
+                value="{{ old('username') }}"
+            />
+            <!-- Role -->
+            <div class="mb-4">
+                <label for="role_id" class="block font-medium mb-1">Rol <span class="text-red-600">*</span></label>
+                <select name="role_id" id="role_id" required {{ request('role') ? 'disabled' : '' }} class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    @foreach($assignableRoles as $role)
+                        <option value="{{ $role->id }}" data-role-name="{{ $role->role_name }}" {{ old('role_id', $defaultRole ?? ($user->role_id ?? '')) == $role->id ? 'selected' : '' }}>
+                            {{ \App\Enums\RoleEnum::from($role->role_name)->label() }}
+                        </option>
+                    @endforeach
+                </select>
+                @if (request('role'))
+                    <input type="hidden" name="role_id" value="{{ $defaultRole ?? ($user->role_id ?? '') }}">
+                @endif
+            </div>
+            <!-- Photo -->
+            <div class="mb-4">
+                <label class="block font-medium mb-1" for="photo">Foto</label>
+                <div class="flex items-center">
+                    <label for="photo" class="cursor-pointer bg-indigo-900 text-white px-4 py-2 rounded hover:bg-indigo-800 transition">
+                        Seleccionar archivo
+                    </label>
+                    <span id="photo-filename" class="ml-3 text-gray-700">Ningún archivo seleccionado</span>
+                </div>
+                <input type="file" name="photo" id="photo" class="hidden">
+            </div>
         </div>
 
-        <!-- Password -->
-        <x-form.input
-            label="Contraseña"
-            name="password"
-            type="password"
-            required tooltip="La contraseña debe tener al menos 8 caracteres, incluidas mayúsculas, minúsculas, números y caracteres especiales."
-        />
-
-        <!-- Password Confirmation -->
-        <x-form.input label="Confirmar contraseña" name="password_confirmation" type="password" required />
-
-        <!-- Photo -->
-        <x-form.input label="Foto" name="photo" type="file" />
-
-        {{-- Fields that are only displayed when creating a user of type "user" --}}
-        <!-- Company -->
-        <div class="mb-4 user-only">
+        {{-- Grid for user-only fields (mobile users) --}}
+        <div class="grid gap-4 md:grid-cols-2 mt-6 user-only">
+            <!-- Company -->
             <x-form.select
                 name="company_id"
                 label="Empresa"
                 :options="$companies->pluck('name', 'id')->prepend('-- Selecciona una empresa --', '')->toArray()"
+                :selected="old('company_id')"
             />
-        </div>
-
-        <!-- Work Calendar -->
-        <div class="mb-4 user-only">
+            <!-- Work Calendar -->
             <x-form.select
                 name="work_calendar_template_id"
                 label="Calendario Laboral"
-                :options="$workCalendarTemplante->pluck('name', 'id')->prepend('-- Selecciona un calendario laboral --', '')->toArray()"
+                :options="$workCalendarTemplate->pluck('name', 'id')->prepend('-- Selecciona un calendario laboral --', '')->toArray()"
+                :selected="old('work_calendar_template_id')"
             />
-        </div>
-
-        <!-- Work schedule -->
-        <div class="mb-4 user-only">
+            <!-- Work schedule -->
             <x-form.textarea
                 name="work_schedule"
                 label="Horario de trabajo"
             />
-        </div>
-
-        <!-- Contract Type -->
-        <div class="mb-4 user-only">
+            <!-- Contract Type -->
             <x-form.select
                 name="contract_type"
                 label="Tipo de contrato"
-                :options="[
-                    '' => '-- Selecciona un tipo --',
-                    'Temporal' => 'Temporal',
-                    'Indefinido' => 'Indefinido'
-                ]"
+                :options="$contractOptions"
+                :selected="old('contract_type')"
             />
-        </div>
-
-        <!-- Contract Start Date -->
-        <div class="mb-4 user-only">
+            <!-- Contract Start Date -->
             <x-form.input
                 label="Fecha de inicio de contrato"
                 name="contract_start_date"
                 type="date"
                 value="{{ old('contract_start_date') }}"
             />
-        </div>
-
-        <!-- Checkbox: Can receive notifications -->
-        <div class="mb-4 user-only">
-            <input type="hidden" name="can_receive_notifications" value="0">
-            <x-form.checkbox
-                name="can_receive_notifications"
-                label="Puede recibir notificaciones"
-            />
-        </div>
-
-        <!-- Notification type -->
-        <div class="mb-4 user-only">
+            <!-- Notification type -->
             <x-form.select
                 name="notification_type"
                 label="Tipo de notificación"
-                :options="[
-                    'none' => 'Ninguna',
-                    'visual' => 'Visual',
-                    'visual_audio' => 'Visual y Audio'
-                ]"
+                :options="$notificationTypeOptions"
+                value="{{ old('notification_type') }}"
             />
         </div>
 
         {{-- Buttons --}}
-        @php
-            $type = request('type', 'management');
-        @endphp
-        <x-form.button-group submit-text="Crear" :cancelRoute="route('admin.users.index', ['type' => $type])"  />
-
+        <div class="mt-6">
+            <x-form.button-group submit-text="Crear" :cancelRoute="route('admin.users.index', ['type' => $type])" />
+        </div>
     </x-form.form-wrapper>
     <script>
         window.routes = {

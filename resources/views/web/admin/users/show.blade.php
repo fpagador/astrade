@@ -5,6 +5,19 @@
 @section('content')
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div class="bg-white p-10 rounded shadow">
+            <div class="flex justify-end">
+                <a href="{{ route('admin.users.edit', [
+                        'user' => $user->id,
+                        'role' => $user->role->role_name ?? null,
+                        'type' => request('type', \App\Enums\UserTypeEnum::MANAGEMENT->value)
+                    ]) }}"
+                   class="inline-flex items-center gap-x-2 mb-4 px-4 py-2 bg-indigo-900 text-white rounded hover:bg-indigo-800"
+                   title="Editar">
+                    <span>Editar Usuario</span>
+                    <i data-lucide="pencil" class="w-5 h-5 text-indigo-100 hover:text-indigo-100 transition"></i>
+                </a>
+            </div>
+
             {{-- Foto y nombre --}}
             <div class="text-center mb-12">
                 @if ($user->photo)
@@ -50,7 +63,7 @@
                     </div>
                 </div>
 
-                {{-- Empresa --}}
+                {{-- Company --}}
                 <div class="mb-4">
                     <h3 class="text-2xl font-bold text-indigo-800 mb-8 border-b border-indigo-200 pb-2">
                         🏢 Empresa
@@ -61,7 +74,7 @@
                         @include('web.admin.users.partials.readonly-field', ['label' => 'Descripción', 'value' => optional($user->company)->description ?? '—'])
                     </div>
 
-                    {{-- Teléfonos --}}
+                    {{-- Phones --}}
                     @if(optional($user->company)->phones && $user->company->phones->count())
                         <h4 class="text-lg font-semibold text-indigo-700 mt-10 mb-4">📞 Teléfonos de la empresa</h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -78,6 +91,9 @@
         </div>
 
         {{-- BACK BUTTON --}}
-        <x-admin.back-to-users-button :type="\App\Enums\UserTypeEnum::mobile->value" />
+        @php
+            $type = request('type', '\App\Enums\UserTypeEnum::management->value');
+        @endphp
+        <x-admin.back-to-users-button :type="$type" />
     </div>
 @endsection

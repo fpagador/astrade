@@ -3,9 +3,6 @@
     "info": {
         "title": "Astrade API",
         "description": "Astrade API Documentation",
-        "contact": {
-            "email": "soporte@astrade.com"
-        },
         "version": "1.0.0"
     },
     "servers": [
@@ -171,14 +168,13 @@
                     {
                         "name": "type",
                         "in": "path",
-                        "description": "Type of calendar days: vacation, holiday, sick_leave",
+                        "description": "Type of calendar days: vacation, holiday",
                         "required": true,
                         "schema": {
                             "type": "string",
                             "enum": [
                                 "vacation",
-                                "holiday",
-                                "sick_leave"
+                                "holiday"
                             ]
                         }
                     }
@@ -224,88 +220,6 @@
                                 }
                             }
                         }
-                    },
-                    "500": {
-                        "description": "Internal server error"
-                    }
-                },
-                "security": [
-                    {
-                        "sanctum": []
-                    }
-                ]
-            }
-        },
-        "/api/calendar/vacation": {
-            "post": {
-                "tags": [
-                    "Calendar"
-                ],
-                "summary": "Register a new vacation day",
-                "description": "Registers a new vacation for the authenticated user.",
-                "operationId": "a5a57a636dd56f76e75c83a59f943070",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "date": {
-                                        "type": "string",
-                                        "format": "date",
-                                        "example": "2025-09-10"
-                                    },
-                                    "description": {
-                                        "type": "string",
-                                        "example": "Trip to the mountains"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Vacation successfully recorded",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Vacation successfully recorded"
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "id": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "date": {
-                                                    "type": "string",
-                                                    "format": "date",
-                                                    "example": "2025-09-10"
-                                                },
-                                                "description": {
-                                                    "type": "string",
-                                                    "example": "Trip to the mountains"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation error"
                     },
                     "500": {
                         "description": "Internal server error"

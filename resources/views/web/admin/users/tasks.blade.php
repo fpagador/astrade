@@ -275,7 +275,7 @@
     @endif
 
     {{-- BACK BUTTON --}}
-    <x-admin.back-to-users-button :type="\App\Enums\UserTypeEnum::mobile->value" />
+    <x-admin.back-to-users-button :type="\App\Enums\UserTypeEnum::MOBILE->value" />
 
     @push('modals')
         <x-admin.image-modal />

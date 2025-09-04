@@ -4,9 +4,9 @@ namespace App\Enums;
 
 enum RoleEnum: string
 {
-    case admin = 'admin';
-    case manager = 'manager';
-    case user = 'user';
+    case ADMIN = 'admin';
+    case MANAGER = 'manager';
+    case USER = 'user';
 
     /**
      * Get all values as array.
@@ -26,9 +26,9 @@ enum RoleEnum: string
     public function label(): string
     {
         return match ($this) {
-            self::admin => 'Administrador',
-            self::manager => 'Preparador',
-            self::user => 'Usuario móvil',
+            self::ADMIN => 'Administrador',
+            self::MANAGER => 'Preparador',
+            self::USER => 'Usuario móvil',
         };
     }
 

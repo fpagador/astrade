@@ -22,7 +22,13 @@ class UpdateUserPasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => [
+                'required',
+                'string',
+                'min:6',
+                'confirmed',
+                'regex:/^[a-zA-Z0-9]+$/'
+            ],
         ];
     }
 
@@ -35,8 +41,10 @@ class UpdateUserPasswordRequest extends FormRequest
     {
         return [
             'password.required' => 'La contraseña es obligatoria.',
-            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
-            'password.confirmed' => 'La contraseña no coincide.',
+            'password.min' => 'La contraseña debe tener al menos 6 caracteres.',
+            'password.confirmed' => 'La confirmación de contraseña no coincide.',
+            'password.regex' => 'La contraseña solo puede contener letras y números, sin caracteres especiales.',
+            'password_confirmation.same' => 'La confirmación debe coincidir con la contraseña.',
         ];
     }
 }

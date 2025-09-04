@@ -61,7 +61,10 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
         Route::delete('/{id}', [UserController::class, 'destroy'])->name('destroy');
         Route::get('/{user}/edit-password', [UserController::class, 'editPassword'])->name('edit-password');
         Route::put('/{user}/update-password', [UserController::class, 'updatePassword'])->name('update-password');
+
+        // Ajax methods to validate form fields
         Route::post('/validate-field', [UserController::class, 'validateField'])->name('validate-field');
+        Route::post('/validate-password', [UserController::class, 'validatePassword'])->name('validate-password');
 
         /*
         |--------------------------------------------------------------------------
@@ -103,7 +106,7 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
                 ->whereIn('day_type', ['holiday'])
                 ->exists();
 
-            // 2. Revisar si el usuario tiene vacaciones ese día
+            //Check if the user has vacation that day
             $isVacation = UserVacation::where('user_id', $userId)
                 ->whereDate('date', $date)
                 ->exists();

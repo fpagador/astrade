@@ -7,9 +7,6 @@ namespace App\Swagger;
  *     version="1.0.0",
  *     title="Astrade API",
  *     description="Astrade API Documentation",
- *     @OA\Contact(
- *         email="soporte@astrade.com"
- *     )
  * )
  *
  * @OA\Server(

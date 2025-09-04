@@ -16,11 +16,12 @@
         <button type="button" id="btnPrev" class="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300">&lt;</button>
 
         {{-- Month select --}}
-        <select id="monthSelect" class="border rounded px-2 py-1">
+        <select id="monthSelect" class="border rounded px-2 py-1 w-40">
             @foreach(['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'] as $index => $month)
                 <option value="{{ $index }}">{{ $month }}</option>
             @endforeach
         </select>
+
         <input
             type="number"
             id="year"
@@ -30,6 +31,7 @@
             required
             name="year"
         >
+
         <button type="button" id="btnNext" class="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300">&gt;</button>
     </div>
 

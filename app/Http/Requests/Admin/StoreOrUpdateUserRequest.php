@@ -2,10 +2,11 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\UserTypeEnum;
 use Illuminate\Foundation\Http\FormRequest;
-use App\Models\Role;
+use Illuminate\Validation\Rule;
 
-class StoreUserRequest extends FormRequest
+class StoreOrUpdateUserRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,8 +23,22 @@ class StoreUserRequest extends FormRequest
      */
     public function rules(): array
     {
-        $roleId = $this->input('role_id');
-        $isUser = Role::find($roleId)?->role_name === 'user';
+        $editing = $this->route('user') != null;
+        $userId = $editing ? $this->input('id') : null;
+
+        $type = $this->input('type', UserTypeEnum::MOBILE->value);
+        $isUser = $type === UserTypeEnum::MOBILE->value;
+
+        $passwordRules = $editing
+            ? ['nullable','string','min:8','confirmed','regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_\-])[A-Za-z\d@$!%*?&.#_\-]{8,}$/']
+            : ['required','string','min:8','confirmed','regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_\-])[A-Za-z\d@$!%*?&.#_\-]{8,}$/'];
+
+        if ($isUser) {
+            // Mobile users: simpler password
+            $passwordRules = $editing
+                ? ['nullable', 'string', 'min:6', 'confirmed', 'regex:/^[a-zA-Z0-9]+$/']
+                : ['required', 'string', 'min:6', 'confirmed', 'regex:/^[a-zA-Z0-9]+$/'];
+        }
 
         return [
             'name' => 'required|string|max:255',
@@ -31,24 +46,22 @@ class StoreUserRequest extends FormRequest
             'dni' => [
                 'required',
                 'string',
-                'unique:users,dni',
-                'regex:/^[0-9]{8}[A-Za-z]$/'
+                'regex:/^[0-9]{8}[A-Za-z]$/',
+                Rule::unique('users', 'dni')->ignore($userId),
             ],
             'email' => [
                 'required',
                 'email',
-                'unique:users,email',
-                'regex:/^.+@.+\..+$/'
+                'regex:/^.+@.+\..+$/',
+                Rule::unique('users', 'email')->ignore($userId),
             ],
-            'phone' => $isUser ? ['required', 'string', 'regex:/^\d{9,}$/'] : 'nullable',
-            'username' => 'required|string|unique:users,username',
-            'password' => [
+            'phone' => ['required', 'string', 'regex:/^[0-9]{9}$/'],
+            'username' => [
                 'required',
                 'string',
-                'min:8',
-                'confirmed',
-                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_\-])[A-Za-z\d@$!%*?&.#_\-]{8,}$/'
+                Rule::unique('users', 'username')->ignore($userId),
             ],
+            'password' => $passwordRules,
             'photo' => 'nullable|image|max:2048',
             'role_id' => 'required|exists:roles,id',
 
@@ -58,8 +71,7 @@ class StoreUserRequest extends FormRequest
             'work_schedule' => $isUser ? 'required|string|max:255' : 'nullable',
             'contract_type' => $isUser ? 'required|in:Temporal,Indefinido' : 'nullable',
             'contract_start_date' => $isUser ? 'required|date' : 'nullable',
-            'notification_type' => $isUser ? 'required|in:none,visual,visual_audio' : 'nullable',
-            'can_receive_notifications' => $isUser ? 'required|boolean' : 'nullable',
+            'notification_type' => $isUser ? 'required|in:none,visual,visual_audio' : 'nullable'
         ];
     }
 
@@ -70,7 +82,22 @@ class StoreUserRequest extends FormRequest
      */
     public function messages()
     {
-        return [
+        $type = $this->input('type', UserTypeEnum::MOBILE->value);
+        $isUser = $type === UserTypeEnum::MOBILE->value;
+
+        // Messages for management users
+        $passwordMessages = [
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres, incluyendo mayúsculas, minúsculas, números y caracteres especiales.',
+            'password.regex' => 'La contraseña debe tener al menos 8 caracteres, incluyendo mayúsculas, minúsculas, números y caracteres especiales.'
+        ];
+        if ($isUser) {
+            //Messages for mobile users
+            $passwordMessages = [
+                'password.min' => 'La contraseña debe tener al menos 6 caracteres.',
+                'password.regex' => 'La contraseña solo puede contener letras y números, sin caracteres especiales.',
+            ];
+        }
+        return array_merge([
             'name.required' => 'El nombre es obligatorio.',
             'surname.required' => 'El apellido es obligatorio.',
             'dni.required' => 'El DNI es obligatorio.',
@@ -83,15 +110,14 @@ class StoreUserRequest extends FormRequest
             'username.required' => 'El nombre de usuario es obligatorio.',
             'username.unique' => 'El nombre de usuario ya está en uso.',
             'password.required' => 'La contraseña es obligatoria.',
-            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
             'password.confirmed' => 'La confirmación de contraseña no coincide.',
             'password_confirmation.same' => 'La confirmación debe coincidir con la contraseña.',
             'photo.image' => 'El archivo debe ser una imagen.',
             'photo.max' => 'La imagen no puede pesar más de 2MB.',
             'phone.required' => 'El teléfono es obligatorio.',
-            'phone.regex' => 'El teléfono debe contener al menos 9 números.',
+            'phone.regex' => 'El teléfono debe contener 9 dígitos.',
             'contract_start_date.date' => 'La fecha de inicio de contrato no es válida.',
             'notification_type.in' => 'El tipo de notificación seleccionado no es válido.',
-        ];
+        ], $passwordMessages);
     }
 }
