@@ -79,7 +79,8 @@ trait HandlesApiErrors
                 status: $status,
                 detail: $e->getMessage() ?: $errorMessage,
                 instance: $request?->path(),
-                code: $this->mapExceptionToCode($e)
+                code: $this->mapExceptionToCode($e),
+                category: $this->mapExceptionToCategory($e)
             );
         }
     }
@@ -93,6 +94,7 @@ trait HandlesApiErrors
      * @param string|null $detail
      * @param string|null $instance
      * @param string|null $code
+     * @param string|null $category
      *
      * @return JsonResponse
      */
@@ -102,7 +104,8 @@ trait HandlesApiErrors
         int $status,
         ?string $detail = null,
         ?string $instance = null,
-        ?string $code = null
+        ?string $code = null,
+        ?string $category = null
     ): JsonResponse {
         $problem = [
             'type' => $type,
@@ -114,6 +117,10 @@ trait HandlesApiErrors
 
         if ($code) {
             $problem['code'] = $code;
+        }
+
+        if ($category) {
+            $problem['category'] = $category;
         }
 
         return response()->json($problem, $status);
@@ -129,8 +136,8 @@ trait HandlesApiErrors
     protected function mapExceptionToStatus(Throwable $e): int
     {
         return match (true) {
-            $e instanceof BusinessRuleException => $e->getStatus(),
-            $e instanceof ModelNotFoundException     => 404, // Resource not found
+            $e instanceof BusinessRuleException     => $e->getStatus(),
+            $e instanceof ModelNotFoundException    => 404, // Resource not found
             $e instanceof AuthenticationException   => 401, // Unauthenticated
             $e instanceof AuthorizationException    => 403, // Forbidden
             $e instanceof ValidationException       => 422, // Validation error
@@ -150,13 +157,32 @@ trait HandlesApiErrors
      */
     protected function mapExceptionToCode(Throwable $e): ?string
     {
+        if ($e instanceof BusinessRuleException && $e->getErrorCode()) {
+            return $e->getErrorCode();
+        }
+
         return match (true) {
-            $e instanceof BusinessRuleException => 'BUSINESS_RULE_VIOLATION',
-            $e instanceof ModelNotFoundException     => 'RESOURCE_NOT_FOUND',
+            $e instanceof ModelNotFoundException    => 'RESOURCE_NOT_FOUND',
             $e instanceof AuthenticationException   => 'AUTH_REQUIRED',
             $e instanceof AuthorizationException    => 'ACCESS_DENIED',
             $e instanceof ValidationException       => 'VALIDATION_FAILED',
             default                                 => 'INTERNAL_ERROR',
         };
+    }
+
+    /**
+     * Map exceptions to a logical category.
+     * Categories help clients group errors (e.g. TASKS, SUBTASKS, CALENDAR).
+     *
+     * @param Throwable $e The exception to evaluate
+     * @return string|null Category string if available
+     */
+    protected function mapExceptionToCategory(Throwable $e): ?string
+    {
+        if ($e instanceof BusinessRuleException && $e->getCategory()) {
+            return $e->getCategory();
+        }
+
+        return null;
     }
 }

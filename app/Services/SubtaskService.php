@@ -8,6 +8,7 @@ use App\Models\TaskCompletionLog;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\BusinessRuleException;
 use Illuminate\Support\Collection;
+use App\Errors\ErrorCodes;
 
 /**
  * Service class for Subtask entity.
@@ -70,11 +71,21 @@ class SubtaskService
     public function updateStatus(Subtask $subtask, string $status, int $userId): Subtask
     {
         if (!in_array($status, ['completed', 'pending'])) {
-            throw new BusinessRuleException('Invalid status. Allowed: completed, pending', 422);
+            throw new BusinessRuleException(
+                'Invalid status. Allowed: completed, pending',
+                422,
+                ErrorCodes::SUBTASK_INVALID_STATUS,
+                'SUBTASKS'
+            );
         }
 
         if (!$subtask->task || $subtask->task->user_id !== $userId) {
-            throw new BusinessRuleException('You do not have permission to modify this subtask.', 403);
+            throw new BusinessRuleException(
+                'You do not have permission to modify this subtask.',
+                403,
+                ErrorCodes::SUBTASK_PERMISSION_DENIED,
+                'SUBTASKS'
+            );
         }
 
         DB::transaction(function () use ($subtask, $status, $userId) {

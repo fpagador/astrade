@@ -18,7 +18,7 @@ class UserFactory extends Factory
             'dni' => $this->faker->unique()->regexify('[0-9]{8}[A-Z]'),
             'email' => $this->faker->unique()->safeEmail,
             'username' => $this->faker->userName,
-            'phone' => $this->faker->phoneNumber,
+            'phone' => $this->faker->randomElement(['6','7']) . $this->faker->numerify('########'),
             'password' => bcrypt($password),
             'photo' => null,
             'work_schedule' => $this->faker->randomElement(['Mañana', 'Tarde', 'Noche']),

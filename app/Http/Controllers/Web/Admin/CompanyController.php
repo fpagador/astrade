@@ -30,6 +30,16 @@ class CompanyController extends WebController
                 $query->where('address', 'like', '%'.$request->address.'%');
             }
 
+            $sort = $request->get('sort', 'name');
+            $direction = $request->get('direction', 'asc');
+
+            // default columns
+            $sortableColumns = ['name', 'address', 'description'];
+
+            if (in_array($sort, $sortableColumns)) {
+                $query->orderBy("companies.$sort", $direction);
+            }
+
             $companies = $query->orderBy('id', 'desc')->paginate(15);
 
             return view('web.admin.companies.index', compact('companies'));

@@ -137,6 +137,9 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
         // Managing days within the template
         Route::post('/{template}/days', [WorkCalendarTemplateController::class, 'addDay'])->name('days.add');
         Route::delete('/{template}/days/{day}', [WorkCalendarTemplateController::class, 'removeDay'])->name('days.remove');
+
+        Route::get('/{template}/clone-data', [WorkCalendarTemplateController::class, 'cloneTemplateData'])
+            ->name('clone-data');
     });
 
     /*

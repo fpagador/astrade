@@ -42,9 +42,9 @@
 
     {{-- TABLE HEADER --}}
     <div class="grid grid-cols-[2fr_3fr_3fr_3fr_1fr] bg-indigo-900 text-white font-medium text-sm rounded-t-md px-4 py-2">
-        <div>Nombre</div>
-        <div>Dirección</div>
-        <div>Descripción</div>
+        <div><x-admin.sortable-column label="Nombre" field="name" default="true" /></div>
+        <div><x-admin.sortable-column label="Dirección" field="address" /></div>
+        <div><x-admin.sortable-column label="Descripción" field="description" /></div>
         <div>Teléfonos</div>
         <div>Acciones</div>
     </div>

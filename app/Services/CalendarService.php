@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Errors\ErrorCodes;
 use App\Repositories\CalendarRepository;
 use App\Exceptions\BusinessRuleException;
 use Illuminate\Support\Collection;
@@ -39,7 +40,12 @@ class CalendarService
             $vacations = $this->calendarRepository->getVacationsByUser($user->id);
 
             if ($vacations->isEmpty()) {
-                throw new BusinessRuleException('No vacation days recorded for this user', 404);
+                throw new BusinessRuleException(
+                    'No vacation days recorded for this user',
+                    404,
+                    ErrorCodes::VACATION_NOT_FOUND,
+                    'CALENDAR'
+                );
             }
 
             return $vacations;

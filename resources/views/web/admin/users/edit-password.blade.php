@@ -47,7 +47,7 @@
                 {{-- BUTTONS --}}
                 <x-form.button-group
                     submit-text="Actualizar"
-                    :cancelRoute="route('admin.users.index', ['type' => \App\Enums\UserTypeEnum::mobile->value])"
+                    :cancelRoute="route('admin.users.index', ['type' => \App\Enums\UserTypeEnum::MOBILE->value])"
                 />
 
             </x-form.form-wrapper>
@@ -55,7 +55,7 @@
     </div>
 
     {{-- BACK BUTTON --}}
-    <x-admin.back-to-users-button :type="\App\Enums\UserTypeEnum::MOBILE->value" />
+    <x-admin.back-to-users-button :type="\App\Enums\UserTypeEnum::MOBILE->value" :back_url="$backUrl" />
     <script>
         window.routes = {
             validatePassword: "{{ route('admin.users.validate-password') }}"

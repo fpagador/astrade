@@ -40,17 +40,6 @@ document.addEventListener('DOMContentLoaded', function () {
         toggleUserFields();
     }
 
-    // Select Photo
-    if (photoInput) {
-        photoInput.addEventListener('change', function() {
-            if (photoInput.files.length > 0) {
-                photoFilename.textContent = photoInput.files[0].name;
-            } else {
-                photoFilename.textContent = 'Ningún archivo seleccionado';
-            }
-        });
-    }
-
     // --- REAL-TIME VALIDATION ---
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 

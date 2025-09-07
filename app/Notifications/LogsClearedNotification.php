@@ -35,10 +35,10 @@ class LogsClearedNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject("{$this->logType} logs deleted")
-            ->greeting('Hello!')
-            ->line("{$this->count} {$this->logType} logs have been deleted successfully (older than one month).")
-            ->line('Regards,')
+            ->subject("{$this->logType} registros eliminados")
+            ->greeting('¡Hola!')
+            ->line("{$this->count} {$this->logType} Los registros se han eliminado correctamente (tienen más de un mes de antigüedad).")
+            ->line('Saludos,')
             ->line(config('app.name'));
     }
 

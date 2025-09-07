@@ -14,12 +14,13 @@ class UserVacationController extends WebController
     /**
      * Displays a user's vacation calendar.
      *
+     * @param Request $request
      * @param User $user
      * @return View|RedirectResponse
      */
-    public function index(User $user): View|RedirectResponse
+    public function index(Request $request, User $user): View|RedirectResponse
     {
-        return $this->tryCatch(function () use ($user) {
+        return $this->tryCatch(function () use ($request, $user) {
             $year = now()->year;
 
             // User's vacation dates
@@ -41,8 +42,14 @@ class UserVacationController extends WebController
                     ->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))
                     ->toArray();
             }
-
-            return view('web.admin.users.vacations', compact('user', 'vacationDates', 'holidayDates'));
+            $backUrl = $request->get('back_url');
+            return view('web.admin.users.vacations',
+                compact(
+                    'user',
+                    'vacationDates',
+                    'holidayDates',
+                    'backUrl'
+                ));
         }, route('admin.users.index'));
     }
 

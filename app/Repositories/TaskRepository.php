@@ -95,6 +95,7 @@ class TaskRepository
         return Task::where('id', $taskId)
             ->where('user_id', $userId)
             ->with('user.company.phones')
-            ->first();
+            ->firstOrFail();
+
     }
 }

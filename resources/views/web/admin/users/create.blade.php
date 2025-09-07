@@ -10,7 +10,7 @@
 
     <x-form.form-wrapper action="{{ route('admin.users.store') }}" method="POST" class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
         @php
-            $type = request('type', '\App\Enums\UserTypeEnum::management->value');
+            $type = request('type', '\App\Enums\UserTypeEnum::MANAGEMENT->value');
         @endphp
         <input type="hidden" name="type" value="{{ $type}}">
 
@@ -32,11 +32,11 @@
             />
             <!-- DNI -->
             <x-form.input
-                label="DNI"
+                label="DNI/NIE"
                 name="dni"
                 required
                 value="{{ old('dni') }}"
-                tooltip="Debe contener 8 números y 1 letra (ejemplo: 12345678A)."
+                tooltip="DNI: Debe contener 8 números y 1 letra (ejemplo: 12345678A). NIE: Debe contener 1 letra inicial (XYZ), 7 números y 1 letra de control (ejemplo: X1234567B)."
             />
             <!-- Email -->
             <x-form.input
@@ -109,16 +109,32 @@
                     <input type="hidden" name="role_id" value="{{ $defaultRole ?? ($user->role_id ?? '') }}">
                 @endif
             </div>
+
             <!-- Photo -->
-            <div class="mb-4">
+            <div x-data="imageSelector()" class="mb-4">
                 <label class="block font-medium mb-1" for="photo">Foto</label>
-                <div class="flex items-center">
+
+                <div class="flex items-center space-x-2 mb-4">
+                    <!-- Select file button -->
                     <label for="photo" class="cursor-pointer bg-indigo-900 text-white px-4 py-2 rounded hover:bg-indigo-800 transition">
                         Seleccionar archivo
                     </label>
-                    <span id="photo-filename" class="ml-3 text-gray-700">Ningún archivo seleccionado</span>
+                    <span x-text="filename" class="text-gray-700"></span>
                 </div>
-                <input type="file" name="photo" id="photo" class="hidden">
+
+                <!-- Miniature -->
+                <div class="mb-4" x-show="confirmedImageUrl" x-cloak>
+                    <img
+                        :src="confirmedImageUrl"
+                        alt="Preview"
+                        class="h-32 w-32 object-cover rounded cursor-pointer hover:brightness-110 transition"
+                        @click="openLarge(confirmedImageUrl)"
+                    />
+                </div>
+                <input type="file" name="photo" id="photo" class="hidden" @change="previewImage($event)">
+
+                {{-- Confirmation modal --}}
+                <x-admin.image-confirmation-modal />
             </div>
         </div>
 
@@ -176,4 +192,7 @@
             validateField: "{{ route('admin.users.validate-field') }}"
         };
     </script>
+    @push('modals')
+        <x-admin.image-modal />
+    @endpush
 @endsection

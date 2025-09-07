@@ -301,13 +301,16 @@ export function imageModal() {
     return {
         open: false,
         imgSrc: '',
-        openModal(src) {
+        context: '',
+        openModal({ src, type }) {
             this.imgSrc = src;
+            this.context = type;
             this.open = true;
         },
         close() {
             this.open = false;
             this.imgSrc = '';
+            this.context = '';
         },
         init() {
             window.addEventListener('open-image', event => {

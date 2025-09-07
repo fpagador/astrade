@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web\Auth;
 
+use App\Enums\RoleEnum;
 use App\Http\Controllers\Web\WebController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,19 +32,19 @@ class PasswordResetLinkController extends WebController
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'dni' => 'required|string|exists:users,dni',
+            'email' => 'required|string|exists:users,email',
         ]);
 
-        $user = User::where('dni', $request->dni)->first();
+        $user = User::where('email', $request->email)->first();
 
         if (!$user || !$user->email) {
-            return back()->withErrors(['dni' => 'No se encontró un usuario con ese DNI o el usuario no tiene email asignado.']);
+            return back()->withErrors(['email' => 'No se encontró un usuario con ese email.']);
         }
 
         // Validar existencia y roles
-        if (! $user || ! in_array($user->role->code, ['admin', 'manager'])) {
+        if (! $user || ! in_array($user->role->role_name, [RoleEnum::ADMIN->value, RoleEnum::MANAGER->value])) {
             throw ValidationException::withMessages([
-                'dni' => ['No tienes permisos para acceder al panel de administración.'],
+                'email' => ['No tienes permisos para acceder al panel de administración.'],
             ]);
         }
 
@@ -54,7 +55,7 @@ class PasswordResetLinkController extends WebController
 
         return $status == Password::RESET_LINK_SENT
                     ? back()->with('status', __($status))
-                    : back()->withInput($request->only('dni'))
-                            ->withErrors(['dni' => __($status)]);
+                    : back()->withInput($request->only('email'))
+                            ->withErrors(['email' => __($status)]);
     }
 }

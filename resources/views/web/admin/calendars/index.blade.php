@@ -57,9 +57,9 @@
 
         {{-- TABLE HEADER --}}
         <div class="grid grid-cols-[2fr_1fr_1fr_1fr_auto] bg-indigo-900 text-white font-medium text-sm rounded-t-md px-4 py-2">
-            <div>Nombre</div>
-            <div>Año</div>
-            <div>Estado</div>
+            <div><x-admin.sortable-column label="Nombre" field="name" default="true" /></div>
+            <div><x-admin.sortable-column label="Año" field="year" /></div>
+            <div><x-admin.sortable-column label="Estado" field="status" /></div>
             <div>Días Festivos</div>
             <div>Acciones</div>
         </div>

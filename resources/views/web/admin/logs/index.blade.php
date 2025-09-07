@@ -68,7 +68,7 @@
         <tbody>
         @foreach ($logs as $log)
             <tr class="bg-white border-b">
-                <td class="px-4 py-2">{{ $log->created_at->format('Y-m-d H:i:s') }}</td>
+                <td class="px-4 py-2">{{ $log->created_at?->format('d/m/Y H:i:s') }}</td>
                 <td class="px-4 py-2">{{ $log->level }}</td>
                 <td class="px-4 py-2">{{ $log->message }}</td>
                 <td class="px-4 py-2">

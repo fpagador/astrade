@@ -47,5 +47,5 @@
     </x-form.form-wrapper>
 
     {{-- BACK BUTTON --}}
-    <x-admin.back-to-users-button :type="\App\Enums\UserTypeEnum::MOBILE->value" />
+    <x-admin.back-to-users-button :type="\App\Enums\UserTypeEnum::MOBILE->value" :back_url="$backUrl" />
 @endsection

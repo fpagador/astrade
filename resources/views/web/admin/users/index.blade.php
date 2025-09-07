@@ -61,12 +61,12 @@
 
         {{-- TABLE HEADER --}}
         <div class="grid grid-cols-[1fr_1fr_1fr_2fr_1fr_2fr_1fr_auto] bg-indigo-900 text-white font-medium text-sm rounded-t-md px-4 py-2">
-            <div>Nombre</div>
-            <div>Apellido</div>
-            <div>DNI</div>
-            <div>Email</div>
-            <div>Teléfono</div>
-            <div>Rol</div>
+            <div><x-admin.sortable-column label="Nombre" field="name" default="true" /></div>
+            <div><x-admin.sortable-column label="Apellidos" field="surname" /></div>
+            <div><x-admin.sortable-column label="DNI/NIE" field="dni" /></div>
+            <div><x-admin.sortable-column label="Email" field="email" /></div>
+            <div><x-admin.sortable-column label="Teléfono" field="phone" /></div>
+            <div><x-admin.sortable-column label="Rol" field="role" /></div>
             <div>Acciones</div>
         </div>
 
@@ -81,7 +81,13 @@
                 <div>{{ $user->role ? \App\Enums\RoleEnum::from($user->role->role_name)->label() : '' }} </div>
                 <div class="flex gap-2">
                     {{-- VIEW USER --}}
-                    <a href="{{ route('admin.users.show', ['user' => $user->id, 'type' => request('type', 'management')]) }}" title="Ver usuario">
+                    <a href="{{ route('admin.users.show', [
+                                    'user' => $user->id,
+                                    'type' => request('type', 'management'),
+                                    'back_url' => url()->full()
+                                ])}}"
+                       title="Ver usuario"
+                    >
                         <i data-lucide="eye" class="w-5 h-5 text-blue-600 hover:text-blue-700 transition"></i>
                     </a>
 
@@ -89,7 +95,7 @@
                     <a
                         href="{{ route('admin.users.edit', [
                                 'user' => $user->id, 'role' => $user->role->role_name ?? null ,
-                                'type' => request('type', \App\Enums\UserTypeEnum::MANAGEMENT->value)
+                                'type' => request('type', \App\Enums\UserTypeEnum::MANAGEMENT->value),
                                 ]) }}"
                         title="Editar"
                     >

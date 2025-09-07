@@ -221,3 +221,51 @@ function initCalendar(options = {}) {
 
     render();
 }
+
+// --- Initialize clone select using TomSelect ---
+export function initCloneSelect() {
+    const container = document.getElementById('workCalendar-form-container');
+    const cloneSelectEl = document.getElementById('clone_calendar_id');
+    const nameInput = document.querySelector('input[name="name"]');
+    const statusSelect = document.querySelector('select[name="status"]');
+    const holidaysInput = document.getElementById('selectedDates');
+    const cloneUrlTemplate = container?.dataset.cloneUrl;
+
+    if (!cloneSelectEl || !cloneUrlTemplate) return;
+
+    // Initialize TomSelect in the clone select
+    new TomSelect(cloneSelectEl, {
+        placeholder: 'Elegir plantilla',
+        create: false,
+        onChange: async function(value) {
+            if (!value) return;
+            const url = cloneUrlTemplate.replace('__ID__', value);
+            try {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Error en la petición');
+                const data = await res.json();
+
+                //Fill fields
+                nameInput.value = data.name;
+                statusSelect.value = data.status;
+                holidaysInput.value = JSON.stringify(data.holidays);
+                holidaysInput.dataset.dates = JSON.stringify(data.holidays);
+
+                // Update calendar
+                const calendarGrid = document.getElementById('calendarGrid');
+                if (calendarGrid) {
+                    calendarGrid.innerHTML = '';
+                    calendarGrid.dataset.holidays = JSON.stringify(data.holidays);
+                    initCalendars();
+                }
+
+            } catch (err) {
+                console.error('Error al clonar la plantilla:', err);
+            }
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initCloneSelect();
+});

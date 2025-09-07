@@ -22,14 +22,29 @@
         <div>
             <h2 class="text-lg font-semibold text-gray-800 mb-4">Teléfono <span class="text-red-500">*</span></h2>
             <div id="phones-container" class="space-y-4">
-                @foreach($company->phones ?? [0] as $index => $phone)
+                @foreach(old('phones', $company->phones ?? [0]) as $index => $phone)
                     <div class="phone-card relative bg-indigo-100 border border-indigo-300 rounded p-4 flex flex-col">
-                        @if(count($company->phones ?? [0]) > 1)
-                            <button type="button" class="remove-phone absolute top-1 right-1 text-red-600 hover:text-red-800 font-bold text-xl leading-none" title="Eliminar teléfono">&times;</button>
+                        @if(count(old('phones', $company->phones ?? [0])) > 1)
+                            <button type="button"
+                                    class="remove-phone absolute top-1 right-1 text-red-600 hover:text-red-800 font-bold text-xl leading-none"
+                                    title="Eliminar teléfono">&times;</button>
                         @endif
 
-                        <x-form.input label="Nombre" name="phones[{{ $index }}][name]" :value="$phone->name ?? ''" />
-                        <x-form.input label="Número" name="phones[{{ $index }}][phone_number]" :value="$phone->phone_number ?? ''" />
+                        <x-form.input
+                            label="Nombre"
+                            name="phones[{{ $index }}][name]"
+                            :value="old('phones.'.$index.'.name', is_object($phone) ? $phone->name : ($phone['name'] ?? ''))"
+                        />
+
+                        <x-form.input
+                            label="Número"
+                            name="phones[{{ $index }}][phone_number]"
+                            :value="old('phones.'.$index.'.phone_number', is_object($phone) ? $phone->phone_number : ($phone['phone_number'] ?? ''))"
+                            type="number"
+                            inputmode="numeric"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,9)"
+                            tooltip="Debe contener 9 dígitos."
+                        />
                     </div>
                 @endforeach
             </div>

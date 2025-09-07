@@ -80,13 +80,15 @@ class UserTaskController extends WebController
 
                 $timeCounts[$key] = ($timeCounts[$key] ?? 0) + 1;
             }
-
-            return view('web.admin.users.tasks', compact(
-                'user',
-                'tasks',
-                'hasAnyTasks',
-                'date',
-                'timeCounts'
+            $backUrl = $request->get('back_url');
+            return view('web.admin.users.tasks',
+                compact(
+                    'user',
+                    'tasks',
+                    'hasAnyTasks',
+                    'date',
+                    'timeCounts',
+                    'backUrl'
                 )
             );
         }, route('admin.users.index', ['type' => UserTypeEnum::MOBILE->value]));
@@ -557,8 +559,14 @@ class UserTaskController extends WebController
                     'color' => $task->color,
                 ];
             }
-
-            return view('web.admin.users.tasks-calendar', compact('user', 'tasksByDate', 'date'));
+            $backUrl = $request->get('back_url');
+            return view('web.admin.users.tasks-calendar',
+                compact(
+                    'user',
+                    'tasksByDate',
+                    'date',
+                    'backUrl'
+                ));
         }, route('admin.users.index', ['type' => UserTypeEnum::MOBILE->value]));
     }
 

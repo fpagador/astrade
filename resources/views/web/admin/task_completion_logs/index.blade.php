@@ -31,10 +31,10 @@
 
     {{-- TABLE HEADER --}}
     <div class="grid grid-cols-4 bg-indigo-900 text-white font-medium text-sm rounded-t-md px-4 py-2">
-        <div>Usuario</div>
-        <div>Tarea</div>
-        <div>Subtarea</div>
-        <div>Completado en</div>
+        <div><x-admin.sortable-column label="Usuario" field="name" default="true" /></div>
+        <div><x-admin.sortable-column label="Tarea" field="task" /></div>
+        <div><x-admin.sortable-column label="Subtarea" field="subtask" /></div>
+        <div><x-admin.sortable-column label="Completado en" field="completed_at" /></div>
     </div>
 
     {{-- ROWS --}}
@@ -65,7 +65,7 @@
                 {{ $log->subtask?->title ?? '—' }}
             </div>
             <div>
-                {{ $log->completed_at }}
+                {{ $log->completed_at?->format('d/m/Y H:i') ?? '—' }}
             </div>
         </div>
     @empty

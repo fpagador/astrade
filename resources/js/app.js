@@ -5,6 +5,7 @@ import { initCalendars } from './calendar';
 import { cloneTaskForm, editTaskForm, imageModal } from './task';
 import './users';
 import { initCompaniesPhones } from './company';
+import { imageSelector } from './imageSelector';
 
 window.Alpine = Alpine;
 window.createIcons = createIcons;
@@ -12,6 +13,8 @@ window.lucideIcons = icons;
 window.cloneTaskForm = cloneTaskForm;
 window.editTaskForm = editTaskForm;
 window.imageModal = imageModal;
+window.imageSelector = imageSelector;
+window.initCalendars = initCalendars;
 
 Alpine.start();
 

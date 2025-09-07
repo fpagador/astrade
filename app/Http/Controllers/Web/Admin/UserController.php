@@ -72,6 +72,28 @@ class UserController extends WebController
                 $query->where('company_id', $request->company_id);
             }
 
+            $sort = $request->get('sort', 'name');
+            $direction = $request->get('direction', 'asc');
+
+            // default columns
+            $sortableColumns = ['name', 'surname', 'dni', 'email', 'phone'];
+
+            // external relations columns
+            $sortableRelations = [
+                'role'    => ['table' => 'roles', 'local_key' => 'role_id', 'foreign_key' => 'id', 'column' => 'role_name'],
+                'company' => ['table' => 'companies', 'local_key' => 'company_id', 'foreign_key' => 'id', 'column' => 'name'],
+            ];
+
+            if (in_array($sort, $sortableColumns)) {
+                $query->orderBy("users.$sort", $direction);
+            } elseif (array_key_exists($sort, $sortableRelations)) {
+                $relation = $sortableRelations[$sort];
+
+                $query->leftJoin($relation['table'], "{$relation['table']}.{$relation['foreign_key']}", '=', "users.{$relation['local_key']}")
+                    ->orderBy("{$relation['table']}.{$relation['column']}", $direction)
+                    ->select('users.*');
+            }
+
             $users = $query->paginate(15)->appends($request->query());
 
             //Dynamic view by type
@@ -94,8 +116,8 @@ class UserController extends WebController
     public function show(User $user, Request $request): View
     {
         $type = $request->get('type', UserTypeEnum::MOBILE->value);
-
-        return view('web.admin.users.show', compact('user', 'type'));
+        $backUrl = $request->get('back_url');
+        return view('web.admin.users.show', compact('user', 'type', 'backUrl'));
     }
 
     /**
@@ -293,13 +315,15 @@ class UserController extends WebController
     /**
      * Show the form for editing the user's password.
      *
+     * @param Request $user
      * @param User $user
      * @return View
      */
-    public function editPassword(User $user): View
+    public function editPassword(Request $request, User $user): View
     {
         $this->authorize('changePassword', $user);
-        return view('web.admin.users.edit-password', compact('user'));
+        $backUrl = $request->get('back_url');
+        return view('web.admin.users.edit-password', compact('user', 'backUrl'));
     }
 
     /**

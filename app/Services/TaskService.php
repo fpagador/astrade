@@ -2,7 +2,10 @@
 
 namespace App\Services;
 
+use App\Errors\ErrorCodes;
+use App\Exceptions\BusinessRuleException;
 use App\Repositories\TaskRepository;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
 use App\Models\Task;
 
@@ -69,8 +72,29 @@ class TaskService
         return $this->repository->findById($userId, $taskId);
     }
 
+    /**
+     * Get company associated with the task
+     *
+     * @param int $userId
+     * @param int $taskId
+     * @return Task
+     */
     public function getTaskWithCompany(int $userId, int $taskId): Task
     {
-        return $this->repository->findCompany($userId, $taskId);
+        $task = $this->repository->findCompany($userId, $taskId);
+        if (!$task) {
+            throw new ModelNotFoundException("Task not found or not authorized");
+        }
+
+        if (!$task->user->company) {
+            throw new BusinessRuleException(
+                'No company associated with this task',
+                400,
+                ErrorCodes::TASK_NO_COMPANY,
+                'TASKS'
+            );
+        }
+
+        return $task;
     }
 }

@@ -64,12 +64,12 @@
     @endphp
     {{-- TABLE HEADER --}}
     <div class="grid {{ $gridCols }} bg-indigo-900 text-white font-medium text-sm rounded-t-md px-4 py-2">
-        <div>Nombre</div>
-        <div>Apellido</div>
-        <div>DNI</div>
-        <div>Email</div>
-        <div>Teléfono</div>
-        <div>Empresa</div>
+        <div><x-admin.sortable-column label="Nombre" field="name" default="true" /></div>
+        <div><x-admin.sortable-column label="Apellidos" field="surname" /></div>
+        <div><x-admin.sortable-column label="DNI/NIE" field="dni" /></div>
+        <div><x-admin.sortable-column label="Email" field="email" /></div>
+        <div><x-admin.sortable-column label="Teléfono" field="phone" /></div>
+        <div><x-admin.sortable-column label="Empresa" field="company" /></div>
         <div>Acciones</div>
     </div>
 
@@ -99,30 +99,40 @@
 
             <div class="flex gap-2 truncate whitespace-nowrap overflow-hidden max-w-xs">
                 {{-- VIEW USER --}}
-                <a href="{{ route('admin.users.show', ['user' => $user->id, 'type' => request('type', 'mobile')]) }}" title="Ver usuario">
+                <a href="{{ route('admin.users.show', [
+                                'user' => $user->id,
+                                'type' => request('type', 'mobile'),
+                                'back_url' => url()->full()
+                                ]) }}"
+                   title="Ver usuario"
+                >
                     <i data-lucide="eye" class="w-5 h-5 text-blue-600 hover:text-blue-700 transition"></i>
                 </a>
 
                 {{-- EDIT --}}
                 <a href="{{ route('admin.users.edit', [
-                            'user' => $user->id, 'role' => $user->role->role_name ?? null,
+                            'user' => $user->id,
+                            'role' => $user->role->role_name ?? null,
                             'type' => request('type', \App\Enums\UserTypeEnum::MOBILE->value)]) }}"
                    title="Editar">
                     <i data-lucide="pencil" class="w-5 h-5 text-indigo-800 hover:text-indigo-900 transition"></i>
                 </a>
 
                 {{-- CHANGE PASSWORD --}}
-                <a href="{{ route('admin.users.edit-password', $user) }}" title="Cambiar contraseña">
+                <a href="{{ route('admin.users.edit-password', ['user' => $user->id, 'back_url' => url()->full()]) }}" title="Cambiar contraseña">
                     <i data-lucide="key-round" class="w-5 h-5 text-yellow-600 hover:text-yellow-700 transition"></i>
                 </a>
 
                 {{-- VIEW TASKS --}}
-                <a href="{{ route('admin.users.tasks', $user->id) }}" title="Ver tareas">
+                <a href="{{ route('admin.users.tasks', [
+                            'id' => $user->id,
+                            'back_url' => url()->full()]) }}"
+                   title="Ver tareas">
                     <i data-lucide="list-todo" class="w-5 h-5 text-indigo-800 hover:text-indigo-900 transition"></i>
                 </a>
 
                 {{-- VIEW/ASSIGN VACATIONS --}}
-                <a href="{{ route('admin.users.vacations', $user->id) }}" title="Ver/Asignar vacaciones">
+                <a href="{{ route('admin.users.vacations', ['user' => $user->id, 'back_url' => url()->full()]) }}" title="Ver/Asignar vacaciones">
                     <i data-lucide="calendar" class="w-5 h-5 text-green-600 hover:text-green-700 transition"></i>
                 </a>
 
@@ -136,7 +146,7 @@
                 </form>
 
                 {{-- VIEW TASKS CALENDAR --}}
-                <a href="{{ route('admin.users.tasks-calendar', $user->id) }}" title="Ver calendario de tareas">
+                <a href="{{ route('admin.users.tasks-calendar', ['id' => $user->id, 'back_url' => url()->full()]) }}" title="Ver calendario de tareas">
                     <i data-lucide="list-todo" class="w-5 h-5 text-indigo-800 hover:text-indigo-900 transition"></i>
                 </a>
             </div>

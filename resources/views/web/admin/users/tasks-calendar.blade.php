@@ -83,7 +83,7 @@
     <div id="task-detail-container" class="min-h-[40px]"></div>
 
     {{-- BACK BUTTON --}}
-    <x-admin.back-to-users-button :type="\App\Enums\UserTypeEnum::MOBILE->value" />
+    <x-admin.back-to-users-button :type="\App\Enums\UserTypeEnum::MOBILE->value" :back_url="$backUrl" />
 
     <script>
         function calendarView() {

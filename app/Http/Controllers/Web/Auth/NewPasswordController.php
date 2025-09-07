@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web\Auth;
 
+use App\Enums\RoleEnum;
 use App\Http\Controllers\Web\WebController;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
@@ -42,9 +43,9 @@ class NewPasswordController extends WebController
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        // Verificar que el usuario tenga un rol permitido
+        // Verify that the user has an allowed role
         $user = User::where('email', $request->email)->first();
-        if (! $user || ! in_array($user->role->code, ['admin', 'manager'])) {
+        if (! $user || ! in_array($user->role->role_name, [RoleEnum::ADMIN->value, RoleEnum::MANAGER->value])) {
             throw ValidationException::withMessages([
                 'email' => ['No tienes permisos para restablecer la contraseña.'],
             ]);

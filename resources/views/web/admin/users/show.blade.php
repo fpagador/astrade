@@ -94,6 +94,6 @@
         @php
             $type = request('type', '\App\Enums\UserTypeEnum::management->value');
         @endphp
-        <x-admin.back-to-users-button :type="$type" />
+        <x-admin.back-to-users-button :type="$type" :back_url="$backUrl" />
     </div>
 @endsection

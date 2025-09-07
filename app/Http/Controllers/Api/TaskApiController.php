@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Exceptions\BusinessRuleException;
 use App\Services\TaskService;
 
 /**
@@ -215,15 +213,6 @@ class TaskApiController extends ApiController
     {
         return $this->handleApi(function () use ($request, $taskId) {
             $task = $this->service->getTaskWithCompany($request->user()->id, $taskId);
-
-            if (!$task) {
-                throw new ModelNotFoundException('Task not found or not authorized');
-            }
-
-            if (!$task->user->company) {
-                throw new BusinessRuleException('No company associated with this task');
-            }
-
             return $this->render($task->user->company);
         }, "Error retrieving companies for the task", $request);
     }

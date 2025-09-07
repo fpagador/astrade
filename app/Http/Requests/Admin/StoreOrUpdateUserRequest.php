@@ -26,7 +26,7 @@ class StoreOrUpdateUserRequest extends FormRequest
         $editing = $this->route('user') != null;
         $userId = $editing ? $this->input('id') : null;
 
-        $type = $this->input('type', UserTypeEnum::MOBILE->value);
+        $type = $this->input('type', UserTypeEnum::MANAGEMENT->value);
         $isUser = $type === UserTypeEnum::MOBILE->value;
 
         $passwordRules = $editing
@@ -46,7 +46,7 @@ class StoreOrUpdateUserRequest extends FormRequest
             'dni' => [
                 'required',
                 'string',
-                'regex:/^[0-9]{8}[A-Za-z]$/',
+                'regex:/^([0-9]{8}[A-Za-z]|[XYZ][0-9]{7}[A-Za-z])$/',
                 Rule::unique('users', 'dni')->ignore($userId),
             ],
             'email' => [
@@ -75,6 +75,14 @@ class StoreOrUpdateUserRequest extends FormRequest
         ];
     }
 
+    public function prepareForValidation()
+    {
+        if ($this->has('dni')) {
+            $dni = strtoupper(trim($this->input('dni')));
+            $this->merge(['dni' => $dni]);
+        }
+    }
+
     /**
      * Custom validation messages.
      *
@@ -100,9 +108,9 @@ class StoreOrUpdateUserRequest extends FormRequest
         return array_merge([
             'name.required' => 'El nombre es obligatorio.',
             'surname.required' => 'El apellido es obligatorio.',
-            'dni.required' => 'El DNI es obligatorio.',
-            'dni.unique' => 'El DNI ya está en uso.',
-            'dni.regex' => 'El DNI debe tener 8 números y 1 letra (ejemplo: 12345678A).',
+            'dni.required' => 'El DNI/NIE es obligatorio.',
+            'dni.unique' => 'El DNI/NIE ya está en uso.',
+            'dni.regex' => 'El DNI/NIE debe tener un formato válido (DNI: 12345678A, NIE: X1234567B).',
             'email.required' => 'El email es obligatorio.',
             'email.email' => 'El email debe ser una dirección válida.',
             'email.unique' => 'El email ya está registrado.',

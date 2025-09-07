@@ -6,6 +6,7 @@ use App\Http\Controllers\Web\WebController;
 use App\Http\Requests\Admin\WorkCalendarTemplateRequest;
 use App\Models\WorkCalendarTemplate;
 use App\Models\WorkCalendarDay;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -41,6 +42,16 @@ class WorkCalendarTemplateController extends WebController
                 $query->where('status', $request->status);
             }
 
+            $sort = $request->get('sort', 'name');
+            $direction = $request->get('direction', 'asc');
+
+            // default columns
+            $sortableColumns = ['name', 'year', 'status'];
+
+            if (in_array($sort, $sortableColumns)) {
+                $query->orderBy("work_calendar_templates.$sort", $direction);
+            }
+
             $templates = $query->paginate(15)->withQueryString();
             $statuses = collect(CalendarStatus::cases())
                 ->mapWithKeys(fn($case) => [$case->value => CalendarStatus::label($case)]);
@@ -59,7 +70,8 @@ class WorkCalendarTemplateController extends WebController
         $statusOptions = collect(CalendarStatus::cases())
             ->mapWithKeys(fn($case) => [$case->value => CalendarStatus::label($case)])
             ->toArray();
-        return view('web.admin.calendars.create', compact('statusOptions'));
+        $existingCalendars = WorkCalendarTemplate::all();
+        return view('web.admin.calendars.create', compact('statusOptions','existingCalendars'));
     }
 
     /**
@@ -238,6 +250,26 @@ class WorkCalendarTemplateController extends WebController
             $day->delete();
             return back();
         }, route('admin.calendars.edit', $template), 'Day removed successfully.');
+    }
+
+    /**
+     * Get template to clone
+     *
+     * @param  WorkCalendarTemplate  $template
+     * @return JsonResponse
+     */
+    public function cloneTemplateData(WorkCalendarTemplate $template): JsonResponse
+    {
+        $template->load('days');
+
+        return response()->json([
+            'name' => $template->name,
+            'status' => $template->status,
+            'holidays' => $template->days
+                ->where('day_type', 'holiday')
+                ->pluck('date')
+                ->values()
+        ]);
     }
 
 }
