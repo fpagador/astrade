@@ -24,22 +24,15 @@ class RoleMiddleware
         // Get the currently authenticated user
         $user = auth()->user();
 
-        // 1. Ensure the user is authenticated
         if (!$user) {
-            abort(401, 'Not authenticated.');
+            return redirect()->route('login');
         }
 
-        // 2. Ensure the user has a role assigned
-        if (!$user->role) {
-            abort(403, 'No tienes un rol asignado.');
+        if (!in_array($user->role->role_name, $roles)) {
+            abort(403, 'No tienes permisos para acceder.');
         }
 
-        // 3. Check if the user's role is in the allowed list
-        if (in_array($user->role->role_name, $roles)) {
-            return $next($request); // Authorized
-        }
+        return $next($request);
 
-        // 4. The user does not have permission
-        abort(403, 'No tienes permisos para acceder.');
     }
 }

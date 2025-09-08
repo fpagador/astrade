@@ -9,7 +9,7 @@
     <div class="relative bg-white rounded shadow-lg max-w-3xl max-h-[80vh] p-4">
         <button
             @click="close()"
-            class="absolute top-2 right-2 z-50 text-gray-700 hover:text-gray-900"
+            class="absolute top-2 right-2 z-50 text-gray-700 hover:text-gray-900 font-bold bg-white rounded-full shadow p-1 z-50"
             aria-label="Cerrar imagen"
             style="padding: 0.6rem 1rem;"
         >

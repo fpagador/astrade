@@ -360,10 +360,14 @@ class UserTaskController extends WebController
     private function syncSubtasks(Task $task, StoreOrUpdateTaskRequest $request): void
     {
         $formSubtasks = $request->input('subtasks', []);
-        $submittedIds = collect($formSubtasks)->pluck('id')->filter()->all();
+        $submittedIds = collect($formSubtasks)
+            ->pluck('id')
+            ->filter(fn ($id) => !empty($id))
+            ->map(fn ($id) => (int) $id)
+            ->all();
 
         foreach ($formSubtasks as $index => $subtaskData) {
-            $id = $subtaskData['id'] ?? null;
+            $id = !empty($subtaskData['id']) ? (int) $subtaskData['id'] : null;
             $fileKey = $id ?? 'new_' . $index;
 
             $values = [
@@ -381,18 +385,22 @@ class UserTaskController extends WebController
                 $values['pictogram_path'] = $this->handlePictogramUpload($file, $oldPath);
             }
 
-            if ($id && ($subtask = $task->subtasks->firstWhere('id', $id))) {
+            if ($id && ($subtask = $task->subtasks()->find($id))) {
                 $subtask->update($values);
             } else {
-                $task->subtasks()->create($values);
+                $newSubtask = $task->subtasks()->create($values);
+                $submittedIds[] = $newSubtask->id;
             }
         }
 
-        $task->subtasks()->whereNotIn('id', $submittedIds)->get()->each(function ($subtask) {
-            if ($subtask->pictogram_path && Storage::disk('public')->exists($subtask->pictogram_path)) {
-                Storage::disk('public')->delete($subtask->pictogram_path);
-            }
-            $subtask->delete();
+        $task->subtasks()
+            ->whereNotIn('id', $submittedIds)
+            ->get()
+            ->each(function ($subtask) {
+                if ($subtask->pictogram_path && Storage::disk('public')->exists($subtask->pictogram_path)) {
+                    Storage::disk('public')->delete($subtask->pictogram_path);
+                }
+                $subtask->delete();
         });
     }
 

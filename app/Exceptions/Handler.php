@@ -40,13 +40,6 @@ class Handler extends ExceptionHandler
                 ], 422);
             }
 
-            if ($exception instanceof \Illuminate\Auth\AuthenticationException) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Not authenticated.',
-                ], 401);
-            }
-
             if ($exception instanceof \Illuminate\Auth\Access\AuthorizationException) {
                 return response()->json([
                     'status' => 'error',
@@ -75,5 +68,7 @@ class Handler extends ExceptionHandler
         if ($request->expectsJson()) {
             return response()->json(['message' => 'Not authenticated.'], 401);
         }
+
+        return redirect()->guest(route('login'));
     }
 }

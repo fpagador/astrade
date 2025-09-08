@@ -53,6 +53,7 @@
                     name="password"
                     type="password"
                     required
+                    autocomplete="new-password"
                     tooltip="La contraseña debe tener al menos 8 caracteres, incluidas mayúsculas, minúsculas, números y caracteres especiales."
                 />
                 <button type="button"
@@ -68,6 +69,7 @@
                     label="Confirmar contraseña"
                     name="password_confirmation"
                     type="password"
+                    autocomplete="new-password"
                     required
                 />
                 <button type="button"
