@@ -188,3 +188,138 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+/**
+ * Alpine.js component to handle user selection per company.
+ * Allows:
+ *  - Selecting users by company.
+ *  - Searching users by name or surname.
+ *  - Adding/removing users dynamically.
+ *  - Assigning a unique color per company for UI badges.
+ */
+export function userSelector() {
+    return {
+        companies: [],
+        allUsers: [],
+        selectedCompany: null,
+        selectedUsers: [],
+        searchQuery: '',
+        searchResults: [],
+        companyColorMap: {},
+        colors: [
+            'bg-indigo-100 text-indigo-900',
+            'bg-green-100 text-green-900',
+            'bg-red-100 text-red-900',
+            'bg-pink-100 text-pink-900',
+            'bg-purple-100 text-purple-900'
+        ],
+
+        /**
+         * Initialize component.
+         * - parameters are optional (they may be undefined if Alpine starts early)
+         * - tries to use passed values first, then falls back to window.* variables
+         * - retries a few times if window vars arrive shortly after Alpine init
+         */
+        init(companies = null, users = null) {
+            // Prefer explicit arguments, fallback to window variables
+            this.companies = Array.isArray(companies) ? companies : (Array.isArray(window.appCompanies) ? window.appCompanies : []);
+            this.allUsers  = Array.isArray(users)     ? users     : (Array.isArray(window.appUsers)     ? window.appUsers     : []);
+
+            // If we don't have data yet, retry a few times (in case inline script is later)
+            if ((!this.companies.length && !Array.isArray(companies)) || (!this.allUsers.length && !Array.isArray(users))) {
+                let retries = 0;
+                const tryInit = () => {
+                    retries++;
+                    if (Array.isArray(window.appCompanies) && window.appCompanies.length) this.companies = window.appCompanies;
+                    if (Array.isArray(window.appUsers) && window.appUsers.length) this.allUsers = window.appUsers;
+
+                    if (this.companies.length || this.allUsers.length || retries >= 10) {
+                        // assign colors after we've loaded companies (or after last attempt)
+                        this._assignColors();
+                    } else {
+                        setTimeout(tryInit, 50);
+                    }
+                };
+                tryInit();
+            } else {
+                this._assignColors();
+            }
+        },
+
+        /**
+         * Internal helper to map a CSS class color to each company id.
+         */
+        _assignColors() {
+            this.companyColorMap = {};
+            this.companies.forEach((c, i) => {
+                // guard: ensure c.id exists
+                const id = (c && (c.id ?? c.company_id ?? null));
+                if (id !== null && id !== undefined) {
+                    this.companyColorMap[id] = this.colors[i % this.colors.length];
+                }
+            });
+        },
+
+        /**
+         * Add all users that belong to the selected company to selectedUsers.
+         */
+        loadCompanyUsers() {
+            if (!this.selectedCompany) return;
+            const companyUsers = this.allUsers.filter(u => u.company_id == this.selectedCompany);
+            companyUsers.forEach(u => {
+                if (!this.selectedUsers.find(su => su.id == u.id)) {
+                    this.selectedUsers.push(u);
+                }
+            });
+        },
+
+        /**
+         * Remove a user from the selection.
+         */
+        removeUser(user) {
+            this.selectedUsers = this.selectedUsers.filter(u => u.id != user.id);
+        },
+
+        /**
+         * Search users by name or surname, skipping already selected users.
+         */
+        searchUsers() {
+            const q = (this.searchQuery || '').toLowerCase().trim();
+            if (!q) {
+                this.searchResults = [];
+                return;
+            }
+            this.searchResults = this.allUsers.filter(u =>
+                (String(u.name || '').toLowerCase().includes(q) ||
+                    String(u.surname || '').toLowerCase().includes(q)) &&
+                !this.selectedUsers.find(su => su.id == u.id)
+            );
+        },
+
+        /**
+         * Add an individual user from search results to the selection.
+         */
+        addUser(user) {
+            if (!this.selectedUsers.find(u => u.id == user.id)) {
+                this.selectedUsers.push(user);
+            }
+            this.searchQuery = '';
+            this.searchResults = [];
+        },
+
+        /**
+         * Return CSS class for a company's badge based on the precomputed map.
+         */
+        companyColor(companyId) {
+            return this.companyColorMap[companyId] || 'bg-gray-200 text-gray-800';
+        },
+
+        /**
+         * Return company name given id.
+         */
+        getCompanyName(companyId) {
+            const company = this.companies.find(c => c.id == companyId);
+            return company ? company.name : '';
+        }
+    };
+}

@@ -2,6 +2,7 @@
 'name',
 'label' => '',
 'checked' => false,
+'readonly' => false
 ])
 
 <div class="mb-4 flex items-center space-x-2">
@@ -12,6 +13,7 @@
         value="1"
         {{ old($name, $checked) ? 'checked' : '' }}
         {{ $attributes->merge(['class' => 'rounded focus:ring-indigo-400']) }}
+        @if($readonly) readonly @endif
     />
     <label for="{{ $name }}" class="font-medium">
         {{ $label }}

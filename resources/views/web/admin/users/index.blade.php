@@ -59,26 +59,41 @@
             </div>
         </form>
 
+        {{-- EXPORT EXCEL BUTTON --}}
+        <div class="flex justify-end mb-6">
+            <a href="{{ route('admin.users.export', request()->query()) }}"
+               class="mt-1 inline-block px-4 py-2 bg-indigo-900 text-white rounded hover:bg-indigo-800 transition shadow">
+                Exportar en Excel
+            </a>
+        </div>
+
         {{-- TABLE HEADER --}}
-        <div class="grid grid-cols-[1fr_1fr_1fr_2fr_1fr_2fr_1fr_auto] bg-indigo-900 text-white font-medium text-sm rounded-t-md px-4 py-2">
+        <div class="grid grid-cols-8 bg-indigo-900 text-white font-medium text-sm rounded-t-md px-4 py-2">
             <div><x-admin.sortable-column label="Nombre" field="name" default="true" /></div>
             <div><x-admin.sortable-column label="Apellidos" field="surname" /></div>
             <div><x-admin.sortable-column label="DNI/NIE" field="dni" /></div>
             <div><x-admin.sortable-column label="Email" field="email" /></div>
             <div><x-admin.sortable-column label="Teléfono" field="phone" /></div>
             <div><x-admin.sortable-column label="Rol" field="role" /></div>
+            <div><x-admin.sortable-column label="Puede recibir llamada" field="can_be_called" /></div>
             <div>Acciones</div>
         </div>
 
         {{-- ROWS --}}
         @foreach($users as $user)
-            <div class="grid grid-cols-[1fr_1fr_1fr_2fr_1fr_2fr_1fr_auto] items-center px-4 py-3 border-b hover:bg-indigo-50 text-sm bg-white">
+            <div class="grid grid-cols-8 items-center px-4 py-3 border-b hover:bg-indigo-50 text-sm bg-white">
                 <div>{{ $user->name }}</div>
                 <div>{{ $user->surname }}</div>
                 <div>{{ $user->dni }}</div>
                 <div>{{ $user->email }}</div>
                 <div>{{ $user->phone }}</div>
                 <div>{{ $user->role ? \App\Enums\RoleEnum::from($user->role->role_name)->label() : '' }} </div>
+                <div class="text-center">
+                    <i
+                        data-lucide="{{ $user->can_be_called ? 'phone' : 'x' }}"
+                        class="w-5 h-5 {{ $user->can_be_called ? 'text-green-600' : 'text-red-600' }}">
+                    </i>
+                </div>
                 <div class="flex gap-2">
                     {{-- VIEW USER --}}
                     <a href="{{ route('admin.users.show', [
@@ -101,6 +116,19 @@
                     >
                         <i data-lucide="pencil" class="w-5 h-5 text-indigo-800 hover:text-indigo-900 transition"></i>
                     </a>
+
+                    {{-- ASSIGN CALL --}}
+                    <form action="{{ route('admin.users.toggleCall', $user) }}" method="POST">
+                        @csrf
+                        <button type="submit"
+                                class="px-2 py-1 rounded hover:opacity-90 transition"
+                                title="{{ $user->can_be_called ? 'Eliminar recepción de llamadas' : 'Asignar recepción de llamadas' }}">
+                            <i
+                                data-lucide="{{ $user->can_be_called ? 'x' : 'phone' }}"
+                                class="w-5 h-5 p-1 rounded-full {{ $user->can_be_called ? 'bg-red-600 text-white' : 'bg-green-600 text-white' }}">
+                            </i>
+                        </button>
+                    </form>
 
                     {{-- DELETE --}}
                     @can('delete', $user)

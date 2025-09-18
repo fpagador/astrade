@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_vacations', function (Blueprint $table) {
+        Schema::create('user_absences', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->date('date');
+            $table->enum('type', ['vacation', 'legal_absence'])->default('vacation');
             $table->string('description')->nullable();
             $table->timestamps();
         });

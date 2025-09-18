@@ -14,17 +14,15 @@ use App\Models\Task;
  */
 class TaskService
 {
-    protected TaskRepository $repository;
 
     /**
      * TaskService constructor.
      *
-     * @param TaskRepository $repository
+     * @param TaskRepository $taskRepository
      */
-    public function __construct(TaskRepository $repository)
-    {
-        $this->repository = $repository;
-    }
+    public function __construct(
+        protected TaskRepository $taskRepository
+    ) {}
 
     /**
      * Get all tasks with subtasks for a given user.
@@ -34,7 +32,7 @@ class TaskService
      */
     public function getAllTasks(int $userId): Collection
     {
-        return $this->repository->allByUser($userId);
+        return $this->taskRepository->allByUser($userId);
     }
 
     /**
@@ -45,7 +43,7 @@ class TaskService
      */
     public function getTodayTasks(int $userId): Collection
     {
-        return $this->repository->todayByUser($userId);
+        return $this->taskRepository->todayByUser($userId);
     }
 
     /**
@@ -57,7 +55,7 @@ class TaskService
      */
     public function getPlannedTasks(int $userId, int $days): Collection
     {
-        return $this->repository->plannedByUser($userId, $days);
+        return $this->taskRepository->plannedByUser($userId, $days);
     }
 
     /**
@@ -69,7 +67,7 @@ class TaskService
      */
     public function getTaskDetails(int $userId, int $taskId): Task
     {
-        return $this->repository->findById($userId, $taskId);
+        return $this->taskRepository->findById($userId, $taskId);
     }
 
     /**
@@ -81,7 +79,7 @@ class TaskService
      */
     public function getTaskWithCompany(int $userId, int $taskId): Task
     {
-        $task = $this->repository->findCompany($userId, $taskId);
+        $task = $this->taskRepository->findCompany($userId, $taskId);
         if (!$task) {
             throw new ModelNotFoundException("Task not found or not authorized");
         }

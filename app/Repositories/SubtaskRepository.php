@@ -3,8 +3,10 @@
 namespace App\Repositories;
 
 use App\Models\Subtask;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Models\Task;
 
 /**
  * Repository class for Subtask entity.
@@ -27,10 +29,10 @@ class SubtaskRepository
      * Find a subtask by ID with its parent task and subtasks loaded.
      *
      * @param int $subtaskId
-     * @return Subtask
+     * @return Subtask|Model
      * @throws ModelNotFoundException
      */
-    public function findById(int $subtaskId): Subtask
+    public function findById(int $subtaskId): Subtask|Model
     {
         $subtask = Subtask::with('task.subtasks')->find($subtaskId);
         if (!$subtask) {
@@ -49,5 +51,36 @@ class SubtaskRepository
     {
         $subtask->save();
         return $subtask;
+    }
+
+    /**
+     * Create multiple subtasks from array.
+     *
+     * @param Task $task
+     * @param array $subtasks
+     * @return void
+     */
+    public function createManyFromArray(Task $task, array $subtasks): void
+    {
+        foreach ($subtasks as $subtask) {
+            $task->subtasks()->create($subtask);
+        }
+    }
+
+    /**
+     * Replicate many subtasks from one task to another.
+     *
+     * @param iterable $subtasks
+     * @param Task $newTask
+     * @return void
+     */
+    public function replicateMany(iterable $subtasks, Task $newTask): void
+    {
+        foreach ($subtasks as $subtask) {
+            $attributes = $subtask->replicate()->toArray();
+            unset($attributes['id'], $attributes['task_id'], $attributes['created_at'], $attributes['updated_at']);
+            $attributes['task_id'] = $newTask->id;
+            Subtask::create($attributes);
+        }
     }
 }

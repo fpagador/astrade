@@ -63,13 +63,14 @@ class StoreOrUpdateUserRequest extends FormRequest
             ],
             'password' => $passwordRules,
             'photo' => 'nullable|image|max:2048',
+            'photo_base64' => 'nullable|string',
             'role_id' => 'required|exists:roles,id',
 
             //Conditional fields:
             'company_id' => $isUser ? 'required|exists:companies,id' : 'nullable',
             'work_calendar_template_id' => $isUser ? 'required|exists:work_calendar_templates,id' : 'nullable',
             'work_schedule' => $isUser ? 'required|string|max:255' : 'nullable',
-            'contract_type' => $isUser ? 'required|in:Temporal,Indefinido' : 'nullable',
+            'contract_type' => $isUser ? 'required|in:temporary,permanent' : 'nullable',
             'contract_start_date' => $isUser ? 'required|date' : 'nullable',
             'notification_type' => $isUser ? 'required|in:none,visual,visual_audio' : 'nullable'
         ];

@@ -36,9 +36,9 @@ class ClearTaskCompletionLogs extends Command
             ->delete();
 
         // Notify the administrator by email
-        (new AdminNotifier)->notify(
+        /*(new AdminNotifier)->notify(
             new LogsClearedNotification('Task Completion', $deleted)
-        );
+        );*/
 
         $this->info("Deleted {$deleted} task completion log(s) older than one month.");
     }

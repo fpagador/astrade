@@ -1,4 +1,4 @@
-@props(['label' => '', 'name', 'type' => 'text', 'value' => '', 'required' => false])
+@props(['label' => '', 'name', 'type' => 'text', 'value' => '', 'required' => false, 'readonly' => false])
 
 <div class="mb-4">
     @if ($label)
@@ -25,6 +25,7 @@
         class="block"
         @endif
         {{ $required ? 'required' : '' }}
+        @if($readonly) readonly @endif
         {{ $attributes }}
     >
 

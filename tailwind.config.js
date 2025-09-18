@@ -18,4 +18,19 @@ export default {
     },
 
     plugins: [forms],
+    safelist: [
+        // Calendar Colors
+        'bg-green-500',
+        'bg-orange-400',
+        'bg-yellow-200',
+        'bg-gray-300',
+        'bg-gray-100',
+
+        // Company Colors
+        'bg-indigo-100 text-indigo-900',
+        'bg-green-100 text-green-900',
+        'bg-red-100 text-yellow-900',
+        'bg-pink-100 text-pink-900',
+        'bg-purple-100 text-purple-900'
+    ],
 };

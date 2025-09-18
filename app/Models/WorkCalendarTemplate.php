@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * Class WorkCalendarTemplate
  *
  * Represents a yearly work calendars template that can be assigned to multiple users.
- * A template contains a collection of specific days (holidays, weekends, workdays).
+ * A template contains holidays.
  *
  * @package App\Models
  *
@@ -33,11 +34,12 @@ class WorkCalendarTemplate extends Model
     protected $fillable = [
         'name',
         'year',
-        'status'
+        'status',
+        'continuity_template_id'
     ];
 
     /**
-     * Get all days (holidays, weekends, workdays) for this template.
+     * Get all holidays for this template.
      *
      * @return HasMany
      */
@@ -54,5 +56,25 @@ class WorkCalendarTemplate extends Model
     public function users(): hasMany
     {
         return $this->hasMany(User::class, 'work_calendar_template_id');
+    }
+
+    /**
+     * Relationship with the previous calendar (continuity)
+     *
+     * @return BelongsTo
+     */
+    public function continuityTemplate(): BelongsTo
+    {
+        return $this->belongsTo(WorkCalendarTemplate::class, 'continuity_template_id');
+    }
+
+    /**
+     * Inverse relationship: calendars that use this as continuity
+     *
+     * @return HasMany
+     */
+    public function continuedByTemplates(): HasMany
+    {
+        return $this->hasMany(WorkCalendarTemplate::class, 'continuity_template_id');
     }
 }

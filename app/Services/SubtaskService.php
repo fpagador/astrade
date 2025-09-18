@@ -16,12 +16,15 @@ use App\Errors\ErrorCodes;
  */
 class SubtaskService
 {
-    protected SubtaskRepository $repository;
 
-    public function __construct(SubtaskRepository $repository)
-    {
-        $this->repository = $repository;
-    }
+    /**
+     * SubtaskService constructor.
+     *
+     * @param SubtaskRepository $repository
+     */
+    public function __construct(
+        protected SubtaskRepository $repository
+    ) {}
 
     /**
      * Get all subtasks of a task.

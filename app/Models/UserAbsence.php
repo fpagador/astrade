@@ -9,7 +9,7 @@ use Illuminate\Support\Carbon;
 use App\Models\User;
 
 /**
- * Class UserVacation
+ * Class UserAbsence
  *
  * Represents a vacation day assigned to a specific user.
  * Vacation days are independent from work calendars templates.
@@ -25,18 +25,23 @@ use App\Models\User;
  *
  * @property-read User $user
  */
-class UserVacation extends Model
+class UserAbsence extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'user_id',
         'date',
-        'description'
+        'description',
+        'type'
+    ];
+
+    protected $casts = [
+        'date' => 'date',
     ];
 
     /**
-     * Get the user that owns this vacation day.
+     * Get the user that owns this vacation or legal absence day.
      *
      * @return BelongsTo
      */

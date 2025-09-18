@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Class WorkCalendarDay
  *
  * Represents a specific day within a work calendars template.
- * This can be marked as holiday, weekend, or workday.
+ * This can be marked as holiday.
  *
  * @package App\Models
  *
@@ -20,7 +20,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $template_id
  * @property Carbon $date
  * @property string $day_type
- * @property string|null $description
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
@@ -33,8 +32,11 @@ class WorkCalendarDay extends Model
     protected $fillable = [
         'template_id',
         'date',
-        'day_type',
-        'description'
+        'day_type'
+    ];
+
+    protected $casts = [
+        'date' => 'date',
     ];
 
     /**

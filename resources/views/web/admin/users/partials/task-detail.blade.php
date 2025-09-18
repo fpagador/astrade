@@ -3,7 +3,12 @@
          style="border-color: {{ $task->color === '' ? '#e5e7eb' : $task->color }}; background-color: #ffffff;">
         <div class="flex justify-between items-start mb-2">
             <div class="space-y-1">
-                <h2 class="text-xl font-semibold text-gray-800">{{ $task->title }}</h2>
+                <div class="flex items-center gap-2">
+                    <h2 class="text-xl font-semibold text-gray-800">{{ $task->title }}</h2>
+                    @if($task->recurrent_task_id)
+                        <i data-lucide="repeat" class="w-5 h-5 text-blue-600" title="Tarea recurrente"></i>
+                    @endif
+                </div>
                 <h5 class="text-md font-semibold text-gray-700">{{ $task->description }}</h5>
                 <p class="text-sm text-gray-600">
                     Hora inicio: {{ $task->scheduled_time?->format('H:i') ?? 'No asignada' }}
@@ -21,6 +26,20 @@
                     Estado: <span class="capitalize">{{ status_label($task->status) }}</span> ·
                     Fecha: {{ $task->scheduled_date?->format('d/m/Y') ?? 'No asignada' }}
                 </p>
+
+                {{-- PICTOGRAM --}}
+                @if ($task->pictogram_path)
+                    <div class="mt-2">
+                        <button type="button"
+                                @click="$dispatch('open-image', { src: '{{ asset('storage/' . $task->pictogram_path) }}' })"
+                                title="Ver pictograma de {{ $task->title }}"
+                                class="h-32 w-32 object-contain rounded cursor-pointer transition hover:brightness-110">
+                            <img src="{{ asset('storage/' . $task->pictogram_path) }}"
+                                 alt="Pictograma de {{ $task->title }}"
+                                 class="object-contain w-full h-full">
+                        </button>
+                    </div>
+                @endif
             </div>
             <div class="flex items-center gap-3">
 
@@ -34,36 +53,38 @@
                     </button>
                 @endif
 
-                {{-- VIEW PICTOGRAM --}}
-                @if ($task->pictogram_path)
+                {{-- EDIT --}}
+                @if($task->recurrentTask)
                     <button type="button"
-                            @click="$dispatch('open-image', '{{ asset('storage/' . $task->pictogram_path) }}')"
-                            title="Ver pictograma"
-                            class="ml-2 text-gray-600 hover:text-gray-900">
-                        <i data-lucide="search" class="w-5 h-5"></i>
+                            @click="$dispatch('open-action-modal', {
+                                            taskId: {{ $task->id }},
+                                            type: 'edit',
+                                            editUrl: '{{ route('admin.users.tasks.edit', ['user' => $user->id, 'id' => $task->id]) }}'
+                                        })"
+                            title="Editar tarea recurrente">
+                        <i data-lucide="pencil" class="w-5 h-5 text-indigo-800"></i>
                     </button>
+                @else
+                    <a href="{{ route('admin.users.tasks.edit', ['user' => $user->id, 'id' => $task->id, 'date' => $date]) }}" title="Editar">
+                        <i data-lucide="pencil" class="w-5 h-5 text-indigo-800 hover:text-indigo-900 transition"></i>
+                    </a>
                 @endif
 
-                {{-- EDIT --}}
-                <a href="{{ route('admin.users.tasks.edit', ['user' => $user->id, 'id' => $task->id, 'date' => $date]) }}" title="Editar">
-                    <i data-lucide="pencil" class="w-5 h-5 text-indigo-800 hover:text-indigo-900 transition"></i>
-                </a>
-
                 {{-- DELETE --}}
-                <form action="{{ route('admin.users.tasks.destroy', ['user' => $user->id, 'task' => $task->id, 'date' => $date]) }}"
-                      method="POST"
-                      onsubmit="return confirm('¿Está seguro de eliminar esta tarea del usuario {{ $user->name }}?');"
-                      class="inline-block">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" title="Eliminar">
-                        <i data-lucide="trash-2" class="w-5 h-5 text-red-600 hover:text-red-700 transition"></i>
-                    </button>
-                </form>
+                <button type="button"
+                        @click="$dispatch('open-action-modal', {
+                            taskId: {{ $task->id }},
+                            userId: {{ $user->id }},
+                            deleteUrl: '{{ route('admin.users.tasks.destroy', ['user' => $user->id, 'task' => $task->id, 'date' => $date]) }}',
+                            type: 'delete',
+                            isRecurrent: {{ $task->recurrentTask ? 'true' : 'false' }}
+                        })"
+                        title="Eliminar tarea">
+                    <i data-lucide="trash-2" class="w-5 h-5 text-red-600 hover:text-red-700 transition"></i>
+                </button>
             </div>
         </div>
 
-        {{-- SUBTASKS --}}
         {{-- SUBTASKS --}}
         @if($task->subtasks->count())
             @php
@@ -97,9 +118,9 @@
                                 @if ($subtask->pictogram_path)
                                     <div class="mt-2">
                                         <button type="button"
-                                                @click="$dispatch('open-image', '{{ asset('storage/' . $subtask->pictogram_path) }}')"
+                                                @click="$dispatch('open-image', { src: '{{ asset('storage/' . $subtask->pictogram_path) }}' })"
                                                 title="Ver pictograma de {{ $subtask->title }}"
-                                                class="w-52 h-52 flex items-center justify-center rounded border hover:shadow-lg transition cursor-pointer p-1 bg-white hover:scale-105">
+                                                class="h-32 w-32 object-contain rounded cursor-pointer transition hover:brightness-110">
                                             <img src="{{ asset('storage/' . $subtask->pictogram_path) }}"
                                                  alt="Pictograma de {{ $subtask->title }}"
                                                  class="object-contain w-full h-full">

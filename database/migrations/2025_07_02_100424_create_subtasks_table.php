@@ -15,6 +15,7 @@ return new class extends Migration {
     $table->text('note')->nullable();
     $table->integer('order')->nullable();
     $table->enum('status', ['pending', 'completed'])->default('pending');
+    $table->string('pictogram_path')->nullable();
     $table->timestamps();
 });
     }

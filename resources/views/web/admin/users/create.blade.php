@@ -54,7 +54,9 @@
                     type="password"
                     required
                     autocomplete="new-password"
-                    tooltip="La contraseña debe tener al menos 8 caracteres, incluidas mayúsculas, minúsculas, números y caracteres especiales."
+                    :tooltip="$type === \App\Enums\UserTypeEnum::MOBILE->value
+                        ? 'La contraseña debe tener al menos 6 caracteres y solo puede contener letras y números.'
+                        : 'La contraseña debe tener al menos 8 caracteres, incluidas mayúsculas, minúsculas, números y caracteres especiales.'"
                 />
                 <button type="button"
                         class="absolute right-3 top-9 text-gray-500 hover:text-gray-700 toggle-password"
@@ -113,6 +115,10 @@
             </div>
 
             <!-- Photo -->
+            <!-- Hidden inputs to persist data -->
+            <input type="hidden" name="photo_base64" id="photo_base64" value="{{ old('photo_base64') }}">
+            <input type="hidden" name="photo_name" id="photo_name" value="{{ old('photo_name') }}">
+
             <div x-data="imageSelector()" class="mb-4">
                 <label class="block font-medium mb-1" for="photo">Foto</label>
 

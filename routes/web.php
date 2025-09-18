@@ -5,7 +5,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Web\Admin\DashboardController;
 use App\Http\Controllers\Web\Admin\UserController;
 use App\Http\Controllers\Web\Admin\UserTaskController;
-use App\Http\Controllers\Web\Admin\UserVacationController;
+use App\Http\Controllers\Web\Admin\UserAbsenceController;
 use App\Http\Controllers\Web\Admin\LogController;
 use App\Http\Controllers\Web\Admin\CompanyController;
 use App\Http\Controllers\Web\Admin\TaskCompletionLogController;
@@ -13,8 +13,8 @@ use Illuminate\Http\Request;
 use App\Models\Task;
 use App\Http\Controllers\Web\Admin\WorkCalendarTemplateController;
 use App\Models\WorkCalendarDay;
-use App\Models\UserVacation;
-
+use App\Models\UserAbsence;
+use Illuminate\Support\Carbon;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -61,64 +61,47 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
         Route::delete('/{id}', [UserController::class, 'destroy'])->name('destroy');
         Route::get('/{user}/edit-password', [UserController::class, 'editPassword'])->name('edit-password');
         Route::put('/{user}/update-password', [UserController::class, 'updatePassword'])->name('update-password');
+        Route::get('/export', [UserController::class, 'export'])
+            ->name('export')
+            ->middleware('can:viewAdmin,App\Models\User');
 
         // Ajax methods to validate form fields
         Route::post('/validate-field', [UserController::class, 'validateField'])->name('validate-field');
         Route::post('/validate-password', [UserController::class, 'validatePassword'])->name('validate-password');
 
+        // Ajax method to select the user who can be called
+        Route::post('{user}/toggle-call', [UserController::class, 'toggleCall'])
+            ->name('toggleCall')
+            ->middleware('can:update,user');
+
         /*
         |--------------------------------------------------------------------------
-        | Holidays per user
+        | Holidays and legal absence per user
         |--------------------------------------------------------------------------
         */
-        Route::get('/{user}/vacations', [UserVacationController::class, 'index'])->name('vacations');
-        Route::post('/{user}/vacations', [UserVacationController::class, 'store'])->name('vacations.store');
+        Route::get('/{user}/absences', [UserAbsenceController::class, 'index'])->name('absences');
+        Route::post('/{user}/absences', [UserAbsenceController::class, 'store'])->name('absences.store');
 
         /*
         |--------------------------------------------------------------------------
         | Tasks by users
         |--------------------------------------------------------------------------
         */
-        Route::get('/{id}/tasks', [UserTaskController::class, 'index'])->name('tasks');
-        Route::get('/task/create/{userId?}', [UserTaskController::class, 'create'])->name('tasks.create');
+        Route::get('/{user}/tasks', [UserTaskController::class, 'index'])->name('tasks');
+        Route::get('/task/create/{user?}', [UserTaskController::class, 'create'])->name('tasks.create');
         Route::get('/task/{task}/json', [UserTaskController::class, 'json'])->name('tasks.json');
-        Route::post('/{id}/task', [UserTaskController::class, 'store'])->name('tasks.store');
+        Route::post('/{user}/task', [UserTaskController::class, 'store'])->name('tasks.store');
         Route::delete('/{user}/tasks/{task?}', [UserTaskController::class, 'destroy'])->name('tasks.destroy');
         Route::get('/task/{id}/edit', [UserTaskController::class, 'edit'])->name('tasks.edit');
         Route::put('/task/{task}', [UserTaskController::class, 'update'])->name('tasks.update');
 
-        Route::get('/{userId}/tasks/check-conflict', function($userId, Request $request) {
-            $date = $request->query('scheduled_date');
-            $time = $request->query('scheduled_time');
+        Route::get('/{userId}/tasks/check-conflict', [UserTaskController::class, 'checkConflict']);
+        Route::get('/{userId}/tasks/check-nonworking', [UserTaskController::class, 'checkNonWorking']);
 
-            $exists = Task::where('user_id', $userId)
-                ->where('scheduled_date', $date)
-                ->where('scheduled_time', $time)
-                ->exists();
-
-            return response()->json(['conflict' => $exists]);
-        });
-
-        Route::get('/{userId}/tasks/check-nonworking', function($userId, Request $request) {
-            $date = $request->query('scheduled_date');
-
-            $isHolidayOrWeekend = WorkCalendarDay::whereDate('date', $date)
-                ->whereIn('day_type', ['holiday'])
-                ->exists();
-
-            //Check if the user has vacation that day
-            $isVacation = UserVacation::where('user_id', $userId)
-                ->whereDate('date', $date)
-                ->exists();
-
-            return response()->json([
-                'nonWorking' => ($isHolidayOrWeekend || $isVacation),
-            ]);
-        });
-
-        //TASK CALENDAR
-        Route::get('/{id}/tasks-calendar', [UserTaskController::class, 'calendar'])->name('tasks-calendar');
+        //USER TASKS CALENDAR
         Route::get('/tasks/{task}/detail', [UserTaskController::class, 'taskDetail'])->name('tasks.detail');
+        Route::get('/{user}/tasks-daily', [UserTaskController::class, 'daily'])
+            ->name('tasks.daily');
     });
 
     /*

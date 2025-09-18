@@ -3,6 +3,7 @@
 'name',
 'accept' => null,
 'required' => false,
+'readonly' => false
 ])
 
 <div class="mb-4">
@@ -18,6 +19,7 @@
         {{ $accept ? "accept=$accept" : '' }}
         {{ $required ? 'required' : '' }}
         {{ $attributes->merge(['class' => 'w-full']) }}
+        @if($readonly) readonly @endif
     />
     @error($name)
     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>

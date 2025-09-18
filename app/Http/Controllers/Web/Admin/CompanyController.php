@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\Admin;
 
 use App\Http\Controllers\Web\WebController;
 use App\Models\Company;
+use App\Services\CompanyService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -11,6 +12,16 @@ use App\Http\Requests\Admin\StoreOrUpdateCompanyRequest;
 
 class CompanyController extends WebController
 {
+
+    /**
+     * Construct
+     *
+     * @param CompanyService $companyService
+     */
+    public function __construct(
+        protected CompanyService $companyService,
+    ) {}
+
     /**
      * Display a paginated list of companies with optional filters.
      *
@@ -20,27 +31,10 @@ class CompanyController extends WebController
     public function index(Request $request): View | RedirectResponse
     {
         return $this->tryCatch(function () use ( $request) {
-            $query = Company::query();
-
-            if ($request->filled('name')) {
-                $query->where('name', 'like', '%'.$request->name.'%');
-            }
-
-            if ($request->filled('address')) {
-                $query->where('address', 'like', '%'.$request->address.'%');
-            }
-
+            $filters = $request->only(['name', 'address']);
             $sort = $request->get('sort', 'name');
             $direction = $request->get('direction', 'asc');
-
-            // default columns
-            $sortableColumns = ['name', 'address', 'description'];
-
-            if (in_array($sort, $sortableColumns)) {
-                $query->orderBy("companies.$sort", $direction);
-            }
-
-            $companies = $query->orderBy('id', 'desc')->paginate(15);
+            $companies = $this->companyService->getCompanies($filters, $sort, $direction);
 
             return view('web.admin.companies.index', compact('companies'));
         });
@@ -65,12 +59,10 @@ class CompanyController extends WebController
     public function store(StoreOrUpdateCompanyRequest $request): RedirectResponse
     {
         return $this->tryCatch(function () use ( $request) {
-            $validated = $request->validated();
-            $company = Company::create($validated);
-            $this->addPhones($request, $company);
+            $this->companyService->createCompany($request->validated(), $request->input('phones'));
 
             return redirect()->route('admin.companies.index');
-        }, route('admin.companies.create'), 'Ubicación creada correctamente.');
+        }, route('admin.companies.create'), 'La Empresa se ha creado correctamente.');
     }
 
     /**
@@ -94,12 +86,10 @@ class CompanyController extends WebController
     public function update(StoreOrUpdateCompanyRequest $request, Company $company): RedirectResponse
     {
         return $this->tryCatch(function () use ( $request, $company) {
-            $validated = $request->validated();
-            $company->update($validated);
-            $this->addPhones($request, $company);
+            $this->companyService->updateCompany($company, $request->validated(), $request->input('phones'));
 
             return redirect()->route('admin.companies.index');
-        }, route('admin.companies.create'), 'Ubicación actualizada correctamente.');
+        }, route('admin.companies.create'), 'La Empresa se ha actualizado correctamente.');
     }
 
     /**
@@ -111,27 +101,10 @@ class CompanyController extends WebController
     public function destroy(Company $company): RedirectResponse
     {
         return $this->tryCatch(function () use ( $company) {
-            $company->delete();
+            $this->companyService->deleteCompany($company);
 
             return redirect()->route('admin.companies.index');
-        }, route('admin.companies.index'), 'Ubicación eliminada correctamente.');
-    }
-
-    public function addPhones(StoreOrUpdateCompanyRequest $request, Company $company)
-    {
-        if ($request->has('phones')) {
-            $phonesData = array_filter($request->input('phones'), function($phone) {
-                return !empty($phone['name']) || !empty($phone['phone_number']);
-            });
-
-            $company->phones()->delete();
-            foreach ($phonesData as $phone) {
-                $company->phones()->create([
-                    'name' => $phone['name'] ?? null,
-                    'phone_number' => $phone['phone_number'] ?? null,
-                ]);
-            }
-        }
+        }, route('admin.companies.index'), 'La Empresa se ha eliminado correctamente.');
     }
 
 }

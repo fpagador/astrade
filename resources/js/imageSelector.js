@@ -1,8 +1,8 @@
 export function imageSelector() {
     return {
-        filename: 'Ningún archivo seleccionado',
+        filename: document.getElementById('photo_name')?.value || 'Ningún archivo seleccionado',
         tempImageUrl: '',
-        confirmedImageUrl: '',
+        confirmedImageUrl: document.getElementById('photo_base64')?.value || '',
         showConfirmModal: false,
 
         previewImage(event) {
@@ -26,11 +26,16 @@ export function imageSelector() {
             this.filename = 'Ningún archivo seleccionado';
             const input = document.querySelector('input[type="file"]');
             if (input) input.value = '';
+            document.getElementById('photo_base64').value = '';
+            document.getElementById('photo_name').value = '';
         },
 
         confirm() {
             this.confirmedImageUrl = this.tempImageUrl;
             this.showConfirmModal = false;
+
+            document.getElementById('photo_base64').value = this.tempImageUrl;
+            document.getElementById('photo_name').value = this.filename;
         },
 
         openLarge(src) {

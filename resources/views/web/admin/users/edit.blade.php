@@ -78,6 +78,9 @@
             </div>
 
             {{-- Photo --}}
+            <!-- Hidden inputs to persist data -->
+            <input type="hidden" name="photo_base64" id="photo_base64" value="{{ old('photo_base64') }}">
+            <input type="hidden" name="photo_name" id="photo_name" value="{{ old('photo_name') }}">
             <div x-data="imageSelector()" class="mb-4">
                 <label class="block font-medium mb-1" for="photo">Foto</label>
                 <div class="flex items-center space-x-2 mb-4">

@@ -105,7 +105,8 @@ export function cloneTaskForm() {
                     const nonWorkingData = await nonWorkingResponse.json();
 
                     if (nonWorkingData.nonWorking) {
-                        const proceed = confirm('La fecha seleccionada corresponde a un día no laboral (festivo o vacaciones). ¿Desea continuar?');
+                        const proceed = confirm('La fecha seleccionada corresponde a un día no laboral (festivo o ausencia legal). ' +
+                            '¿Desea continuar?');
                         if (!proceed) {
                             checkingConflict = false;
                             return;
@@ -320,6 +321,91 @@ export function imageModal() {
     }
 }
 
+export function actionTaskModal() {
+    return {
+        open: false,
+        title: '',
+        message: '',
+        buttons: [],
+        taskId: null,
+        userId: null,
+        type: null,
+        isRecurrent: false,
+        callback: null,
+
+        show({ taskId, userId, type, editUrl, deleteUrl, isRecurrent }) {
+            this.taskId = taskId;
+            this.userId = userId;
+            this.type = type;
+            this.isRecurrent = isRecurrent ?? false;
+
+            if (type === 'edit') {
+                this.title = 'Tarea recurrente';
+                this.message = 'Está intentando editar una tarea recurrente. ¿Desea modificar solo esta tarea o toda la serie?';
+                this.buttons = [
+                    { label: 'Modificar solo esta tarea', action: 'single', color: 'bg-indigo-900 hover:bg-indigo-800' },
+                    { label: 'Modificar la serie', action: 'series', color: 'bg-green-900 hover:bg-green-800' },
+                    { label: 'Cancelar', action: 'cancel', color: 'bg-red-900 hover:bg-red-800' },
+                ];
+                this.callback = (action) => {
+                    if (action !== 'cancel') {
+                        this.open = false;
+                        const url = new URL(editUrl, window.location.origin);
+                        url.searchParams.set('edit_series', action === 'series' ? 1 : 0);
+                        window.location.href = url.toString();
+                    }
+                };
+            }
+
+            if (type === 'delete') {
+                this.title = 'Eliminar tarea';
+                if (this.isRecurrent) {
+                    this.message = 'Está intentando eliminar una tarea recurrente. ¿Desea eliminar solo esta tarea o toda la serie?';
+                    this.buttons = [
+                        { label: 'Eliminar solo esta tarea', action: 'single', color: 'bg-red-900 hover:bg-red-800' },
+                        { label: 'Eliminar toda la serie', action: 'series', color: 'bg-red-700 hover:bg-red-600' },
+                        { label: 'Cancelar', action: 'cancel', color: 'bg-gray-500 hover:bg-gray-400' },
+                    ];
+                } else {
+                    this.message = '¿Está seguro que desea eliminar esta tarea del usuario?';
+                    this.buttons = [
+                        { label: 'Eliminar', action: 'single', color: 'bg-red-900 hover:bg-red-800' },
+                        { label: 'Cancelar', action: 'cancel', color: 'bg-gray-500 hover:bg-gray-400' },
+                    ];
+                }
+
+                this.callback = (action) => {
+                    if (action !== 'cancel') {
+                        this.open = false;
+                        fetch(deleteUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            },
+                            body: JSON.stringify({
+                                _method: 'DELETE',
+                                deleteSeries: action === 'series'
+                            })
+                        })
+                            .then(res => res.json())
+                            .then(data => window.location.href = data.redirect_url);
+                    }
+                };
+            }
+
+            this.open = true;
+        },
+
+        handle(action) {
+            if (this.callback) this.callback(action);
+            this.open = false;
+        }
+    }
+}
+
+// Color de input de tareas
 function initColorPicker() {
     const colorInput = document.getElementById('color-input');
     const swatches = document.querySelectorAll('.color-swatch');
@@ -329,6 +415,8 @@ function initColorPicker() {
 
     swatches.forEach(swatch => {
         swatch.addEventListener('click', () => {
+            if (typeof disableColorPicker !== 'undefined' && disableColorPicker) return;
+
             const color = swatch.dataset.color;
             colorInput.value = color;
             colorInput.style.backgroundColor = color;
@@ -342,3 +430,331 @@ function initColorPicker() {
     });
 }
 document.addEventListener('DOMContentLoaded', initColorPicker);
+
+/* ----------------- UTILIDADES ----------------- */
+export function formatDateConsistent(date) {
+    return date.getFullYear() + '-' +
+        String(date.getMonth() + 1).padStart(2, '0') + '-' +
+        String(date.getDate()).padStart(2, '0');
+}
+
+export function showLoading(containerId) {
+    const loadingHTML = `
+        <div class="flex items-center justify-center p-8">
+            <div class="flex items-center gap-3 text-gray-600">
+                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                <span>Cargando tareas...</span>
+            </div>
+        </div>
+    `;
+    document.getElementById(containerId).innerHTML = loadingHTML;
+}
+
+export function handleAjaxError(error, container) {
+    console.error('Error AJAX:', error);
+    const errorMessage = `
+        <div class="text-center text-red-600 bg-red-50 border border-red-200 rounded p-6 shadow">
+            <div class="flex items-center justify-center mb-2">
+                <i data-lucide="alert-circle" class="w-6 h-6 mr-2"></i>
+                <span class="font-semibold">Error al cargar los datos</span>
+            </div>
+            <p class="text-sm">Por favor, recargue la página e inténtelo de nuevo.</p>
+            <button onclick="location.reload()" class="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
+                Recargar página
+            </button>
+        </div>
+    `;
+    document.getElementById(container).innerHTML = errorMessage;
+    if (window.createIcons && window.lucideIcons) {
+        window.createIcons({ icons: window.lucideIcons });
+    }
+}
+
+/* ----------------- CALENDAR VIEW ----------------- */
+export function calendarView() {
+    const today = new Date();
+
+    function formatDateLocal(date) {
+        return date.getFullYear() + '-' +
+            String(date.getMonth()+1).padStart(2,'0') + '-' +
+            String(date.getDate()).padStart(2,'0');
+    }
+
+    return {
+        viewMode:'weekly',
+        currentDate: today,
+        displayedDays: [],
+        tasks: window.tasksByDate,
+        specialDays: window.specialDays,
+        currentMonth: today.getMonth(),
+        currentYear: today.getFullYear(),
+        monthNames: ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+        yearsRange: Array.from({length:6},(_,i)=>today.getFullYear() + i),
+        get currentCalendarDate() {
+            return this.currentDate;
+        },
+        getNewTaskUrl() {
+            const date = this.formatDateLocal(this.currentDate);
+            const viewMode = this.viewMode;
+            return `${window.newTaskBaseUrl}?date=${date}&viewMode=${viewMode}`;
+        },
+        formatDateLocal(date) {
+            return date.getFullYear() + '-' +
+                String(date.getMonth() + 1).padStart(2,'0') + '-' +
+                String(date.getDate()).padStart(2,'0');
+        },
+        get isVacationDay() {
+            const dateKey = this.formatDateLocal(this.currentDate);
+            return this.specialDays[dateKey] === 'vacation';
+        },
+        init() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const dateParam = urlParams.get('date');
+            const viewModeParam = urlParams.get('viewMode');
+
+            if (dateParam) {
+                this.currentDate = new Date(dateParam);
+            }
+            if (viewModeParam) {
+                this.viewMode = viewModeParam;
+            }
+
+            this.updateDisplayedDays(7);
+            this.renderMiniCalendar();
+
+            this.$watch('viewMode', value => {
+                if (value === 'daily') {
+                    const formatted = this.formatDateLocal(this.currentDate);
+                    document.dispatchEvent(new CustomEvent('date-changed', { detail: { date: formatted } }));
+                }
+            });
+        },
+        updateDisplayedDays(count) {
+            this.displayedDays=[];
+            const startDay = new Date(this.currentDate);
+            const dayOfWeek = startDay.getDay();
+            const diff = (dayOfWeek===0?-6:1-dayOfWeek);
+            startDay.setDate(startDay.getDate()+diff);
+
+            for(let i=0;i<count;i++){
+                const day=new Date(startDay);
+                day.setDate(startDay.getDate()+i);
+
+                const dayKey = formatDateLocal(day);
+                this.displayedDays.push({
+                    date: dayKey,
+                    label: day.getDate(),
+                    weekday: day.toLocaleDateString('es-ES',{weekday:'short'}),
+                    isSelected: dayKey === formatDateLocal(this.currentDate),
+                    isWeekend: day.getDay() === 0 || day.getDay() === 6
+                });
+            }
+            document.getElementById('task-detail-container').innerHTML='';
+            this.$nextTick(() => {
+                if (window.createIcons && window.lucideIcons) {
+                    window.createIcons({ icons: window.lucideIcons });
+                }
+            });
+        },
+        prevMonth(){ this.currentMonth--; if(this.currentMonth<0){this.currentMonth=11; this.currentYear--;} this.onMonthYearChange(); },
+        nextMonth(){ this.currentMonth++; if(this.currentMonth>11){this.currentMonth=0; this.currentYear++;} this.onMonthYearChange(); },
+        renderMiniCalendar(){
+            const mini=document.getElementById('miniCalendar');
+            if(!mini) return;
+            mini.innerHTML='';
+            ['L','M','X','J','V','S','D'].forEach(d=>{
+                const header=document.createElement('div');
+                header.textContent=d;
+                header.className='text-center font-semibold text-gray-700 bg-gray-300 py-1 rounded';
+                mini.appendChild(header);
+            });
+            const firstDay=new Date(this.currentYear,this.currentMonth,1);
+            const lastDay=new Date(this.currentYear,this.currentMonth+1,0);
+            const startWeekday=(firstDay.getDay()+6)%7;
+            for(let i=0;i<startWeekday;i++) mini.appendChild(document.createElement('div'));
+            for (let d = 1; d <= lastDay.getDate(); d++) {
+                const dayDate = new Date(this.currentYear, this.currentMonth, d);
+                const dayKey = formatDateLocal(dayDate);
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+
+                // Base
+                let classes = 'border p-1 rounded relative hover:bg-gray-200';
+
+                // Día seleccionado
+                if (dayKey === formatDateLocal(this.currentDate)) {
+                    classes += ' bg-blue-200';
+                }
+
+                // Fines de semana
+                if (dayDate.getDay() === 0 || dayDate.getDay() === 6) {
+                    classes += ' bg-gray-200';
+                }
+
+                // Festivos o vacaciones o ausencias legales
+                if (this.specialDays[dayKey]) {
+                    const type = this.specialDays[dayKey].toUpperCase();
+                    const colorConfig = window.calendarColors[type];
+                    if (colorConfig) {
+                        classes += ` ${colorConfig.class}`;
+                    }
+                }
+
+                btn.className = classes;
+                btn.textContent = d;
+
+                // Indicador de tareas
+                if (this.tasks[dayKey]?.length) {
+                    const indicator = document.createElement('div');
+                    indicator.className = 'absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 rounded-full';
+                    indicator.style.backgroundColor = '#3B82F6';
+                    btn.appendChild(indicator);
+                }
+
+                // Click del día
+                btn.addEventListener('click', () => {
+                    this.currentDate = dayDate;
+                    this.updateDisplayedDays(7);
+                    this.renderMiniCalendar();
+                    if (this.viewMode === 'daily') {
+                        const formatted = formatDateLocal(dayDate);
+                        document.dispatchEvent(new CustomEvent('date-changed', { detail: { date: formatted } }));
+                    }
+                    document.getElementById('task-detail-container').innerHTML = '';
+                });
+
+                mini.appendChild(btn);
+            }
+            this.$nextTick(() => {
+                if (window.createIcons && window.lucideIcons) {
+                    window.createIcons({ icons: window.lucideIcons });
+                }
+            });
+        },
+        onMonthYearChange(){
+            this.currentDate = new Date(this.currentYear, this.currentMonth, 1);
+            this.updateDisplayedDays(7);
+            this.renderMiniCalendar();
+        },
+        openTask(taskId, taskDate = null){
+            const dateParam = taskDate ?? (this.displayedDays.length ? this.displayedDays[0].date : formatDateLocal(new Date()));
+            const url = window.taskDetailBaseUrl.replace('__ID__', taskId) + `?date=${dateParam}`;
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.text())
+                .then(html => {
+                    document.getElementById('task-detail-container').innerHTML = html;
+                    if (window.createIcons && window.lucideIcons) {
+                        window.createIcons({ icons: window.lucideIcons });
+                    }
+                    document.getElementById('task-detail-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                })
+                .catch(()=>alert('No se pudo cargar la tarea'));
+        }
+    }
+}
+
+/* ----------------- DAILY VIEW ----------------- */
+export function dailyControls(initialDate = null) {
+    return {
+        selectedDate: initialDate ? new Date(initialDate) : new Date(),
+        filters: {
+            title: '',
+            status: ''
+        },
+        taskStatuses: ['pending', 'completed'],
+        initDaily() {
+            this.loadTasks();
+
+            // Escuchar evento del mini calendario
+            document.addEventListener('date-changed', e => {
+                this.selectedDate = new Date(e.detail.date);
+                this.loadTasks();
+            });
+
+            document.addEventListener('filters-changed', e => {
+                this.filters = e.detail;
+                this.loadTasks();
+            });
+        },
+        formatDate(date) {
+            return date.toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+        },
+        prevDay() {
+            this.selectedDate = new Date(this.selectedDate.setDate(this.selectedDate.getDate() - 1));
+            this.loadTasks();
+        },
+        nextDay() {
+            this.selectedDate = new Date(this.selectedDate.setDate(this.selectedDate.getDate() + 1));
+            this.loadTasks();
+        },
+        today() {
+            this.selectedDate = new Date();
+            this.loadTasks();
+        },
+        applyFilters() {
+            this.loadTasks();
+        },
+        loadTasks() {
+            const formatted = this.selectedDate.toISOString().split('T')[0];
+            const params = new URLSearchParams({
+                date: formatted,
+                title: this.filters.title,
+                status: this.filters.status
+            });
+
+            const url = `${window.dailyTasksBaseUrl}?${params.toString()}`;
+
+            showLoading('daily-tasks-container');
+
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.text())
+                .then(html => {
+                    const container = document.getElementById('daily-tasks-container');
+                    container.innerHTML = html;
+
+                    // Renderizamos iconos Lucide solo en este contenedor
+                    if (window.createIcons && window.lucideIcons) {
+                        window.createIcons({ icons: window.lucideIcons }, container);
+                    }
+                })
+                .catch(error => {
+                    handleAjaxError(error, 'daily-tasks-container');
+                });
+        }
+    }
+}
+
+/* ----------------- CARGA DE TAREAS MEJORADA ----------------- */
+export function enhancedLoadTasks(selectedDate, filters, userId) {
+    showLoading('daily-tasks-container');
+    const formatted = formatDateConsistent(selectedDate);
+    const params = new URLSearchParams({
+        date: formatted,
+        title: filters.title || '',
+        status: filters.status || ''
+    });
+    const baseUrl = window.dailyTasksBaseUrl;
+    const url = `${baseUrl}?${params.toString()}`;
+    return fetch(url, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'text/html'
+        }
+    })
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            return response.text();
+        })
+        .then(html => {
+            const container = document.getElementById('daily-tasks-container');
+            container.innerHTML = html;
+            if (window.createIcons && window.lucideIcons) {
+                window.createIcons({ icons: window.lucideIcons }, container);
+            }
+        })
+        .catch(error => handleAjaxError(error, 'daily-tasks-container'));
+}
+
+
+

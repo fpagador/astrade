@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -26,20 +25,9 @@ class Company extends Model
     protected $fillable = ['name', 'address', 'description'];
 
     /**
-     * The tasks associated with this company.
-     *
-     * @return BelongsToMany<Task>
-     */
-    public function tasks(): BelongsToMany
-    {
-        return $this->belongsToMany(Task::class, 'company_tasks','company_id','task_id');
-    }
-
-    /**
      * Boot the model and handle model events.
      *
      * Automatically detach related tasks when a Company is deleted,
-     * to clean up the pivot table `company_tasks`.
      *
      * @return void
      */

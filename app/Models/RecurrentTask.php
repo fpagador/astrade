@@ -15,10 +15,6 @@ use Illuminate\Database\Eloquent\Collection;
  * @property Carbon $start_date
  * @property Carbon $end_date
  * @property array $days_of_week
- * @property string $template_title
- * @property string|null $template_description
- * @property Carbon $template_scheduled_time
- * @property int $template_estimated_duration_minutes
  * @property-read User $user
  * @property-read Collection<Task> $tasks
  */
@@ -31,11 +27,7 @@ class RecurrentTask extends Model
         'user_id',
         'start_date',
         'end_date',
-        'days_of_week',
-        'template_title',
-        'template_description',
-        'template_scheduled_time',
-        'template_estimated_duration_minutes',
+        'days_of_week'
     ];
 
     /** @var array<int, string> */

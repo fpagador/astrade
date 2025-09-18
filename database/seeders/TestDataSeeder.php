@@ -3,13 +3,11 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\Task;
 use App\Models\Subtask;
 use App\Models\Company;
-use App\Models\CompanyTask;
 use App\Models\CompanyPhone;
 use App\Models\TaskCompletionLog;
 use App\Models\WorkCalendarTemplate;
@@ -28,7 +26,7 @@ class TestDataSeeder extends Seeder
             for ($i = 0; $i < rand(1, 2); $i++) {
                 CompanyPhone::create([
                     'company_id' => $company->id,
-                    'phone_number' => fake()->phoneNumber(),
+                    'phone_number' => fake()->randomElement(['6','7']) . fake()->numerify('########') ,
                     'name' => fake()->optional()->words(2, true),
                 ]);
             }
@@ -104,10 +102,6 @@ class TestDataSeeder extends Seeder
                         ]);
                     }
                 }
-                CompanyTask::create([
-                    'task_id' => $task->id,
-                    'company_id' => $user->company_id,
-                ]);
             }
         }
     }

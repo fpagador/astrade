@@ -42,7 +42,7 @@
         <div class="grid grid-cols-4 items-center px-4 py-3 border-b hover:bg-indigo-50 text-sm bg-white">
             <div>
                 @if($log->user)
-                    <a href="{{ route('admin.users.index', ['name' => $log->user->name]) }}"
+                    <a href="{{ route('admin.users.index', ['name' => $log->user->name, 'type' => \App\Enums\UserTypeEnum::MOBILE->value]) }}"
                        class="text-indigo-700 hover:underline">
                         {{ $log->user->name }}
                     </a>
@@ -53,7 +53,7 @@
             </div>
             <div>
                 @if($log->task)
-                    <a href="{{ route('admin.users.tasks', ['id' => $log->user->id, 'title' => $log->task->title]) }}"
+                    <a href="{{ route('admin.users.tasks', ['user' => $log->user, 'title' => $log->task->title]) }}"
                        class="text-indigo-700 hover:underline" title="Ver tarea filtrada">
                         {{ $log->task->title }}
                     </a>

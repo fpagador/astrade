@@ -8,7 +8,6 @@ use App\Models\User;
 use App\Models\Task;
 use App\Models\Subtask;
 use App\Models\Company;
-use App\Models\CompanyTask;
 use App\Models\CompanyPhone;
 use App\Models\TaskCompletionLog;
 
@@ -21,7 +20,6 @@ class CleanDataSeeder extends Seeder
     {
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         Company::truncate();
-        CompanyTask::truncate();
         TaskCompletionLog::truncate();
         Subtask::truncate();
         Task::truncate();

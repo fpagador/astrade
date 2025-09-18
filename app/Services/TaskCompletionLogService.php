@@ -6,15 +6,21 @@ use App\Errors\ErrorCodes;
 use App\Repositories\TaskCompletionLogRepository;
 use App\Exceptions\BusinessRuleException;
 use Illuminate\Support\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class TaskCompletionLogService
 {
-    protected TaskCompletionLogRepository $repository;
 
-    public function __construct(TaskCompletionLogRepository $repository)
-    {
-        $this->repository = $repository;
-    }
+    /**
+     * TaskCompletionLogService Constructor
+     *
+     * @param TaskCompletionLogRepository $repository
+     */
+    public function __construct(
+        protected TaskCompletionLogRepository $repository
+    ) {}
+
+    //================================ API ======================================
 
     /**
      * Retrieve task completion logs for a user.
@@ -37,5 +43,26 @@ class TaskCompletionLogService
         }
 
         return $logs;
+    }
+
+    //================================ WEB ======================================
+
+    /**
+     * Get paginated task completion logs with filters and sorting.
+     *
+     * @param array $filters
+     * @param string $sort
+     * @param string $direction
+     * @param int $perPage
+     * @return LengthAwarePaginator
+     */
+    public function getPaginatedLogs(
+        array $filters = [],
+        string $sort = 'completed_at',
+        string $direction = 'asc',
+        int $perPage = 15
+    ): LengthAwarePaginator
+    {
+        return $this->repository->paginate($filters, $sort, $direction, $perPage);
     }
 }

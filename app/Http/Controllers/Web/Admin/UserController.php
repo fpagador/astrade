@@ -2,28 +2,41 @@
 
 namespace App\Http\Controllers\Web\Admin;
 
-use App\Enums\NotificationType;
-use App\Enums\RoleEnum;
 use App\Enums\UserTypeEnum;
 use App\Http\Controllers\Web\WebController;
 use App\Http\Requests\Admin\StoreOrUpdateUserRequest;
 use App\Http\Requests\Admin\UpdateUserPasswordRequest;
 use App\Models\User;
-use App\Models\WorkCalendarTemplate;
+use App\Repositories\RoleRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
-use App\Models\Role;
 use App\Models\Company;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Foundation\Http\FormRequest;
-use App\Enums\ContractType;
+use App\Exports\UsersExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use App\Repositories\UserRepository;
+use App\Services\UserService;
 
 class UserController extends WebController
 {
+
+    /**
+     * Construct
+     *
+     * @param UserRepository $userRepository
+     * @param UserService $userService
+     * @param RoleRepository $roleRepository
+     */
+    public function __construct(
+        protected UserRepository $userRepository,
+        protected UserService $userService,
+        protected RoleRepository $roleRepository
+    ) {}
+
     /**
      * Display a paginated list of manager users with optional filters.
      *
@@ -33,70 +46,13 @@ class UserController extends WebController
     public function index(Request $request): View|RedirectResponse
     {
         return $this->tryCatch(function () use ($request) {
-            auth()->user();
-            $type = $request->get('type'); // 'mobile' or 'management'
+            $type = $request->get('type', UserTypeEnum::MANAGEMENT->value);
 
-            $query = User::query()->with('role');
+            // Extract only the filters we expect
+            $filters = $request->only(['name','email','dni','role','company_id','sort','direction']);
 
-            if ($type === UserTypeEnum::MOBILE->value) {
-                // Mobile users only
-                $query->whereHas('role', fn($q) => $q->where('role_name', 'user'));
-            } else {
-                // By default 'management' for users with admin role
-                $this->authorize('viewAdmin', User::class);
-                $query->whereHas('role', fn($q) =>
-                $q->whereIn('role_name', ['admin', 'manager'])
-                );
-            }
+            $users = $this->userRepository->paginateUsers($type, $filters);
 
-            //Common filters
-            if ($request->filled('name')) {
-                $query->where('name', 'like', '%' . $request->name . '%');
-            }
-
-            if ($request->filled('email')) {
-                $query->where('email', 'like', '%' . $request->email . '%');
-            }
-
-            if ($request->filled('dni')) {
-                $query->where('dni', 'like', '%' . $request->dni . '%');
-            }
-
-            if ($request->filled('role')) {
-                $query->whereHas('role', function ($q) use ($request) {
-                    $q->where('role_name', $request->role);
-                });
-            }
-
-            if ($request->filled('company_id')) {
-                $query->where('company_id', $request->company_id);
-            }
-
-            $sort = $request->get('sort', 'name');
-            $direction = $request->get('direction', 'asc');
-
-            // default columns
-            $sortableColumns = ['name', 'surname', 'dni', 'email', 'phone'];
-
-            // external relations columns
-            $sortableRelations = [
-                'role'    => ['table' => 'roles', 'local_key' => 'role_id', 'foreign_key' => 'id', 'column' => 'role_name'],
-                'company' => ['table' => 'companies', 'local_key' => 'company_id', 'foreign_key' => 'id', 'column' => 'name'],
-            ];
-
-            if (in_array($sort, $sortableColumns)) {
-                $query->orderBy("users.$sort", $direction);
-            } elseif (array_key_exists($sort, $sortableRelations)) {
-                $relation = $sortableRelations[$sort];
-
-                $query->leftJoin($relation['table'], "{$relation['table']}.{$relation['foreign_key']}", '=', "users.{$relation['local_key']}")
-                    ->orderBy("{$relation['table']}.{$relation['column']}", $direction)
-                    ->select('users.*');
-            }
-
-            $users = $query->paginate(15)->appends($request->query());
-
-            //Dynamic view by type
             if ($type === UserTypeEnum::MOBILE->value) {
                 $companies = Company::orderBy('name')->get();
                 return view('web.admin.users.mobile', compact('users', 'companies'));
@@ -107,7 +63,7 @@ class UserController extends WebController
     }
 
     /**
-     * Show the user profile.
+     * Show the details of a single user.
      *
      * @param User $user
      * @param Request $request
@@ -121,57 +77,6 @@ class UserController extends WebController
     }
 
     /**
-     * Prepare data for the create and edit user views
-     *
-     * @param Request $request
-     * @param ?User $user
-     * @return array
-     */
-    private function getFormData(Request $request, ?User $user = null): array
-    {
-        $authUser = auth()->user();
-
-        // Assignable roles
-        $assignableRoleNames = match (true) {
-            $authUser->hasRole('admin') => ['admin','manager','user'],
-            $authUser->hasRole('manager') => ['user'],
-            default => [],
-        };
-        $assignableRoles = Role::whereIn('role_name', $assignableRoleNames)->get();
-
-        // Default role
-        $defaultRole = $request->role
-            ? Role::where('role_name', $request->role)->first()?->id
-            : ($user->role_id ?? null);
-
-        // Companies
-        $companies = Company::all();
-
-        // Work Calendar
-        $workCalendarTemplate = WorkCalendarTemplate::where('status', 'active')
-            ->orderBy('year', 'desc')->get();
-
-        // Contract type options
-        $contractOptions = collect(ContractType::cases())
-            ->mapWithKeys(fn($case) => [$case->value => ContractType::label($case)])
-            ->prepend('-- Selecciona un tipo --', '');
-
-        // Notification options
-        $notificationTypeOptions = collect(NotificationType::cases())
-            ->mapWithKeys(fn($case) => [$case->value => NotificationType::label($case)])
-            ->prepend('-- Selecciona un tipo --', '');
-
-        return compact(
-            'assignableRoles',
-            'defaultRole',
-            'companies',
-            'workCalendarTemplate',
-            'contractOptions',
-            'notificationTypeOptions'
-        );
-    }
-
-    /**
      * Show the form for creating a new user.
      *
      * @param Request $request
@@ -179,7 +84,7 @@ class UserController extends WebController
      */
     public function create(Request $request): View
     {
-        $formData = $this->getFormData($request);
+        $formData = $this->userService->getFormData($request);
 
         return view('web.admin.users.create', $formData);
     }
@@ -195,38 +100,21 @@ class UserController extends WebController
         return $this->tryCatch(function () use ($request) {
             $validated = $request->validated();
 
-            $authUser = auth()->user();
-
-            // Determine roles that the authenticated user can assign
-            $allowedRoleNames = match (true) {
-                $authUser->hasRole('admin') => ['admin', 'manager', 'user'],
-                $authUser->hasRole('manager') => ['user'],
-                default => [],
-            };
-
-            $role = Role::findOrFail($request->role_id);
-
-            // Security: Do not allow assigning an unauthorized role
-            if (!in_array($role->role_name, $allowedRoleNames)) {
-                return redirect()->route('admin.users.create')->with('error', 'No puedes asignar ese rol.');
-            }
-
+            // Pass file separately
             if ($request->hasFile('photo')) {
-                $photoPath = $request->file('photo')->store('photos', 'public');
-                $validated['photo'] = $photoPath;
+                $validated['photo_file'] = $request->file('photo');
             }
 
-            $validated['password'] = bcrypt($validated['password']);
-
-            $validated['can_receive_notifications'] = true;
-            if ($validated['notification_type'] !== 'none') {
-                $validated['can_receive_notifications'] = false;
+            $role = $this->roleRepository->findById($request->role_id);
+            $allowedRoles = $this->userService->getAllowedRoleNames(auth()->user());
+            if (!in_array($role->role_name, $allowedRoles)) {
+                return redirect()->route('admin.users.create')->with('error', 'You cannot assign this role.');
             }
 
-            $validated['role_id'] = $request->role_id;
+            $validated['role_id'] = $role->id;
+            $this->userService->createUser($validated);
 
-            User::create($validated);
-            $type = $role->role_name === RoleEnum::USER->value ? UserTypeEnum::MOBILE->value : UserTypeEnum::MANAGEMENT->value;
+            $type = $this->userService->setUserTypeFromRole($role->role_name);
 
             return redirect()->route('admin.users.index', ['type' => $type]);
         }, route('admin.users.create'), 'Usuario creado correctamente.');
@@ -242,8 +130,8 @@ class UserController extends WebController
     public function edit(Request $request, int $id): View|RedirectResponse
     {
         return $this->tryCatch(function () use ($request, $id) {
-            $user = User::findOrFail($id);
-            $formData = $this->getFormData($request, $user);
+            $user = $this->userRepository->find($id);
+            $formData = $this->userService->getFormData($request, $user);
             $formData['user'] = $user;
 
             return view('web.admin.users.edit', $formData);
@@ -260,31 +148,16 @@ class UserController extends WebController
     public function update(StoreOrUpdateUserRequest $request, int $id): View|RedirectResponse
     {
         return $this->tryCatch(function () use ($request, $id) {
-            $user = User::findOrFail($id);
+            $user = $this->userRepository->find($id);
             $validated = $request->validated();
 
             if ($request->hasFile('photo')) {
-                if ($user->photo) {
-                    Storage::disk('public')->delete($user->photo);
-                }
-                $validated['photo'] = $request->file('photo')->store('photos', 'public');
+                $validated['photo_file'] = $request->file('photo');
             }
 
-            if ($request->filled('password')) {
-                $validated['password'] = bcrypt($request->password);
-            } else {
-                unset($validated['password']);
-            }
+            $this->userService->updateUser($user, $validated);
 
-            $validated['can_receive_notifications'] = true;
-            if ($validated['notification_type'] !== 'none') {
-                $validated['can_receive_notifications'] = false;
-            }
-
-            $user->update($validated);
-
-            $role = Role::findOrFail($request->input('role_id'));
-            $type = $role->role_name === RoleEnum::USER->value ? UserTypeEnum::MOBILE->value : UserTypeEnum::MANAGEMENT->value;
+            $type = $this->userService->setUserTypeFromRole($user->role->role_name ?? '');
 
             return redirect()->route('admin.users.index', ['type' => $type]);
         }, route('admin.users.index'), 'Usuario actualizado correctamente.');
@@ -299,14 +172,9 @@ class UserController extends WebController
     public function destroy(int $id): View|RedirectResponse
     {
         return $this->tryCatch(function () use ($id) {
-            $user = User::findOrFail($id);
-            $this->authorize('delete', $user);
-
-            if ($user->photo) {
-                Storage::disk('public')->delete($user->photo);
-            }
-
-            $user->delete();
+            $user = $this->userRepository->find($id);
+            if ($user->photo) Storage::disk('public')->delete($user->photo);
+            $this->userRepository->delete($user);
 
             return redirect()->route('admin.users.index');
         }, route('admin.users.index'), 'Usuario eliminado correctamente.');
@@ -337,87 +205,10 @@ class UserController extends WebController
     {
         return $this->tryCatch(function () use ($request, $user) {
             $this->authorize('changePassword', $user);
-            $user->update([
-                'password' => Hash::make($request->password),
-            ]);
+            $user->update(['password' => Hash::make($request->password)]);
 
             return redirect()->route('admin.users.index', ['type' => UserTypeEnum::MOBILE->value]);
         }, route('admin.users.index'), 'Contraseña actualizada correctamente.');
-    }
-
-    /**
-     * Validate a single field using the given FormRequest.
-     *
-     * @param Request $request
-     * @param string $formRequestClass
-     * @return JsonResponse
-     */
-    protected function validateSingleField(Request $request, string $formRequestClass): JsonResponse
-    {
-        try {
-            $field = $request->input('field');
-            $value = $request->input('value');
-
-            /** @var FormRequest $formRequest */
-            $formRequest = new $formRequestClass;
-
-            // Initializes the FormRequest with all the necessary parameters
-            $formRequest->initialize(
-                $request->all(),
-                $request->post(),
-                $request->attributes->all(),
-                $request->cookies->all(),
-                $request->files->all(),
-                $request->server->all(),
-                $request->getContent()
-            );
-
-            $formRequest->merge([
-                'type' => $request->input('type'),
-                $field => $value
-            ]);
-
-            // For password and confirmation, we ensure that both fields are
-            if (in_array($field, ['password', 'password_confirmation'])) {
-                $formRequest->merge($request->only(['password', 'password_confirmation']));
-            }
-
-            $rules = $formRequest->rules();
-            $messages = $formRequest->messages();
-
-            //We select only the field rule
-            $singleRule = match($field) {
-                'password' => array_filter($rules['password'] ?? [], fn($r) => $r !== 'confirmed'),
-                'password_confirmation' => ['same:password'],
-                default => $rules[$field] ?? []
-            };
-
-            $singleRule = is_array($singleRule) ? [$field => $singleRule] : [$field => [$singleRule]];
-
-            // We filter the messages only for that field
-            $singleMessages = array_filter(
-                $messages,
-                fn($key) => str_starts_with($key, $field . '.'),
-                ARRAY_FILTER_USE_KEY
-            );
-
-            //We ensure message for password_confirmation
-            if ($field === 'password_confirmation') {
-                $singleMessages['password_confirmation.same'] =
-                    $singleMessages['password_confirmation.same'] ?? 'La confirmación debe coincidir con la contraseña.';
-            }
-
-            $validator = Validator::make($formRequest->all(), $singleRule, $singleMessages);
-
-            if ($validator->fails()) {
-                $key = array_key_first($singleRule);
-                return response()->json(['error' => $validator->errors()->first($key)], 200);
-            }
-
-            return response()->json(['success' => true]);
-        } catch (\Throwable $e) {
-            return response()->json(['error' => 'Server error during validation.'], 500);
-        }
     }
 
     /**
@@ -428,7 +219,8 @@ class UserController extends WebController
      */
     public function validateField(Request $request): JsonResponse
     {
-        return $this->validateSingleField($request, StoreOrUpdateUserRequest::class);
+        $result = $this->userService->validateSingleField($request, StoreOrUpdateUserRequest::class);
+        return response()->json($result, isset($result['error']) ? 422 : 200);
     }
 
     /**
@@ -439,6 +231,50 @@ class UserController extends WebController
      */
     public function validatePassword(Request $request): JsonResponse
     {
-        return $this->validateSingleField($request, UpdateUserPasswordRequest::class);
+        $result = $this->userService->validateSingleField($request, UpdateUserPasswordRequest::class);
+        return response()->json($result, isset($result['error']) ? 422 : 200);
     }
+
+    /**
+     * Controller to toggle the "can_be_called" status for a user
+     *
+     * @param User $user
+     * @return RedirectResponse|JsonResponse
+     */
+    public function toggleCall(User $user): RedirectResponse|JsonResponse
+    {
+        $result = $this->userService->toggleCall($user);
+
+        if (request()->ajax()) {
+            return response()->json($result, $result['error'] ? 422 : 200);
+        }
+
+        if (isset($result['success'])) {
+            return back()->with('success', $result['success']);
+        }
+
+        return back()->with('error', $result['error']);
+    }
+
+    /**
+     * Export users to Excel with all filters applied.
+     *
+     *
+     * @param Request $request
+     * @return BinaryFileResponse
+     */
+    public function export(Request $request):BinaryFileResponse
+    {
+        $type = $request->get('type', UserTypeEnum::MANAGEMENT->value);
+        $filters = $request->only(['name','email','dni','role','company_id','sort','direction']);
+
+        $query = $this->userRepository->queryUsers($type, $filters);
+
+        $fileName = $type === UserTypeEnum::MOBILE->value
+            ? 'usuarios_móviles_' . now()->format('Ymd_His') . '.xlsx'
+            : 'usuarios_gestión_interna_' . now()->format('Ymd_His') . '.xlsx';
+
+        return Excel::download(new UsersExport($query, $type), $fileName);
+    }
+
 }

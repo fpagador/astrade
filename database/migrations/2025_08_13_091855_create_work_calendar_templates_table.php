@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->year('year');
             $table->enum('status', ['draft', 'active', 'inactive'])->default('draft');
+            $table->foreignId('continuity_template_id')->nullable()->constrained('work_calendar_templates')->onDelete('set null');
             $table->timestamps();
         });
     }

@@ -57,9 +57,9 @@
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         @include('web.admin.users.partials.readonly-field', ['label' => 'Horario de trabajo', 'value' => $user->work_schedule ?? '—'])
-                        @include('web.admin.users.partials.readonly-field', ['label' => 'Tipo de contrato', 'value' => $user->contract_type ?? '—'])
+                        @include('web.admin.users.partials.readonly-field', ['label' => 'Tipo de contrato', 'value' => $user->contract_type ? \App\Enums\ContractType::label(\App\Enums\ContractType::from($user->contract_type)) : '—'])
                         @include('web.admin.users.partials.readonly-field', ['label' => 'Inicio de contrato', 'value' => $user->contract_start_date ?? '—'])
-                        @include('web.admin.users.partials.readonly-field', ['label' => 'Tipo de notificación', 'value' => $user->notification_type ?? '—'])
+                        @include('web.admin.users.partials.readonly-field', ['label' => 'Tipo de notificación', 'value' => $user->notification_type ? \App\Enums\NotificationType::label(\App\Enums\NotificationType::from($user->notification_type)) : '—'])
                     </div>
                 </div>
 

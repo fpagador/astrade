@@ -23,7 +23,8 @@ use Illuminate\Database\Eloquent\Collection;
  * @property int|null $order
  * @property string|null $status
  * @property int|null $recurrent_task_id
- *
+ * @property bool $notifications_enabled
+ * @property string|null $reminder_minutes
  * @property-read User $user
  * @property-read User $assignedBy
  * @property-read RecurrentTask|null $recurrentTask
@@ -47,7 +48,9 @@ class Task extends Model
         'estimated_duration_minutes',
         'pictogram_path',
         'status',
-        'recurrent_task_id'
+        'recurrent_task_id',
+        'notifications_enabled',
+        'reminder_minutes',
     ];
 
     /** @var array<int, string> */
@@ -104,16 +107,6 @@ class Task extends Model
     public function notifications(): HasMany
     {
         return $this->hasMany(Notification::class);
-    }
-
-    /**
-     * Get the companies assigned to this task.
-     *
-     * @return BelongsToMany
-     */
-    public function companies(): BelongsToMany
-    {
-        return $this->belongsToMany(Company::class, 'company_tasks', 'task_id', 'company_id');
     }
 
     /**

@@ -20,6 +20,9 @@ class Kernel extends ConsoleKernel
         $schedule->command('logs:clear-general')
             ->when(fn () => now()->isSameDay(now()->copy()->endOfMonth()))
             ->dailyAt('23:59');
+
+        //Run on January 1st at 00:01
+        $schedule->command('calendar:assign-new')->yearlyOn(1, 1, '00:00');
     }
 
     /**

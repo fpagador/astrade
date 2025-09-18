@@ -15,8 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('template_id')->constrained('work_calendar_templates')->onDelete('cascade');
             $table->date('date');
-            $table->enum('day_type', ['holiday', 'weekend', 'workday'])->default('workday');
-            $table->string('description')->nullable();
+            $table->enum('day_type', ['holiday'])->default('holiday');
             $table->timestamps();
         });
     }

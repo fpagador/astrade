@@ -31,12 +31,12 @@ export function initCompaniesPhones() {
         phoneCard.innerHTML = `
       <button type="button" class="remove-phone absolute top-1 right-1 text-red-600 hover:text-red-800 font-bold text-xl leading-none" title="Eliminar teléfono">&times;</button>
       <div>
-        <label for="phones_${index}_name" class="block text-sm font-medium text-gray-700">Nombre teléfono</label>
+        <label for="phones_${index}_name" class="block font-medium mb-1 flex items-center gap-1">Nombre</label>
         <input type="text" name="phones[${index}][name]" id="phones_${index}_name" class="form-input w-full" />
       </div>
       <div>
-        <label for="phones_${index}_phone_number" class="block text-sm font-medium text-gray-700">Número</label>
-        <input type="text" name="phones[${index}][phone_number]" id="phones_${index}_phone_number" class="form-input w-full" />
+        <label for="phones_${index}_phone_number" class="block font-medium mb-1 flex items-center gap-1">Número</label>
+        <input type="text" name="phones[${index}][phone_number]" id="phones_${index}_phone_number" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,9)" class="form-input w-full" />
       </div>
     `;
         phonesContainer.appendChild(phoneCard);

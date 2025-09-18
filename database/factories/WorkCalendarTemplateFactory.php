@@ -30,18 +30,12 @@ class WorkCalendarTemplateFactory  extends Factory
             $end = $start->copy()->endOfMonth();
 
             for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
-                $dayType = in_array($date->dayOfWeek, [0, 6]) ? 'weekend' : 'workday';
-
-                // Ejemplo: festivo fijo
-                if ($date->month === 1 && $date->day === 6) {
-                    $dayType = 'holiday';
-                }
+                $dayType = 'holiday';
 
                 WorkCalendarDay::create([
                     'template_id' => $template->id,
                     'date' => $date->toDateString(),
-                    'day_type' => $dayType,
-                    'description' => $dayType === 'holiday' ? 'Día de Reyes' : null,
+                    'day_type' => $dayType
                 ]);
             }
         });

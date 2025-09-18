@@ -40,26 +40,37 @@ class UserApiController extends ApiController
     }
 
     /**
-     * Returns the user's phone number.
+     * Get all active users' phone numbers.
      *
      * @OA\Get(
-     *     path="/api/phone",
-     *     summary="Get authenticated user phone number",
+     *     path="/api/phones",
+     *     summary="Get phone numbers of users that can receive calls",
      *     tags={"User"},
      *     security={{"sanctum":{}}},
      *     @OA\Response(
      *         response=200,
-     *         description="User phone number retrieved",
-     *         @OA\JsonContent(ref="#/components/schemas/ApiResponse")
+     *         description="Active phone numbers retrieved",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="phones",
+     *                 type="array",
+     *                 @OA\Items(type="string")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error"
      *     )
      * )
      */
     public function getPhone(Request $request): JsonResponse
     {
         return $this->handleApi(function () use ($request) {
-            $parsedPhone = $this->service->getPhone($request->user());
+            $parsedPhone = $this->service->getPhones();
             return $this->render($parsedPhone);
-        }, 'Error getting user profile', $request);
+        }, 'Error retrieving active phone numbers', $request);
     }
 
     /**

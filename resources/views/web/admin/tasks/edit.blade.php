@@ -13,6 +13,7 @@
             <input type="hidden" name="date" value="{{ $date }}">
             <input type="hidden" name="user_id" value="{{ $task->user_id }}">
             <input type="hidden" name="assigned_by" value="{{ $task->assigned_by }}">
+            <input type="hidden" name="edit_series" value="{{ $editSeries }}">
 
             {{-- TITLE --}}
             <x-form.input
@@ -20,6 +21,7 @@
                 name="title"
                 value="{{ old('title', $task->title) }}"
                 required
+                :readonly="$disableFields"
             />
 
             {{-- DESCRIPTION --}}
@@ -27,21 +29,64 @@
                 label="Descripción"
                 name="description"
                 rows="4"
+                :readonly="$disableFields"
             >
                 {{ old('description', $task->description) }}
             </x-form.textarea>
 
             {{-- PLANNING DETAILS --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <x-form.input type="date" name="scheduled_date" label="Fecha"
-                              value="{{ old('scheduled_date', optional($task->scheduled_date)->format('Y-m-d')) }}" required />
+                <x-form.input
+                    type="date"
+                    name="scheduled_date"
+                    label="Fecha"
+                    value="{{ old('scheduled_date', optional($task->scheduled_date)->format('Y-m-d')) }}"
+                    required
+                    :readonly=true
+                />
 
-                <x-form.input type="time" name="scheduled_time" label="Hora"
-                              value="{{ old('scheduled_time', optional($task->scheduled_time)->format('H:i')) }}" required />
+                <x-form.input
+                    type="time"
+                    name="scheduled_time"
+                    label="Hora"
+                    value="{{ old('scheduled_time', optional($task->scheduled_time)->format('H:i')) }}"
+                    required
+                />
 
-                <x-form.input type="number" name="estimated_duration_minutes" label="Duración estimada (min)"
-                              min="1"
-                              value="{{ old('estimated_duration_minutes', $task->estimated_duration_minutes) }}" />
+                <x-form.input
+                    type="number" name="estimated_duration_minutes" label="Duración estimada (min)"
+                    min="1"
+                    value="{{ old('estimated_duration_minutes', $task->estimated_duration_minutes) }}"
+                    :readonly="$disableFields"
+                />
+            </div>
+
+            {{-- NOTIFICATIONS --}}
+            <div
+                class="items-center grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
+                x-data="{ notifications: {{ old('notifications_enabled', $task->notifications_enabled) ? 'true' : 'false' }},
+          reminderMinutes: {{ old('reminder_minutes', $task->reminder_minutes ?? 15) }} }"
+            >
+                <div class="col-span-2 flex items-center gap-2">
+                    <x-form.checkbox
+                        name="notifications_enabled"
+                        label="Activar notificaciones para esta tarea"
+                        x-model="notifications"
+                        value="1"
+                        :readonly="$disableFields"
+                    />
+                </div>
+
+                <div :class="{'invisible': !notifications}">
+                    <x-form.input
+                        name="reminder_minutes"
+                        label="Recordatorio (minutos antes)"
+                        type="number"
+                        min="1"
+                        x-model.number="reminderMinutes"
+                        :readonly="$disableFields"
+                    />
+                </div>
             </div>
 
             {{-- PICTOGRAM --}}
@@ -63,7 +108,7 @@
                         </div>
                     </div>
                 @endif
-                <input type="file" name="pictogram" accept="image/*" class="form-input w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                <input @if($disableFields) readonly @endif type="file" name="pictogram_path" accept="image/*" class="form-input w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
             </div>
 
             {{-- COLOR AND STATE --}}
@@ -78,6 +123,7 @@
                         value="{{ old('color', $task->color ?? '#FFFFFF') }}"
                         style="background-color: {{ old('color', $task->color ?? '#FFFFFF') }}; color: transparent;
                         {{ (old('color', $task->color ?? '#FFFFFF') === '#FFFFFF') ? 'border: 1px solid #ccc;' : 'border: none;' }}"
+                        :readonly="@json($disableFields)"
                     >
 
                     <div class="flex flex-wrap justify-center gap-2 mt-2">
@@ -93,9 +139,9 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Estado <span class="text-red-500">*</span></label>
-                    <select name="status" class="form-select w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" required>
+                    <select @if($disableFields) readonly @endif name="status" class="form-select w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" required>
                         @foreach(\App\Enums\TaskStatus::cases() as $status)
-                            <option value="{{ $status->value }}" {{ old('status', $task->status) == $status->value ? 'selected' : '' }}>
+                            <option value="{{ $status->value }}" {{ old('status', $task->status) == $status->value ? 'selected' : '' }} >
                                 {{ status_label($status) }}
                             </option>
                         @endforeach
@@ -105,22 +151,58 @@
 
             {{-- RECURRENT --}}
             <div x-data="{ recurrent: {{ old('is_recurrent', $task->recurrentTask ? 'true' : 'false') }} }" class="border-t pt-6 mt-6">
-                <x-form.checkbox name="is_recurrent" x-model="recurrent" value="1" label="¿Tarea recurrente?" />
+                <x-form.checkbox
+                    name="is_recurrent"
+                    x-model="recurrent"
+                    value="1"
+                    label="¿Tarea recurrente?"
+                    :readonly="$disableFields"
+                />
 
                 <div x-show="recurrent" x-cloak class="space-y-4 bg-gray-50 p-4 rounded border border-gray-200">
                     {{-- Days of the week --}}
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Días de la semana</label>
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm text-gray-600">
-                            @php
-                                $days = old('days_of_week', $task->recurrentTask?->days_of_week ?? []);
-                            @endphp
-                            @foreach(['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'] as $day)
+                    <div
+                        x-data="{
+                            allSelected: {{ count($selectedDays) === count($weekDays) ? 'true' : 'false' }},
+                            weekDays: {{ Js::from(array_keys($weekDays)) }},
+                            toggleAll(event) {
+                                let checkboxes = $el.querySelectorAll('input[name=\'days_of_week[]\']');
+                                checkboxes.forEach(cb => cb.checked = event.target.checked);
+                            },
+                            updateAllSelected() {
+                                let checkboxes = $el.querySelectorAll('input[name=\'days_of_week[]\']');
+                                this.allSelected = Array.from(checkboxes).every(cb => cb.checked);
+                            }
+                        }"
+                    >
+                        {{-- Title and select all --}}
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="block text-sm font-medium text-gray-700">Días de la semana *</span>
+                            <label class="inline-flex items-center text-sm font-medium text-gray-700">
+                                <span class="mr-2">Seleccionar todos</span>
+                                <input
+                                    type="checkbox"
+                                    class="form-checkbox text-indigo-600"
+                                    x-model="allSelected"
+                                    @change="toggleAll($event)"
+                                >
+                            </label>
+                        </div>
+
+                        {{-- Days of the week --}}
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm text-gray-600">
+                            @foreach($weekDays as $english => $spanish)
                                 <label class="inline-flex items-center">
-                                    <input type="checkbox" name="days_of_week[]" value="{{ $day }}"
-                                           class="form-checkbox text-indigo-600"
-                                        {{ in_array($day, $days) ? 'checked' : '' }}>
-                                    <span class="ml-2 capitalize">{{ $day }}</span>
+                                    <input
+                                        type="checkbox"
+                                        name="days_of_week[]"
+                                        value="{{ $english }}"
+                                        class="form-checkbox text-indigo-600 mr-2"
+                                        {{ in_array($english, $selectedDays) ? 'checked' : '' }}
+                                        @if($disableFields) disabled @endif
+                                        @change="updateAllSelected()"
+                                    >
+                                    <span class="capitalize">{{ $spanish }}</span>
                                 </label>
                             @endforeach
                         </div>
@@ -128,10 +210,20 @@
 
                     {{-- DATES --}}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <x-form.input type="date" name="recurrent_start_date" label="Fecha de inicio"
-                                      value="{{ old('recurrent_start_date', optional($task->recurrentTask?->start_date)->format('Y-m-d')) }}" />
-                        <x-form.input type="date" name="recurrent_end_date" label="Fecha de fin (opcional)"
-                                      value="{{ old('recurrent_end_date', optional($task->recurrentTask?->end_date)->format('Y-m-d')) }}" />
+                        <x-form.input
+                            type="date"
+                            name="recurrent_start_date"
+                            label="Fecha de inicio"
+                            value="{{ old('recurrent_start_date', optional($task->recurrentTask?->start_date)->format('Y-m-d')) }}"
+                            :readonly="$disableFields"
+                        />
+                        <x-form.input
+                            type="date"
+                            name="recurrent_end_date"
+                            label="Fecha de fin (opcional)"
+                            value="{{ old('recurrent_end_date', optional($task->recurrentTask?->end_date)->format('Y-m-d')) }}"
+                            :readonly="$disableFields"
+                        />
                     </div>
                 </div>
             </div>
@@ -170,6 +262,7 @@
                                         class="form-input w-full"
                                         x-model="subtask.title"
                                         required
+                                        :readonly="@json($disableFields)"
                                     >
                                 </div>
 
@@ -180,6 +273,7 @@
                                         class="form-textarea w-full"
                                         rows="2"
                                         x-model="subtask.description"
+                                        :readonly="@json($disableFields)"
                                     ></textarea>
                                 </div>
 
@@ -190,6 +284,7 @@
                                         class="form-textarea w-full"
                                         rows="2"
                                         x-model="subtask.note"
+                                        :readonly="@json($disableFields)"
                                     ></textarea>
                                 </div>
 
@@ -217,6 +312,7 @@
                                         :name="`subtask_pictograms[${subtask.id ?? 'new_' + index}]`"
                                         class="form-input w-full"
                                         accept="image/*"
+                                        :readonly="@json($disableFields)"
                                     >
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -239,16 +335,30 @@
                     type="button"
                     class="inline-flex items-center bg-green-600 text-white text-sm px-3 py-1.5 rounded hover:bg-green-500"
                     @click="addSubtask()"
+                    :readonly="@json($disableFields)"
                 >
                     + Añadir Subtarea
                 </button>
             </div>
 
             {{-- BUTTONS --}}
-            <x-form.button-group submit-text="Actualizar"  :cancelRoute="route('admin.users.tasks', ['id' => $task->user_id])"/>
-        </x-form.form-wrapper>
+            <x-form.button-group
+                submit-text="Actualizar"
+                :cancelRoute="route('admin.users.tasks', [
+                'user' => $task->user_id,
+                'date' => $date,
+                'viewMode' => $viewMode
+            ])"
+            />
+            </x-form.form-wrapper>
+
+
     </div>
+    <script>
+        var disableColorPicker = @json($disableFields);
+    </script>
     @push('modals')
         <x-admin.image-modal />
+        <x-admin.recurrent-task-modal />
     @endpush
 @endsection

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\RoleEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Collection;
+use MongoDB\Driver\Query;
 
 /**
  * @property int $id
@@ -26,6 +28,7 @@ use Illuminate\Database\Eloquent\Collection;
  * @property Carbon|null $contract_start_date
  * @property string|null $notification_type
  * @property bool $can_receive_notifications
+ * @property bool $can_be_called
  * @property int|null $role_id
  * @property int|null $company_id
  * @property int|null $work_calendar_template_id
@@ -38,7 +41,7 @@ use Illuminate\Database\Eloquent\Collection;
  * @property-read Collection<Task> $tasks
  * @property-read Collection<TaskCompletionLog> $logs
  * @property-read Collection<Task> $assignedTasks
- * @property-read Collection<UserVacation> $vacations
+ * @property-read Collection<UserAbsence> $vacations
  */
 class User extends Authenticatable
 {
@@ -49,7 +52,7 @@ class User extends Authenticatable
         'name', 'surname', 'dni', 'email', 'username', 'password', 'photo',
         'work_schedule', 'contract_type', 'contract_start_date',
         'notification_type', 'can_receive_notifications', 'role_id', 'phone',
-        'company_id', 'work_calendar_template_id'
+        'company_id', 'work_calendar_template_id', 'can_be_called'
     ];
 
     /** @var array<int, string> */
@@ -200,8 +203,8 @@ class User extends Authenticatable
      *
      * @return HasMany
      */
-    public function vacations(): HasMany
+    public function absences(): HasMany
     {
-        return $this->hasMany(UserVacation::class);
+        return $this->hasMany(UserAbsence::class);
     }
 }

@@ -27,6 +27,9 @@ class WorkCalendarTemplateRequest extends FormRequest
             'status' => 'required|in:draft,active,inactive',
             'clone_calendar_id' => 'nullable|exists:work_calendar_templates,id',
             'holidays_json' => 'nullable|json',
+            'assigned_users' => 'nullable|array',
+            'continuity_template_id' => 'nullable|exists:work_calendar_templates,id',
+            'assigned_users.*' => 'integer|exists:users,id',
         ];
     }
 

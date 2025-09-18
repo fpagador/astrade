@@ -14,17 +14,15 @@ use App\Models\User;
  */
 class AuthService
 {
-    protected AuthRepository $authRepository;
 
     /**
      * AuthService constructor.
      *
      * @param AuthRepository $authRepository
      */
-    public function __construct(AuthRepository $authRepository)
-    {
-        $this->authRepository = $authRepository;
-    }
+    public function __construct(
+        AuthRepository $authRepository
+    ) {}
 
     /**
      * Perform login and return access token.

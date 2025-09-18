@@ -6,7 +6,7 @@
     <div
         id="task-form-container"
         class="max-w-3xl mx-auto bg-white p-8 rounded shadow"
-        x-data="cloneTaskForm()"
+        x-data="cloneTaskForm(@json(session('oldSubtasks', [])))"
         x-init="init()"
         data-fetch-url="{{ url('/admin/users/task') }}"
         data-asset="{{ asset('storage') }}"
@@ -27,18 +27,18 @@
             </button>
         </div>
 
+        {{-- ALERTS --}}
+        <x-admin.alert-messages />
+
         <div x-show="showClone" x-cloak class="mb-6">
             <x-form.select name="task-cloner" label="Buscar tarea para clonar" :options="$existingTasks->pluck('title', 'id')->toArray()" placeholder="Seleccionar tarea" />
         </div>
 
         <hr class="border-gray-300 mb-6">
 
-        {{-- ALERTS --}}
-        <x-admin.alert-messages />
-
         {{-- MAIN FORM --}}
         <x-form.form-wrapper
-            action="{{ route('admin.users.tasks.store', ['id' => $user->id, 'date' => $date])  }}"
+            action="{{ route('admin.users.tasks.store', ['user' => $user, 'date' => $date])  }}"
             method="POST"
             class="space-y-6">
             @csrf
@@ -47,23 +47,47 @@
             <input type="hidden" name="assigned_by" value="{{ auth()->id() }}">
 
             {{-- TITLE --}}
-            <x-form.input name="title" label="Título" required />
+            <x-form.input name="title" label="Título" required value="{{ old('title') }}" />
 
             {{-- DESCRIPTION --}}
-            <x-form.textarea name="description" label="Descripción" rows="4" />
+            <x-form.textarea name="description" label="Descripción" rows="4">{{ old('description') }}</x-form.textarea>
 
             {{-- PLANNING --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <x-form.input name="scheduled_date" label="Fecha" type="date" value="{{ old('scheduled_date', $date) }}"/>
-                <x-form.input name="scheduled_time" label="Hora" type="time" />
-                <x-form.input name="estimated_duration_minutes" label="Duración estimada (min)" type="number" min="1" />
+                <x-form.input name="scheduled_date" label="Fecha" type="date" value="{{ old('scheduled_date', $date) }}" required/>
+                <x-form.input name="scheduled_time" label="Hora" type="time" value="{{ old('scheduled_time') }}" required/>
+                <x-form.input name="estimated_duration_minutes" label="Duración estimada (min)" type="number" min="1" value="{{ old('estimated_duration_minutes') }}"/>
+            </div>
+
+            {{-- NOTIFICATIONS --}}
+            <div class="items-center grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
+                 x-data="{ notifications: {{ old('notifications_enabled') ? 'true' : 'false' }} }"
+            >
+                <div class="col-span-2 flex items-center gap-2">
+                    <x-form.checkbox
+                        name="notifications_enabled"
+                        label="Activar notificaciones para esta tarea"
+                        x-model="notifications"
+                        :checked="old('notifications_enabled')" />
+                </div>
+
+                <div :class="{'invisible': !notifications}">
+                    <x-form.input
+                        name="reminder_minutes"
+                        label="Recordatorio (minutos antes)"
+                        type="number"
+                        min="1"
+                        value="{{ old('reminder_minutes', 15) }}"
+                        required
+                    />
+                </div>
             </div>
 
             {{-- PICTOGRAM AND COLOR --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <x-form.file
-                        name="pictogram"
+                        name="pictogram_path"
                         label="Pictograma"
                         class="  py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                         preview
@@ -79,7 +103,7 @@
                         value="{{ old('color', $task->color ?? '#FFFFFF') }}"
                         style="background-color: {{ old('color', $task->color ?? '#FFFFFF') }}; color: transparent;
                         {{ (old('color', $task->color ?? '#FFFFFF') === '#FFFFFF') ? 'border: 1px solid #ccc;' : 'border: none;' }}"
-                    >
+                    />
                     <div class="flex flex-wrap justify-center gap-2 mt-2">
                         @foreach($colors as $c)
                             <div
@@ -94,25 +118,52 @@
 
             {{-- RECURRENT --}}
             <div class="border-t pt-6 mt-6">
-                <x-form.checkbox name="is_recurrent" label="¿Tarea recurrente?" x-model="recurrent" />
+                <x-form.checkbox name="is_recurrent" label="¿Tarea recurrente?" x-model="recurrent" :checked="old('is_recurrent')" />
 
                 <div x-show="recurrent" x-cloak class="space-y-4 bg-gray-50 p-4 rounded border border-gray-200">
-                    <div>
+                    <div
+                        x-data="{
+                            allSelected: false,
+                            weekDays: {{ Js::from(array_keys($weekDays)) }},
+                            toggleAll(event) {
+                                let checkboxes = $el.querySelectorAll('input[name=\'days_of_week[]\']');
+                                checkboxes.forEach(cb => cb.checked = event.target.checked);
+                            },
+                            updateAllSelected() {
+                                let checkboxes = $el.querySelectorAll('input[name=\'days_of_week[]\']');
+                                this.allSelected = Array.from(checkboxes).every(cb => cb.checked);
+                            }
+                        }"
+                    >
+                        {{-- Title and select all --}}
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="block text-sm font-medium text-gray-700">Días de la semana *</span>
+                            <label class="inline-flex items-center text-sm font-medium text-gray-700">
+                                <span class="mr-2">Seleccionar todos</span>
+                                <input
+                                    type="checkbox"
+                                    class="form-checkbox text-indigo-600"
+                                    x-model="allSelected"
+                                    @change="toggleAll($event)"
+                                >
+                            </label>
+                        </div>
+
                         {{-- Days of the week --}}
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Días de la semana</label>
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm text-gray-600">
-                            @foreach(['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'] as $day)
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm text-gray-600">
+                            @foreach($weekDays as $english => $spanish)
                                 <label class="inline-flex items-center">
-                                    <input type="checkbox" name="days_of_week[]" value="{{ $day }}" class="form-checkbox text-indigo-600">
-                                    <span class="ml-2 capitalize">{{ __($day) }}</span>
+                                    <input
+                                        type="checkbox"
+                                        name="days_of_week[]"
+                                        value="{{ $english }}"
+                                        class="form-checkbox text-indigo-600 mr-2"
+                                        @change="updateAllSelected()"
+                                    >
+                                    <span class="capitalize">{{ $spanish }}</span>
                                 </label>
                             @endforeach
                         </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <x-form.input name="recurrent_start_date" label="Fecha de inicio" type="date" />
-                        <x-form.input name="recurrent_end_date" label="Fecha de fin (opcional)" type="date" />
                     </div>
                 </div>
             </div>
@@ -137,7 +188,7 @@
                             <input type="hidden" :name="'subtasks['+index+'][order]'" :value="index">
                             <div class="flex-1 space-y-2">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700">Título</label>
+                                    <label class="block text-sm font-medium text-gray-700">Título *</label>
                                     <input type="text" :name="'subtasks['+index+'][title]'" class="form-input w-full" x-model="subtask.title" required>
                                 </div>
                                 <div>
@@ -162,7 +213,14 @@
             </div>
 
             {{-- ACTIONS --}}
-            <x-form.button-group submit-text="Crear" :cancelRoute="route('admin.users.tasks', ['id' => $user->id])" />
+            <x-form.button-group
+                submit-text="Crear"
+                :cancelRoute="route('admin.users.tasks', [
+                    'user' => $user->id,
+                    'date' => $date,
+                    'viewMode' => $viewMode
+                ])"
+            />
         </x-form.form-wrapper>
     </div>
     @push('modals')

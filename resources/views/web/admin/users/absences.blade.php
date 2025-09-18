@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="mb-6 flex items-center justify-between">
-        <h1 class="text-3xl font-semibold">Vacaciones de {{ $user->name }} {{ $user->surname }}</h1>
+        <h1 class="text-3xl font-semibold">Vacaciones y ausencias legales de {{ $user->name }} {{ $user->surname }}</h1>
     </div>
 
     <hr class="border-gray-300 mb-6">
@@ -12,7 +12,7 @@
 
     <x-form.form-wrapper
         id="vacationForm"
-        action="{{ route('admin.users.vacations.store', $user->id) }}"
+        action="{{ route('admin.users.absences.store', $user->id) }}"
         method="POST"
         class="max-w-5xl mx-auto bg-white p-6 rounded shadow"
     >
@@ -26,13 +26,15 @@
             :holidayDates="$holidayDates"
             :showCheckbox="true"
             checkboxLabel="Modo selección de vacaciones"
+            showLegalAbsenceCheckbox="true"
         />
 
         <input type="hidden" name="dates_json" id="selectedDates" value="{{ json_encode($vacationDates) }}">
+        <input type="hidden" name="legal_absences_json" id="selectedLegalAbsences" value="{{ json_encode($legalAbsences ?? []) }}">
 
         <div class="flex justify-end gap-2 mt-4">
             <button type="button" data-open-modal="confirmModal_vacationForm" class="bg-indigo-900 text-white px-4 py-2 rounded">
-                Guardar vacaciones
+                Guardar
             </button>
             <a href="{{ route('admin.users.index', ['type' => \App\Enums\UserTypeEnum::MOBILE->value]) }}" class="bg-red-900 text-white px-4 py-2 rounded hover:bg-red-800 text-center">Cancelar</a>
         </div>

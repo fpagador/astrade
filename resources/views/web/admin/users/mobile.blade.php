@@ -59,6 +59,13 @@
         </div>
     </form>
 
+    {{-- EXPORT EXCEL BUTTON --}}
+    <div class="flex justify-end mb-6">
+        <a href="{{ route('admin.users.export', request()->query()) }}"
+           class="mt-1 inline-block px-4 py-2 bg-indigo-900 text-white rounded hover:bg-indigo-800 transition shadow">
+            Exportar en Excel
+        </a>
+    </div>
     @php
         $gridCols = 'grid-cols-[1fr_1fr_1fr_2fr_1fr_2fr_2fr]';
     @endphp
@@ -123,16 +130,16 @@
                     <i data-lucide="key-round" class="w-5 h-5 text-yellow-600 hover:text-yellow-700 transition"></i>
                 </a>
 
-                {{-- VIEW TASKS --}}
+                {{-- VIEW TASKS--}}
                 <a href="{{ route('admin.users.tasks', [
-                            'id' => $user->id,
+                            'user' => $user,
                             'back_url' => url()->full()]) }}"
                    title="Ver tareas">
                     <i data-lucide="list-todo" class="w-5 h-5 text-indigo-800 hover:text-indigo-900 transition"></i>
                 </a>
 
-                {{-- VIEW/ASSIGN VACATIONS --}}
-                <a href="{{ route('admin.users.vacations', ['user' => $user->id, 'back_url' => url()->full()]) }}" title="Ver/Asignar vacaciones">
+                {{-- VIEW/ASSIGN VACATIONS OR LEGAL ABSENCE--}}
+                <a href="{{ route('admin.users.absences', ['user' => $user->id, 'back_url' => url()->full()]) }}" title="Ver/Asignar vacaciones y ausencias legales">
                     <i data-lucide="calendar" class="w-5 h-5 text-green-600 hover:text-green-700 transition"></i>
                 </a>
 
@@ -144,11 +151,6 @@
                         <i data-lucide="trash-2" class="w-5 h-5 text-red-600 hover:text-red-700 transition"></i>
                     </button>
                 </form>
-
-                {{-- VIEW TASKS CALENDAR --}}
-                <a href="{{ route('admin.users.tasks-calendar', ['id' => $user->id, 'back_url' => url()->full()]) }}" title="Ver calendario de tareas">
-                    <i data-lucide="list-todo" class="w-5 h-5 text-indigo-800 hover:text-indigo-900 transition"></i>
-                </a>
             </div>
         </div>
     @endforeach
