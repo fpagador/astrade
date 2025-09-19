@@ -11,6 +11,18 @@ export default {
 
     theme: {
         extend: {
+            colors: {
+                green: {
+                    700: '#15803d',
+                    800: '#166534',
+                    900: '#14532d',
+                },
+                red: {
+                    700: '#b91c1c',
+                    800: '#991b1b',
+                    900: '#7f1d1d',
+                },
+            },
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
@@ -29,12 +41,17 @@ export default {
         'bg-red-700',
         'bg-gray-500',
         'bg-red-900',
+        'bg-red-700',
+        'bg-gray-500',
+        'bg-indigo-900',
+        'hover:bg-indigo-800',
+        'hover:bg-gray-400',
+        'hover:bg-red-600',
         'hover:bg-green-800',
         'hover:bg-red-600',
         'hover:bg-red-800',
         'hover:bg-gray-400',
         'hover:bg-indigo-800',
-        
         // Company Colors
         'bg-indigo-100 text-indigo-900',
         'bg-green-100 text-green-900',
