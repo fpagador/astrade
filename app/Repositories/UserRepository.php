@@ -250,4 +250,45 @@ class UserRepository
             ->update(['work_calendar_template_id' => $templateId]);
     }
 
+    /**
+     * Count all users.
+     *
+     * @return int
+     */
+    public function countAll(): int
+    {
+        return User::count();
+    }
+
+    /**
+     * Count users without assigned work calendar.
+     *
+     * @return int
+     */
+    public function countWithoutCalendar(): int
+    {
+        return User::whereNull('work_calendar_template_id')->count();
+    }
+
+    /**
+     * Count users by role names.
+     *
+     * @param array $roles
+     * @return int
+     */
+    public function countByRoles(array $roles): int
+    {
+        return User::whereHas('role', fn($q) => $q->whereIn('role_name', $roles))->count();
+    }
+
+    /**
+     * Count users with pending tasks.
+     *
+     * @return int
+     */
+    public function countWithPendingTasks(): int
+    {
+        return User::whereHas('tasks', fn($q) => $q->where('status', 'pending'))->count();
+    }
+
 }

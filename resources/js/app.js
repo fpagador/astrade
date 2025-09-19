@@ -9,6 +9,7 @@ import { userSelector } from './users';
 
 
 window.Alpine = Alpine;
+window.createIcons = createIcons;
 window.lucideIcons = icons;
 window.cloneTaskForm = cloneTaskForm;
 window.editTaskForm = editTaskForm;

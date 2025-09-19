@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Enums\CalendarType;
 use App\Models\UserAbsence;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
 
 /**
  * Repository class for handling calendar-related data persistence.
@@ -70,5 +71,63 @@ class UserAbsenceRepository
             ->whereDate('date', $date)
             ->whereIn('type', [CalendarType::HOLIDAY->value, CalendarType::LEGAL_ABSENCE->value])
             ->exists();
+    }
+
+    /**
+     * Count absences between two dates.
+     *
+     * @param Carbon $start
+     * @param Carbon $end
+     * @return int
+     */
+    public function countBetweenDates(Carbon $start, Carbon $end): int
+    {
+        return UserAbsence::whereBetween('date', [$start, $end])->count();
+    }
+
+    /**
+     * Get absences grouped by user
+     *
+     * @param Carbon $start
+     * @param Carbon $end
+     * @param string $type
+     * @return \Illuminate\Support\Collection
+     */
+    public function getAbsencesGroupedByUser(Carbon $start, Carbon $end, string $type): \Illuminate\Support\Collection
+    {
+        return UserAbsence::with('user')
+            ->whereBetween('date', [$start, $end])
+            ->where('type', $type)
+            ->orderBy('user_id')
+            ->orderBy('date')
+            ->get()
+            ->groupBy('user_id')
+            ->map(function ($absences) {
+                $periods = [];
+                $currentStart = null;
+                $previousDate = null;
+
+                foreach ($absences as $absence) {
+                    $date = $absence->date->copy();
+
+                    if (!$currentStart) {
+                        $currentStart = $date;
+                    } elseif ($previousDate && $date->diffInDays($previousDate) > 1) {
+                        $periods[] = [$currentStart, $previousDate];
+                        $currentStart = $date;
+                    }
+
+                    $previousDate = $date;
+                }
+
+                if ($currentStart) {
+                    $periods[] = [$currentStart, $previousDate];
+                }
+
+                return [
+                    'user' => $absences->first()->user,
+                    'periods' => $periods,
+                ];
+            });
     }
 }

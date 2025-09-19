@@ -8,8 +8,6 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Repository class responsible for managing task data persistence.
@@ -368,5 +366,27 @@ class TaskRepository
         Task::where('recurrent_task_id', $recurrentTaskId)
             ->whereIn('scheduled_date', $dates)
             ->delete();
+    }
+
+    /**
+     * Count tasks by scheduled date.
+     *
+     * @param Carbon $date
+     * @return int
+     */
+    public function countByDate(Carbon $date): int
+    {
+        return Task::whereDate('scheduled_date', $date)->count();
+    }
+
+    /**
+     * Count tasks by status.
+     *
+     * @param string $status
+     * @return int
+     */
+    public function countByStatus(string $status): int
+    {
+        return Task::where('status', $status)->count();
     }
 }

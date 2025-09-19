@@ -25,6 +25,10 @@ export default {
         'bg-yellow-200',
         'bg-gray-300',
         'bg-gray-100',
+        'bg-green-900',
+        'bg-red-700',
+        'bg-gray-500',
+        'bg-red-900',
 
         // Company Colors
         'bg-indigo-100 text-indigo-900',

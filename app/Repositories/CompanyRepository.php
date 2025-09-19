@@ -93,4 +93,15 @@ class CompanyRepository
     {
         return Company::orderBy('name')->get();
     }
+
+    /**
+     * Count all companies.
+     *
+     * @return int
+     */
+    public function countAll(): int
+    {
+        return Company::count();
+    }
+
 }

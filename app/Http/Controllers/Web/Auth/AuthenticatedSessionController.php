@@ -50,7 +50,7 @@ class AuthenticatedSessionController extends WebController
 
         $request->session()->regenerate();
 
-        return redirect()->intended('/dashboard');
+        return redirect()->intended('/admin/dashboard');
     }
 
     /**

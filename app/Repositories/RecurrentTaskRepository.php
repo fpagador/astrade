@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\RecurrentTask;
 use App\Models\Task;
+use Illuminate\Support\Carbon;
 
 class RecurrentTaskRepository
 {
@@ -56,5 +57,16 @@ class RecurrentTaskRepository
         $task->update(['recurrent_task_id' => $recurrent->id]);
 
         return $recurrent;
+    }
+
+    /**
+     * Count active recurrent tasks (end_date >= today).
+     *
+     * @param Carbon $today
+     * @return int
+     */
+    public function countActive(Carbon $today): int
+    {
+        return RecurrentTask::where('end_date', '>=', $today)->count();
     }
 }

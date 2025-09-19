@@ -1,0 +1,129 @@
+<?php
+
+namespace App\Services;
+
+use App\Enums\CalendarType;
+use App\Enums\RoleEnum;
+use App\Enums\TaskStatus;
+use App\Repositories\CompanyRepository;
+use App\Repositories\RecurrentTaskRepository;
+use App\Repositories\SubtaskRepository;
+use App\Repositories\TaskRepository;
+use App\Repositories\UserAbsenceRepository;
+use App\Repositories\UserRepository;
+use App\Repositories\WorkCalendarDayRepository;
+use App\Repositories\WorkCalendarTemplateRepository;
+use Illuminate\Support\Carbon;
+
+/**
+ * Service class responsible for handling Dashboard logic.
+ * It abstracts business rules and repository calls.
+ */
+class DashboardService
+{
+    /**
+     * UserTaskService constructor.
+     *
+     * @param UserRepository $userRepository
+     * @param TaskRepository $taskRepository
+     * @param UserAbsenceRepository $userAbsenceRepository
+     * @param WorkCalendarTemplateRepository $workCalendarTemplateRepository
+     * @param RecurrentTaskRepository $recurrentTaskRepository
+     * @param SubtaskRepository $subtaskRepository
+     * @param CompanyRepository $companyRepository
+     * @param WorkCalendarDayRepository $workCalendarDayRepository
+     */
+    public function __construct(
+        protected UserRepository $userRepository,
+        protected TaskRepository $taskRepository,
+        protected SubtaskRepository $subtaskRepository,
+        protected UserAbsenceRepository $userAbsenceRepository,
+        protected RecurrentTaskRepository $recurrentTaskRepository,
+        protected WorkCalendarTemplateRepository $workCalendarTemplateRepository,
+        protected CompanyRepository $companyRepository,
+        protected WorkCalendarDayRepository $workCalendarDayRepository
+    ) {}
+
+    /**
+     * Retrieve all dashboard KPIs and necessary data.
+     *
+     * @return array<string, mixed>
+     */
+    public function getDashboardData(): array
+    {
+        $today = Carbon::today();
+        $tomorrow = Carbon::tomorrow();
+        $startMonth = $today->copy()->startOfMonth();
+        $endMonth = $today->copy()->endOfMonth();
+        $year = $today->year;
+        $month = $today->month;
+        $nextMonthStart = $today->copy()->addMonthNoOverflow()->startOfMonth();
+        $nextMonthEnd   = $today->copy()->addMonthNoOverflow()->endOfMonth();
+
+        // --- USERS ---
+        $totalUsers = $this->userRepository->countAll() ?? 0;
+        $usersWithoutCalendar = $this->userRepository->countWithoutCalendar() ?? 0;
+        $usersWithAbsences = $this->userAbsenceRepository->countBetweenDates($startMonth, $endMonth) ?? 0;
+        $usersManagement = $this->userRepository->countByRoles([RoleEnum::ADMIN->value, RoleEnum::MANAGER->value]);
+        $usersMobile = $this->userRepository->countByRoles([RoleEnum::USER->value]);
+
+        // --- TASKS ---
+        $tasksToday = $this->taskRepository->countByDate($today);
+        $tasksTomorrow = $this->taskRepository->countByDate($tomorrow);
+        $pendingTasks = $this->taskRepository->countByStatus(TaskStatus::PENDING->value);
+        $usersWithPendingTasks = $this->userRepository->countWithPendingTasks();
+
+        // --- RECURRENT TASKS ---
+        $recurrentTasks = $this->recurrentTaskRepository->countActive($today);
+
+        // --- DELAYED SUBTASKS ---
+        $delayedSubtasks = $this->subtaskRepository->countDelayed($today);
+
+        // --- COMPANIES ---
+        $totalCompanies = $this->companyRepository->countAll();
+
+        // --- ACTIVE WORK CALENDARS ---
+        $activeCalendars = $this->workCalendarTemplateRepository->countActive();
+
+        // --- CALENDAR DAYS (holidays) ---
+        $template = $this->workCalendarTemplateRepository->getActiveTemplateForYear($year);
+        $calendarDaysThisMonth = $this->workCalendarDayRepository->getDaysByMonth($year, $month, $template);
+        $calendarDaysNextMonth = $this->workCalendarDayRepository->getDaysByMonth(
+            $nextMonthStart->year,
+            $nextMonthStart->month,
+            $template
+        );
+
+        // --- USER ABSENCES (vacations/legal absence) ---
+        $userVacationsThisMonth = $this->userAbsenceRepository
+            ->getAbsencesGroupedByUser($startMonth, $endMonth, CalendarType::VACATION->value);
+        $userLegalAbsencesThisMonth = $this->userAbsenceRepository
+            ->getAbsencesGroupedByUser($startMonth, $endMonth, CalendarType::LEGAL_ABSENCE->value);
+        $userVacationsNextMonth = $this->userAbsenceRepository
+            ->getAbsencesGroupedByUser($nextMonthStart, $nextMonthEnd, CalendarType::VACATION->value);
+        $userLegalAbsencesNextMonth = $this->userAbsenceRepository
+            ->getAbsencesGroupedByUser($nextMonthStart, $nextMonthEnd, CalendarType::LEGAL_ABSENCE->value);
+
+        return compact(
+            'totalUsers',
+            'usersWithoutCalendar',
+            'usersWithAbsences',
+            'usersManagement',
+            'usersMobile',
+            'tasksToday',
+            'tasksTomorrow',
+            'pendingTasks',
+            'usersWithPendingTasks',
+            'recurrentTasks',
+            'delayedSubtasks',
+            'totalCompanies',
+            'activeCalendars',
+            'calendarDaysThisMonth',
+            'calendarDaysNextMonth',
+            'userVacationsThisMonth',
+            'userLegalAbsencesThisMonth',
+            'userVacationsNextMonth',
+            'userLegalAbsencesNextMonth'
+        );
+    }
+}

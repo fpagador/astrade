@@ -165,6 +165,10 @@
                             @endforeach
                         </div>
                     </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <x-form.input name="recurrent_start_date" label="Fecha de inicio" type="date" />
+                        <x-form.input name="recurrent_end_date" label="Fecha de fin" type="date" />
+                    </div>
                 </div>
             </div>
 

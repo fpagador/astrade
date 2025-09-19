@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Models\Task;
+use Illuminate\Support\Carbon;
 
 /**
  * Repository class for Subtask entity.
@@ -82,5 +83,18 @@ class SubtaskRepository
             $attributes['task_id'] = $newTask->id;
             Subtask::create($attributes);
         }
+    }
+
+    /**
+     * Count subtasks that are pending and delayed (task scheduled date < today).
+     *
+     * @param Carbon $today
+     * @return int
+     */
+    public function countDelayed(Carbon $today): int
+    {
+        return Subtask::where('status', 'pending')
+            ->whereHas('task', fn($q) => $q->whereDate('scheduled_date', '<', $today))
+            ->count();
     }
 }

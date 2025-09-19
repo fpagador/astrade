@@ -431,7 +431,7 @@ function initColorPicker() {
 }
 document.addEventListener('DOMContentLoaded', initColorPicker);
 
-/* ----------------- UTILIDADES ----------------- */
+/* ----------------- UTILITIES ----------------- */
 export function formatDateConsistent(date) {
     return date.getFullYear() + '-' +
         String(date.getMonth() + 1).padStart(2, '0') + '-' +
@@ -580,7 +580,7 @@ export function calendarView() {
                 btn.type = 'button';
 
                 // Base
-                let classes = 'border p-1 rounded relative hover:bg-gray-200';
+                let classes = 'border p-2 rounded relative hover:bg-gray-200';
 
                 // Día seleccionado
                 if (dayKey === formatDateLocal(this.currentDate)) {

@@ -6,6 +6,7 @@ use App\Enums\CalendarType;
 use App\Models\WorkCalendarDay;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
+use App\Models\WorkCalendarTemplate;
 
 /**
  * Repository class for handling calendar-related data persistence.
@@ -100,5 +101,22 @@ class WorkCalendarDayRepository
             ->whereDate('date', $date)
             ->where('day_type', CalendarType::HOLIDAY->value)
             ->exists();
+    }
+
+    /**
+     * Get active calendar days of the month
+     *
+     * @param int $year
+     * @param int $month
+     * @param WorkCalendarTemplate $template
+     * @return Collection
+     */
+    public function getDaysByMonth(int $year, int $month, WorkCalendarTemplate $template): Collection
+    {
+        return WorkCalendarDay::where('template_id', $template->id)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->get()
+            ->keyBy(fn($day) => $day->date->format('Y-m-d'));
     }
 }

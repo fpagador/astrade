@@ -122,4 +122,27 @@ class WorkCalendarTemplateRepository
         return WorkCalendarTemplate::where('status', CalendarStatus::ACTIVE->value)->get();
     }
 
+    /**
+     * Count all WorkCalendarTemplate.
+     *
+     * @return int
+     */
+    public function countActive(): int
+    {
+        return WorkCalendarTemplate::where('status', CalendarStatus::ACTIVE->value)->count();
+    }
+
+    /**
+     * Count all WorkCalendarTemplate.
+     *
+     * @param int $year
+     * @return WorkCalendarTemplate
+     */
+    public function getActiveTemplateForYear(int $year): WorkCalendarTemplate
+    {
+        return WorkCalendarTemplate::where('year', $year)
+            ->where('status', 'active')
+            ->first();
+    }
+
 }

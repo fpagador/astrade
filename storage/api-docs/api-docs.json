@@ -162,19 +162,20 @@
                     "Calendar"
                 ],
                 "summary": "Get user calendar days by type",
-                "description": "Returns the vacation, holiday, or sick_leave days recorded for the authenticated user.",
+                "description": "Returns the vacation, holiday, or legal_absence days recorded for the authenticated user.",
                 "operationId": "435f1760628a42060d9a59cd1cc0e855",
                 "parameters": [
                     {
                         "name": "type",
                         "in": "path",
-                        "description": "Type of calendar days: vacation, holiday",
+                        "description": "Type of calendar days: vacation, holiday or legal_absence",
                         "required": true,
                         "schema": {
                             "type": "string",
                             "enum": [
                                 "vacation",
-                                "holiday"
+                                "holiday",
+                                "legal_absence"
                             ]
                         }
                     }
@@ -195,25 +196,43 @@
                                             "example": "Vacation days retrieved successfully"
                                         },
                                         "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "integer",
-                                                        "example": 1
+                                            "properties": {
+                                                "color": {
+                                                    "properties": {
+                                                        "class": {
+                                                            "type": "string",
+                                                            "example": "bg-green-500"
+                                                        },
+                                                        "hex": {
+                                                            "type": "string",
+                                                            "example": "#22c55e"
+                                                        }
                                                     },
-                                                    "date": {
-                                                        "type": "string",
-                                                        "format": "date",
-                                                        "example": "2025-09-01"
-                                                    },
-                                                    "description": {
-                                                        "type": "string",
-                                                        "example": "Family vacation"
-                                                    }
+                                                    "type": "object"
                                                 },
-                                                "type": "object"
-                                            }
+                                                "days": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "date": {
+                                                                "type": "string",
+                                                                "format": "date",
+                                                                "example": "2025-09-01"
+                                                            },
+                                                            "description": {
+                                                                "type": "string",
+                                                                "example": "Family vacation"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -591,24 +610,35 @@
                 ]
             }
         },
-        "/api/phone": {
+        "/api/phones": {
             "get": {
                 "tags": [
                     "User"
                 ],
-                "summary": "Get authenticated user phone number",
-                "description": "Returns the user's phone number.",
-                "operationId": "88a29c5274de50c66398bd56f4ead232",
+                "summary": "Get phone numbers of users that can receive calls",
+                "description": "Get all active users' phone numbers.",
+                "operationId": "22c26f9af0df4c59377b520e304ec633",
                 "responses": {
                     "200": {
-                        "description": "User phone number retrieved",
+                        "description": "Active phone numbers retrieved",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ApiResponse"
+                                    "properties": {
+                                        "phones": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
+                    },
+                    "500": {
+                        "description": "Internal server error"
                     }
                 },
                 "security": [
