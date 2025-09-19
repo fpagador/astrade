@@ -29,7 +29,12 @@ export default {
         'bg-red-700',
         'bg-gray-500',
         'bg-red-900',
-
+        'hover:bg-green-800',
+        'hover:bg-red-600',
+        'hover:bg-red-800',
+        'hover:bg-gray-400',
+        'hover:bg-indigo-800',
+        
         // Company Colors
         'bg-indigo-100 text-indigo-900',
         'bg-green-100 text-green-900',
