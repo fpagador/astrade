@@ -344,7 +344,7 @@ export function actionTaskModal() {
                 this.message = 'Está intentando editar una tarea recurrente. ¿Desea modificar solo esta tarea o toda la serie?';
                 this.buttons = [
                     { label: 'Modificar solo esta tarea', action: 'single', color: 'bg-indigo-900 hover:bg-indigo-800' },
-                    { label: 'Modificar la serie', action: 'series', color: 'bg-green-900 hover:bg-green-800' },
+                    { label: 'Modificar la serie', action: 'series', color: 'bg-green-600 hover:bg-green-500' },
                     { label: 'Cancelar', action: 'cancel', color: 'bg-red-900 hover:bg-red-800' },
                 ];
                 this.callback = (action) => {
@@ -362,8 +362,8 @@ export function actionTaskModal() {
                 if (this.isRecurrent) {
                     this.message = 'Está intentando eliminar una tarea recurrente. ¿Desea eliminar solo esta tarea o toda la serie?';
                     this.buttons = [
-                        { label: 'Eliminar solo esta tarea', action: 'single', color: 'bg-red-900 hover:bg-red-800' },
-                        { label: 'Eliminar toda la serie', action: 'series', color: 'bg-red-700 hover:bg-red-600' },
+                        { label: 'Eliminar solo esta tarea', action: 'single', color: 'bg-red-600 hover:bg-red-500' },
+                        { label: 'Eliminar toda la serie', action: 'series', color: 'bg-red-900 hover:bg-red-800' },
                         { label: 'Cancelar', action: 'cancel', color: 'bg-gray-500 hover:bg-gray-400' },
                     ];
                 } else {
