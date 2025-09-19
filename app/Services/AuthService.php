@@ -14,14 +14,13 @@ use App\Models\User;
  */
 class AuthService
 {
-
     /**
      * AuthService constructor.
      *
      * @param AuthRepository $authRepository
      */
     public function __construct(
-        AuthRepository $authRepository
+        protected AuthRepository $authRepository
     ) {}
 
     /**
