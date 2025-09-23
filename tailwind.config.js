@@ -4,9 +4,6 @@ import forms from '@tailwindcss/forms';
 /** @type {import('tailwindcss').Config} */
 export default {
     content: [
-        './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
-        './storage/framework/views/*.php',
-        './resources/views/**/*.blade.php',
         './resources/**/*.blade.php',
         './resources/**/*.js',
         './resources/**/*.vue',
@@ -14,30 +11,18 @@ export default {
         './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
         './storage/framework/views/*.php',
     ],
-
     theme: {
         extend: {
             colors: {
-                green: {
-                    700: '#15803d',
-                    800: '#166534',
-                    900: '#14532d',
-                },
-                red: {
-                    700: '#b91c1c',
-                    800: '#991b1b',
-                    900: '#7f1d1d',
-                },
+                green: {700:'#15803d',800:'#166534',900:'#14532d'},
+                red: {700:'#b91c1c',800:'#991b1b',900:'#7f1d1d'},
             },
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
         },
     },
-
-    plugins: [forms],
     safelist: [
-        // Calendar Colors
         'bg-green-500',
         'bg-orange-400',
         'bg-yellow-200',
@@ -53,7 +38,6 @@ export default {
         'hover:bg-red-600',
         'hover:bg-green-800',
         'hover:bg-red-800',
-        // Company Colors
         'bg-indigo-100',
         'text-indigo-900',
         'bg-green-100',
@@ -63,6 +47,7 @@ export default {
         'bg-pink-100',
         'text-pink-900',
         'bg-purple-100',
-        'text-purple-900'
-    ]
+        'text-purple-900',
+    ],
+    plugins: [forms],
 };
