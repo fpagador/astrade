@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 
 // Public login
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/phones', [UserApiController::class, 'getPhone']);
 
 // Routes for authenticated mobile users (role: user)
 
@@ -21,7 +22,6 @@ Route::middleware(['auth:sanctum', 'role:admin|manager|user|'])->group(function 
     |--------------------------------------------------------------------------
     */
     Route::get('/profile', [UserApiController::class, 'profile']);
-    Route::get('/phone', [UserApiController::class, 'getPhone']);
 
     /*
     |--------------------------------------------------------------------------
