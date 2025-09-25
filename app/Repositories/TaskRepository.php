@@ -17,15 +17,19 @@ use Illuminate\Support\Facades\Storage;
 class TaskRepository
 {
     /**
-     * Get all tasks with subtasks for a given user.
+     * Get all tasks with subtasks for a given user from today and up to 1 month ahead.
      *
      * @param int $userId
      * @return Collection
      */
     public function allByUser(int $userId): Collection
     {
+        $start = Carbon::today();
+        $end = Carbon::today()->addMonth();
+
         return Task::with('subtasks')
             ->where('user_id', $userId)
+            ->whereBetween('scheduled_date', [$start, $end])
             ->orderBy('scheduled_date')
             ->orderBy('scheduled_time')
             ->get();

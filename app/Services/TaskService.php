@@ -25,7 +25,7 @@ class TaskService
     ) {}
 
     /**
-     * Get all tasks with subtasks for a given user.
+     * Get all tasks with subtasks for the given user from today up to 1 month.
      *
      * @param int $userId
      * @return Collection

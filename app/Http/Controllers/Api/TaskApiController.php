@@ -18,15 +18,17 @@ class TaskApiController extends ApiController
     {
         $this->service = $service;
     }
+
     /**
-     * Get all tasks and their subtasks for the authenticated user.
+     * Get all tasks with subtasks for the authenticated user
+     * from today and up to 1 month ahead.
      *
      * @param Request $request
      * @return JsonResponse
      *
      * @OA\Get(
      *     path="/api/tasks",
-     *     summary="Get all tasks with subtasks for the authenticated user",
+     *     summary="Get all tasks with subtasks for the authenticated user (from today up to 1 month)",
      *     tags={"Tasks"},
      *     security={{"sanctum":{}}},
      *     @OA\Response(
