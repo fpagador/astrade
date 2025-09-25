@@ -44,8 +44,8 @@ class UserAbsenceController extends WebController
 
             // Active staff of the year
             $holidayDates = [];
-            $template = $this->calendarService->getWorkCalendarTemplateById($user->work_calendar_template_id);
-            if ($template) {
+            if ($user->work_calendar_template_id) {
+                $template = $this->calendarService->getWorkCalendarTemplateById($user->work_calendar_template_id);
                 $holidayDates = $this->calendarService->getHolidaysForArray($template);
             }
 

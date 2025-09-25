@@ -9,12 +9,8 @@ use App\Http\Controllers\Web\Admin\UserAbsenceController;
 use App\Http\Controllers\Web\Admin\LogController;
 use App\Http\Controllers\Web\Admin\CompanyController;
 use App\Http\Controllers\Web\Admin\TaskCompletionLogController;
-use Illuminate\Http\Request;
-use App\Models\Task;
 use App\Http\Controllers\Web\Admin\WorkCalendarTemplateController;
-use App\Models\WorkCalendarDay;
-use App\Models\UserAbsence;
-use Illuminate\Support\Carbon;
+use App\Http\Requests\Admin\StoreOrUpdateTaskRequest;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -41,7 +37,12 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
     | Dashboard
     |--------------------------------------------------------------------------
     */
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::prefix('dashboard')->name('dashboard.')->group(function () {
+        Route::get('/', [DashboardController::class, 'index'])->name('index');
+        Route::get('/tasks-by-day/{day}', [DashboardController::class, 'tasksByDay']);
+        Route::get('/tasks-by-user/{userId?}', [DashboardController::class, 'tasksByUser']);
+        Route::get('/employees-by-company', [DashboardController::class, 'employeesByCompany']);
+    });
 
     /*
     |--------------------------------------------------------------------------
@@ -99,6 +100,10 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
         Route::get('/tasks/{task}/detail', [UserTaskController::class, 'taskDetail'])->name('tasks.detail');
         Route::get('/{user}/tasks-daily', [UserTaskController::class, 'daily'])
             ->name('tasks.daily');
+
+        Route::post('/tasks/validate', function (StoreOrUpdateTaskRequest $request) {
+            return response()->json(['success' => true]);
+        })->name('tasks.validate');
     });
 
     /*

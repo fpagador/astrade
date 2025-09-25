@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\UploadedFile;
 use App\Enums\CalendarColor;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Str;
 
 /**
  * Service class responsible for handling User Task logic.
@@ -184,18 +185,24 @@ class UserTaskService
     }
 
     /**
-     * Upload pictogram image and optionally delete previous path.
+     * Upload pictogram image if it's an UploadedFile, otherwise return path as-is.
      *
-     * @param UploadedFile $file
+     * @param UploadedFile|string|null $file
      * @param string|null $oldPath
-     * @return string
+     * @return string|null
      */
-    public function handlePictogramUpload(UploadedFile $file, ?string $oldPath = null): string
+    public function handlePictogramUpload(UploadedFile|string|null $file, ?string $oldPath = null): ?string
     {
-        if ($oldPath && Storage::disk('public')->exists($oldPath)) {
-            Storage::disk('public')->delete($oldPath);
+        if ($file instanceof UploadedFile) {
+            // Delete old file if exists
+            if ($oldPath && Storage::disk('public')->exists($oldPath)) {
+                Storage::disk('public')->delete($oldPath);
+            }
+            return $file->store('pictograms', 'public');
         }
-        return $file->store('pictograms', 'public');
+
+        // If it's already a string path or null, just return it
+        return $file ?? $oldPath;
     }
 
     /**
@@ -221,15 +228,21 @@ class UserTaskService
             }
 
             // Handle pictogram
-            if (!empty($data['pictogram']) && $data['pictogram'] instanceof UploadedFile) {
-                $data['pictogram_path'] = $this->handlePictogramUpload($data['pictogram']);
+            if (!empty($data['pictogram_path']) && $data['pictogram_path'] instanceof UploadedFile) {
+                $data['pictogram_path'] = $this->handlePictogramUpload($data['pictogram_path']);
             }
 
             // Create main task
             $task = $this->taskRepository->createFromData($userId, $data);
 
             // Create subtasks
-            $this->subtaskRepository->createManyFromArray($task, $data['subtasks']);
+            foreach ($data['subtasks'] as $subtask) {
+                if (!empty($subtask['pictogram_path']) && $subtask['pictogram_path'] instanceof UploadedFile) {
+                    $subtask['pictogram_path'] = $this->handlePictogramUpload($subtask['pictogram_path']);
+                    $subtask['external_id'] = $subtask['external_id'] ?? (string) Str::uuid();
+                }
+                $this->subtaskRepository->createManyFromArray($task, $subtask);
+            }
 
             // Handle recurrent series
             if (!empty($data['is_recurrent'])) {
@@ -240,6 +253,7 @@ class UserTaskService
             return $task->load('subtasks', 'recurrentTask');
         });
     }
+
     /**
      * Create a recurrent task and generate instances with subtasks.
      *
@@ -283,75 +297,6 @@ class UserTaskService
         }
 
         return $recurrent->id;
-    }
-
-    /**
-     * Update or create recurrent series and regenerate future tasks if needed.
-     *
-     * @param Task $task
-     * @param array $data
-     * @param bool $editSeries
-     * @return void
-     */
-    public function updateOrCreateRecurrent(Task $task, array $data, bool $editSeries = false): RecurrentTask
-    {
-        $recurrent = $task->recurrentTask ?? new RecurrentTask();
-
-        // Save the original date of the recurrence
-        $originalStartDate = $recurrent->start_date;
-        $originalEndDate = $recurrent->end_date;
-
-        $recurrent->fill([
-            'start_date' => $data['recurrent_start_date'] ?? $recurrent->start_date,
-            'end_date'   => $data['recurrent_end_date'] ?? $recurrent->end_date,
-            'days'       => $data['days_of_week'] ?? $recurrent->days_of_week,
-        ]);
-        $recurrent->save();
-
-        if ($editSeries) {
-            $startDate = Carbon::parse($recurrent->start_date);
-            $endDate = Carbon::parse($recurrent->end_date);
-
-            // Check if the range has changed
-            $rangeChanged = ($originalStartDate && $originalEndDate) &&
-                ($originalStartDate != $recurrent->start_date || $originalEndDate != $recurrent->end_date);
-
-            //Determine cutoffDate based on whether the range changed or not
-            $today = now()->toDateString();
-
-            if ($rangeChanged) {
-                //New range: Create/edit tasks only from the largest date between today and the startDate
-                $cutoffDate = max($today, $startDate->toDateString());
-            } else {
-                // Same rank: only modify from today
-                $cutoffDate = $today;
-            }
-
-            // Generate all dates according to days of the week and new range
-            $allNewDates = collect(
-                $this->generateDatesForRecurrentTask($data['days_of_week'], $startDate, $endDate)
-            );
-
-            // Filter the dates to update/create based on cutoffDate
-            $futureNewDates = $allNewDates->filter(fn($date) => $date >= $cutoffDate);
-
-            // Get existing recurring tasks from cutoffDate
-            $existingFutureTasks = $this->taskRepository->getFutureRecurrentTasks($recurrent->id, $cutoffDate);
-            $existingFutureDates = $existingFutureTasks->pluck('scheduled_date')->toArray();
-
-            // Delete dates that are no longer part of the plan
-            $datesToDelete = array_diff($existingFutureDates, $futureNewDates->toArray());
-            $this->taskRepository->deleteByDates($recurrent->id, $datesToDelete);
-
-            //Create new missing dates
-            $datesToCreate = array_diff($futureNewDates->toArray(), $existingFutureDates);
-            foreach ($datesToCreate as $date) {
-                $newTask = $this->taskRepository->replicateWithDate($task, $recurrent->id, $date);
-                $this->subtaskRepository->replicateMany($task->subtasks, $newTask);
-            }
-        }
-
-        return $recurrent;
     }
 
     /**
@@ -433,89 +378,161 @@ class UserTaskService
     }
 
     /**
-     * Update a task (normal or recurrent) and sync subtasks and recurrent data.
+     * Update a task and optionally propagate changes to its recurrence series.
      *
-     *
-     * @param Task $task
-     * @param array $data
-     * @param bool $editSeries
+     * @param Task $task The base task being updated
+     * @param array $data The form data (task fields + subtasks)
+     * @param bool $editSeries Whether to update the entire recurrence series
      * @return Task|Collection
-     * @throws \Exception
      */
     public function updateTask(Task $task, array $data, bool $editSeries = false): Task|Collection
     {
         return DB::transaction(function () use ($task, $data, $editSeries) {
-            if ($editSeries && $task->recurrent_task_id && !empty($data['is_recurrent'])) {
-                //updateOrCreateRecurrent will create/delete future instances based on the new definition
-                $recurrent = $this->updateOrCreateRecurrent($task, $data, true);
-
-                // We calculate cutoffDate = max(today, new start_date)
-                $startDate = $recurrent->start_date;
-                $cutoffDate = Carbon::parse($startDate)->lt(now())
-                    ? now()->toDateString()
-                    : Carbon::parse($startDate)->toDateString();
-
-                // We get ONLY the recurring tasks from cutoffDate onwards (the ones we need to update)
-                $tasksToUpdate = $this->taskRepository->getFutureRecurrentTasks($recurrent->id, $cutoffDate);
-            } else {
-                //If it is not a serial edition, behavior as before:
-                $tasksToUpdate = ($editSeries && $task->recurrent_task_id)
-                    ? $this->taskRepository->getAllRecurrentTasks($task->recurrent_task_id)
-                    : collect([$task]);
+            // Sync subtasks of the base task
+            if (isset($data['subtasks'])) {
+                $this->syncSubtasks($task, $data['subtasks']);
+                $task->load('subtasks');
             }
 
-            // Now we update ONLY the tasks we have chosen (if editSeries, they will be the future ones since cutoff)
-            foreach ($tasksToUpdate as $t) {
-                // Handle main pictogram upload if provided
-                if (!empty($data['pictogram_path'])) {
-                    $data['pictogram_path'] = $this->handlePictogramUpload(
-                        $data['pictogram_path'],
-                        $t->pictogram_path
-                    );
-                }
+            // Prepare update payload for the task
+            $updateData = $this->buildTaskUpdateData($task, $data, $editSeries);
 
-                // Build update payload with fallbacks to existing values
-                $updateData = [
-                    'title' => $data['title'] ?? $t->title,
-                    'color' => $data['color'] ?? $t->color,
-                    'description' => $data['description'] ?? $t->description,
-                    'scheduled_time' => $data['scheduled_time'] ?? $t->scheduled_time,
-                    'estimated_duration_minutes' => $data['estimated_duration_minutes'] ?? $t->estimated_duration_minutes,
-                    'pictogram_path' => $data['pictogram_path'] ?? $t->pictogram_path,
-                    'status' => $data['status'] ?? $t->status,
-                    'notifications_enabled' => $data['notifications_enabled'] ?? $t->notifications_enabled,
-                    'reminder_minutes' => $data['reminder_minutes'] ?? $t->reminder_minutes,
-                ];
+            // Update the base task
+            $task->update($updateData);
 
-                // Update scheduled_date only for single-instance edits (no editar la serie)
-                if (!$editSeries) {
-                    $updateData['scheduled_date'] = $data['scheduled_date'] ?? $t->scheduled_date;
-                }
+            // If editing the whole series, update all future tasks
+            if ($editSeries && $task->recurrent_task_id) {
+                $this->updateFutureTasksInSeries($task, $data);
 
-                // Update the task in DB
-                $t->update($updateData);
-
-                // Sync subtasks:
-                // - If editSeries => sync subtasks on each future updated instance,
-                // - If not editSeries => sync only for the original edited task.
-                if (isset($data['subtasks'])) {
-                    if ($editSeries) {
-                        $this->syncSubtasks($t, $data['subtasks']);
-                    } else {
-                        if ($t->id === $task->id) {
-                            $this->syncSubtasks($t, $data['subtasks']);
-                        }
-                    }
-                }
-
+                // Update the recurrent task record itself
+                //$task->recurrentTask->update($seriesData);
             }
 
-            // Return updated tasks or the single instance
+            // Return updated task(s)
             return $editSeries
-                ? $tasksToUpdate->load('subtasks', 'recurrentTask')
+                ? $this->taskRepository
+                    ->getFutureRecurrentTasks($task->recurrent_task_id, now()->toDateString())
+                    ->load('subtasks', 'recurrentTask')
                 : $task->load('subtasks', 'recurrentTask');
         });
     }
+
+    /**
+     * Build the update payload for a task, merging existing values and new input.
+     *
+     * @param Task $task
+     * @param array $data
+     * @param bool $editSeries
+     * @return array<string,mixed>
+     */
+    protected function buildTaskUpdateData(Task $task, array $data, bool $editSeries): array
+    {
+        $updateData = [
+            'title'                 => $data['title'] ?? $task->title,
+            'color'                 => $data['color'] ?? $task->color,
+            'description'           => $data['description'] ?? $task->description,
+            'scheduled_time'        => $data['scheduled_time'] ?? $task->scheduled_time,
+            'estimated_duration_minutes' => $data['estimated_duration_minutes'] ?? $task->estimated_duration_minutes,
+            'pictogram_path'        => isset($data['pictogram_path'])
+                ? $this->handlePictogramUpload($data['pictogram_path'], $task->pictogram_path)
+                : $task->pictogram_path,
+            'status'                => $data['status'] ?? $task->status,
+            'notifications_enabled' => $data['notifications_enabled'] ?? $task->notifications_enabled,
+            'reminder_minutes'      => $data['reminder_minutes'] ?? $task->reminder_minutes,
+        ];
+
+        // Only override scheduled_date for single edits
+        if (!$editSeries) {
+            $updateData['scheduled_date'] = $data['scheduled_date'] ?? $task->scheduled_date;
+        }
+
+        return $updateData;
+    }
+
+    /**
+     * Update all future tasks in a recurrence series to match the base task.
+     *
+     * @param Task $baseTask
+     * @param array $data
+     * @return void
+     */
+    protected function updateFutureTasksInSeries(Task $baseTask, array $data): void
+    {
+        $recurrent = $baseTask->recurrentTask ?? new RecurrentTask();
+
+        // Save the original date of the recurrence
+        $originalStartDate = $recurrent->start_date;
+        $originalEndDate = $recurrent->end_date;
+
+        $recurrent->fill([
+            'start_date'   => $data['recurrent_start_date'] ?? $recurrent->start_date,
+            'end_date'     => $data['recurrent_end_date'] ?? $recurrent->end_date,
+            'days_of_week' => json_encode($data['days_of_week'])  ?? $recurrent->days_of_week,
+        ]);
+
+        $recurrent->save();
+
+        $startDate = Carbon::parse($recurrent->start_date);
+        $endDate = Carbon::parse($recurrent->end_date);
+
+        // Check if the range has changed
+        $rangeChanged = ($originalStartDate && $originalEndDate) &&
+            ($originalStartDate != $recurrent->start_date || $originalEndDate != $recurrent->end_date);
+
+        $today = now()->toDateString();
+
+        if ($rangeChanged) {
+            //New range: Create/edit tasks only from the largest date between today and the startDate
+            $cutoffDate = max($today, $startDate->toDateString());
+        } else {
+            // Same rank: only modify from today
+            $cutoffDate = $today;
+        }
+
+        // Generate all dates according to days of the week and new range
+        $allNewDates = collect(
+            $this->generateDatesForRecurrentTask($data['days_of_week'], $startDate, $endDate)
+        );
+
+        // Filter the dates to update/create based on cutoffDate
+        $futureNewDates = $allNewDates->filter(fn($date) => $date >= $cutoffDate);
+
+        // --- Step 1: get all future tasks from today
+        $futureTasks = $this->taskRepository->getFutureRecurrentTasks(
+            $recurrent->id,
+            $cutoffDate
+        );
+
+        $existingFutureDates = $futureTasks->pluck('scheduled_date')->toArray();
+
+
+        $datesToDelete = array_diff($existingFutureDates, $futureNewDates->toArray());
+        $this->taskRepository->deleteByDates($recurrent->id, $datesToDelete);
+
+        //Create new missing dates
+        $datesToCreate = array_diff($futureNewDates->toArray(), $existingFutureDates);
+        foreach ($datesToCreate as $date) {
+            $newTask = $this->taskRepository->replicateWithDate($baseTask, $recurrent->id, $date);
+            $this->subtaskRepository->replicateMany($baseTask->subtasks, $newTask);
+        }
+    }
+
+    protected function calculateFutureDates(string $startDate, string $endDate, array $daysOfWeek): array
+    {
+        $dates = [];
+        $current = Carbon::parse($startDate);
+        $end = Carbon::parse($endDate);
+
+        while ($current->lte($end)) {
+            if (in_array(strtolower($current->format('l')), $daysOfWeek)) {
+                $dates[] = $current->toDateString();
+            }
+            $current->addDay();
+        }
+
+        return $dates;
+    }
+
 
     /**
      * Delete a task instance or an entire series based on the user's choice.
@@ -555,53 +572,16 @@ class UserTaskService
         return DB::transaction(function () use ($tasks) {
             $count = 0;
             foreach ($tasks as $task) {
-                // Delete subtasks pictograms
-                foreach ($task->subtasks as $subtask) {
-                    if ($subtask->pictogram_path && Storage::disk('public')->exists($subtask->pictogram_path)) {
-                        Storage::disk('public')->delete($subtask->pictogram_path);
-                    }
-                }
+                //Delete subtasks with pictograms
+                $this->subtaskRepository->deleteWithFiles($task->subtasks);
 
-                // Delete task pictogram
-                if ($task->pictogram_path && Storage::disk('public')->exists($task->pictogram_path)) {
-                    Storage::disk('public')->delete($task->pictogram_path);
-                }
+                // Delete task with pictograms
+                $this->taskRepository->deleteWithFiles($task);
 
-                // Delete task and subtasks
-                $task->subtasks()->delete();
-                $task->delete();
                 $count++;
             }
             return $count;
         });
-    }
-
-    /**
-     * Create subtasks for a given task.
-     *
-     * Each subtask array may include optionally an UploadedFile under key 'pictogram'.
-     *
-     * @param Task $task
-     * @param array<int,array> $subtasks
-     * @return void
-     */
-    public function createSubtasks(Task $task, array $subtasks): void
-    {
-        foreach ($subtasks as $index => $st) {
-            $attrs = [
-                'title' => $st['title'] ?? '',
-                'description' => $st['description'] ?? null,
-                'note' => $st['note'] ?? null,
-                'order' => $st['order'] ?? $index,
-                'status' => $st['status'] ?? 'pending',
-            ];
-            if (!empty($st['pictogram']) && $st['pictogram'] instanceof UploadedFile) {
-                $attrs['pictogram_path'] = $this->handlePictogramUpload($st['pictogram']);
-            } elseif (!empty($st['pictogram_path'])) {
-                $attrs['pictogram_path'] = $st['pictogram_path'];
-            }
-            $task->subtasks()->create($attrs);
-        }
     }
 
     /**
@@ -616,69 +596,39 @@ class UserTaskService
      */
     public function syncSubtasks(Task $task, array $formSubtasks): void
     {
-        $submittedIds = [];
+        $submittedExternalIds = [];
+
         foreach ($formSubtasks as $index => $subtaskData) {
-            $id = !empty($subtaskData['id']) ? (int)$subtaskData['id'] : null;
+            $externalId = (string)($subtaskData['external_id'] ?? Str::uuid());
+            $existing   = $task->subtasks()->firstWhere('external_id', $externalId);
+
             $values = [
-                'title' => $subtaskData['title'] ?? '',
+                'title'       => $subtaskData['title'] ?? '',
                 'description' => $subtaskData['description'] ?? '',
-                'note' => $subtaskData['note'] ?? '',
-                'order' => $subtaskData['order'] ?? $index,
-                'status' => $subtaskData['status'] ?? 'pending',
+                'note'        => $subtaskData['note'] ?? '',
+                'order'       => $subtaskData['order'] ?? $index,
+                'status'      => $subtaskData['status'] ?? 'pending',
+                'external_id' => $externalId,
             ];
 
-            // handle pictogram upload for this subtask if provided
+            // pictogram logic (business rule)
             if (!empty($subtaskData['pictogram']) && $subtaskData['pictogram'] instanceof UploadedFile) {
-                $oldPath = null;
-                if ($id) {
-                    $existing = $task->subtasks()->find($id);
-                    $oldPath = $existing?->pictogram_path;
-                }
-                $values['pictogram_path'] = $this->handlePictogramUpload($subtaskData['pictogram'], $oldPath);
+                $values['pictogram_path'] = $this->handlePictogramUpload(
+                    $subtaskData['pictogram'],
+                    $existing?->pictogram_path
+                );
+            } elseif ($existing) {
+                $values['pictogram_path'] = $existing->pictogram_path;
             }
 
-            if ($id && ($existing = $task->subtasks()->find($id))) {
-                $existing->update($values);
-                $submittedIds[] = $existing->id;
-            } else {
-                $new = $task->subtasks()->create($values);
-                $submittedIds[] = $new->id;
-            }
+            // delegate persistence to repository
+            $this->subtaskRepository->updateOrCreate($task, $externalId, $values);
+
+            $submittedExternalIds[] = $externalId;
         }
 
-        // delete any subtasks not in submittedIds
-        $task->subtasks()
-            ->whereNotIn('id', $submittedIds)
-            ->get()
-            ->each(function ($sub) {
-                if ($sub->pictogram_path && Storage::disk('public')->exists($sub->pictogram_path)) {
-                    Storage::disk('public')->delete($sub->pictogram_path);
-                }
-                $sub->delete();
-            });
-    }
-
-    protected function createRecurrentTask(Task $task, array $data): RecurrentTask
-    {
-        return RecurrentTask::create([
-            'user_id' => $task->user_id,
-            'start_date' => $data['start_date'],
-            'end_date' => $data['end_date'] ?? null,
-            'days_of_week' => json_encode($data['days_of_week'] ?? [])
-        ]);
-    }
-
-    protected function updateRecurrentTask(Task $task, array $data): void
-    {
-        if ($task->recurrentTask) {
-            $task->recurrentTask->update([
-                'start_date' => $data['start_date'] ?? $task->recurrentTask->start_date,
-                'end_date' => $data['end_date'] ?? $task->recurrentTask->end_date,
-                'days_of_week' => json_encode($data['days_of_week'] ?? []),
-            ]);
-        } else {
-            $this->createRecurrentTask($task, $data);
-        }
+        // delete missing subtasks
+        $this->subtaskRepository->deleteAllExcept($task, $submittedExternalIds);
     }
 
     /**

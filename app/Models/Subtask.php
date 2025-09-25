@@ -4,9 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Str;
 
 /**
  * @property int $id
@@ -34,5 +33,14 @@ class Subtask extends Model
     public function task(): BelongsTo
     {
         return $this->belongsTo(Task::class);
+    }
+
+    protected static function booted()
+    {
+        static::creating(function ($subtask) {
+            if (empty($subtask->external_id)) {
+                $subtask->external_id = (string) Str::uuid();
+            }
+        });
     }
 }

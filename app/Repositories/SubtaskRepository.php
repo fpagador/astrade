@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Models\Task;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Repository class for Subtask entity.
@@ -58,14 +59,12 @@ class SubtaskRepository
      * Create multiple subtasks from array.
      *
      * @param Task $task
-     * @param array $subtasks
+     * @param  array $subtask
      * @return void
      */
-    public function createManyFromArray(Task $task, array $subtasks): void
+    public function createManyFromArray(Task $task, array $subtask): void
     {
-        foreach ($subtasks as $subtask) {
-            $task->subtasks()->create($subtask);
-        }
+        $task->subtasks()->create($subtask);
     }
 
     /**
@@ -97,4 +96,55 @@ class SubtaskRepository
             ->whereHas('task', fn($q) => $q->whereDate('scheduled_date', '<', $today))
             ->count();
     }
+
+    /**
+     * Update or create a subtask for the given task.
+     *
+     * @param Task   $task
+     * @param string $externalId
+     * @param array  $values
+     * @return Subtask
+     */
+    public function updateOrCreate(Task $task, string $externalId, array $values): Subtask
+    {
+        return $task->subtasks()->updateOrCreate(
+            ['external_id' => $externalId],
+            $values
+        );
+    }
+
+    /**
+     * Delete all subtasks not in the given list of external IDs.
+     */
+    public function deleteAllExcept(Task $task, array $externalIds): void
+    {
+        $task->subtasks()
+            ->whereNotIn('external_id', $externalIds)
+            ->get()
+            ->each(function (Subtask $sub) {
+                if ($sub->pictogram_path && Storage::disk('public')->exists($sub->pictogram_path)) {
+                    Storage::disk('public')->delete($sub->pictogram_path);
+                }
+                $sub->delete();
+            });
+    }
+
+    public function deleteWithFiles(Collection|Subtask $subtasks): int
+    {
+        $subtasks = $subtasks instanceof Subtask ? collect([$subtasks]) : $subtasks;
+        $count = 0;
+
+        foreach ($subtasks as $subtask) {
+            // Delete pictogram
+            if ($subtask->pictogram_path && Storage::disk('public')->exists($subtask->pictogram_path)) {
+                Storage::disk('public')->delete($subtask->pictogram_path);
+            }
+
+            $subtask->delete();
+            $count++;
+        }
+
+        return $count;
+    }
+
 }

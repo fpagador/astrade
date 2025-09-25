@@ -137,7 +137,7 @@
 
                                         <div class="font-semibold truncate flex items-center gap-2" :title="task.title">
                                             <span x-text="task.title"></span>
-                                            <i data-lucide="repeat" class="w-4 h-4 text-blue-600"></i>
+                                            <i data-lucide="repeat" class="w-4 h-4 text-blue-600" x-show="task.recurrent_task_id"></i>
                                         </div>
                                         <div class="text-sm text-gray-600 mt-1" x-text="task.scheduled_time ?? 'No asignada'"></div>
                                     </div>

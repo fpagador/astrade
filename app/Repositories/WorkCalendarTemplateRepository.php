@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Enums\CalendarType;
 use App\Models\WorkCalendarTemplate;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
@@ -33,7 +34,7 @@ class WorkCalendarTemplateRepository
     public function query(array $filters = []): Builder
     {
         $query = WorkCalendarTemplate::withCount([
-            'days as holidays_count' => fn($q) => $q->where('day_type', 'holiday')
+            'days as holidays_count' => fn($q) => $q->where('day_type', CalendarType::HOLIDAY->value)
         ]);
 
         if (!empty($filters['name'])) {
@@ -141,7 +142,7 @@ class WorkCalendarTemplateRepository
     public function getActiveTemplateForYear(int $year): WorkCalendarTemplate
     {
         return WorkCalendarTemplate::where('year', $year)
-            ->where('status', 'active')
+            ->where('status', CalendarStatus::ACTIVE->value)
             ->first();
     }
 

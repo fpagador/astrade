@@ -36,6 +36,10 @@ Route::middleware(['auth:sanctum', 'role:admin|manager|user|'])->group(function 
     Route::put('/subtasks/{subtask_id}/status/{status}', [SubtaskApiController::class, 'updateStatus'])
         ->where('status', 'completed|pending');
     Route::get('/tasks/status/summary', [TaskApiController::class, 'statusSummary']);
+    Route::get('/tasks/by-date/{date}', [TaskApiController::class, 'tasksByDate'])
+        ->where('date', '\d{4}-\d{2}-\d{2}');
+    Route::get('/tasks/day-offset/{offset}', [TaskApiController::class, 'tasksByDayOffset'])
+        ->where('offset', '[0-9]+');
 
     /*
     |--------------------------------------------------------------------------

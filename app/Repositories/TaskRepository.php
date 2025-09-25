@@ -8,6 +8,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Collection as CollectionDatabase;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Repository class responsible for managing task data persistence.
@@ -56,7 +58,7 @@ class TaskRepository
 
         return Task::with('subtasks')
             ->where('user_id', $userId)
-            ->whereBetween('scheduled_date', [now(), now()->addDays($days)])
+            ->whereBetween('scheduled_date', [today(), today()->addDays($days)])
             ->orderBy('scheduled_date')
             ->orderBy('scheduled_time')
             ->get();
@@ -168,41 +170,6 @@ class TaskRepository
     }
 
     /**
-     * Create a task record.
-     *
-     * @param array $attributes
-     * @return Task
-     */
-    public function create(array $attributes): Task
-    {
-        return Task::create($attributes);
-    }
-
-    /**
-     * Update a task by model.
-     *
-     * @param Task $task
-     * @param array $attributes
-     * @return Task
-     */
-    public function update(Task $task, array $attributes): Task
-    {
-        $task->update($attributes);
-        return $task;
-    }
-
-    /**
-     * Delete a task.
-     *
-     * @param Task $task
-     * @return void
-     */
-    public function delete(Task $task): void
-    {
-        $task->delete();
-    }
-
-    /**
      * Get all tasks with relations (used for create view listing existing tasks).
      *
      * @return Collection
@@ -210,17 +177,6 @@ class TaskRepository
     public function getAllWithRelations(): Collection
     {
         return Task::with(['user', 'subtasks'])->latest()->get();
-    }
-
-    /**
-     * Delete many tasks by IDs (no file cleanup here; service should handle files).
-     *
-     * @param array $ids
-     * @return void
-     */
-    public function deleteMany(array $ids): void
-    {
-        Task::whereIn('id', $ids)->delete();
     }
 
     /**
@@ -237,17 +193,6 @@ class TaskRepository
             ->where('scheduled_date', $date)
             ->where('scheduled_time', $time)
             ->exists();
-    }
-
-    /**
-     * Get a task with the necessary relations for editing.
-     *
-     * @param int $taskId
-     * @return Task|null
-     */
-    public function findWithRelationsForEdit(int $taskId): ?Task
-    {
-        return Task::with(['recurrentTask', 'subtasks'])->find($taskId);
     }
 
     /**
@@ -270,6 +215,7 @@ class TaskRepository
                 'status' => $st->status,
                 'notifications_enabled' => $st->notifications_enabled,
                 'reminder_minutes' => $st->reminder_minutes,
+                'external_id' => $st->external_id,
             ])->toArray();
     }
 
@@ -323,32 +269,18 @@ class TaskRepository
     }
 
     /**
-     * Get all tasks of a recurrent series (past and future)
-     *
-     * @param int $recurrentTaskId
-     * @return Collection
-     */
-    public function getAllRecurrentTasks(int $recurrentTaskId): Collection
-    {
-        return Task::with('subtasks')
-            ->where('recurrent_task_id', $recurrentTaskId)
-            ->orderBy('scheduled_date')
-            ->orderBy('scheduled_time')
-            ->get();
-    }
-
-    /**
      * Get all future tasks of a recurrent series.
      *
      * @param int $recurrentTaskId
-     * @return Collection
+     * @return CollectionDatabase
      */
-    public function getFutureRecurrentTasks(int $recurrentTaskId, string $cutoffDate = null): Collection
+    public function getFutureRecurrentTasks(int $recurrentTaskId, string $cutoffDate = null): CollectionDatabase
     {
         $cutoffDate = $cutoffDate ?? now()->toDateString();
 
         return Task::where('recurrent_task_id', $recurrentTaskId)
             ->whereDate('scheduled_date', '>=', $cutoffDate)
+            ->with('subtasks')
             ->get();
     }
 
@@ -388,5 +320,99 @@ class TaskRepository
     public function countByStatus(string $status): int
     {
         return Task::where('status', $status)->count();
+    }
+
+    /**
+     * Get task count grouped by day for a date range.
+     *
+     * @param Carbon $start
+     * @param Carbon $end
+     * @return array<string,int>
+     */
+    public function getTasksCountGroupedByDay(Carbon $start, Carbon $end): array
+    {
+        return Task::selectRaw('DATE(scheduled_date) as day, COUNT(*) as total')
+            ->whereBetween('scheduled_date', [$start, $end])
+            ->groupBy('day')
+            ->orderBy('day')
+            ->pluck('total', 'day')
+            ->toArray();
+    }
+
+    /**
+     * Get tasks for a specific date.
+     *
+     * @param Carbon $date
+     * @return CollectionDatabase
+     */
+    public function getTasksByDate(Carbon $date): CollectionDatabase
+    {
+        return Task::whereDate('scheduled_date', $date)->get(['id', 'title', 'status']);
+    }
+
+    /**
+     * Get tasks assigned to a specific user.
+     *
+     * @param int $userId
+     * @return CollectionDatabase
+     */
+    public function getTasksByUser(int $userId): CollectionDatabase
+    {
+        return Task::where('user_id', $userId)
+            ->where('status', 'pending')
+            ->get(['id', 'title']);
+    }
+
+    /**
+     * Delete task with the pictogram
+     *
+     * @param Collection|Task $task
+     * @return void
+     */
+    public function deleteWithFiles(Collection|Task $task): void
+    {
+        $task = $task instanceof Task ? collect([$task]) : $task;
+        // Delete pictogram
+        if ($task->pictogram_path && Storage::disk('public')->exists($task->pictogram_path)) {
+            Storage::disk('public')->delete($task->pictogram_path);
+        }
+
+        $task->delete();
+    }
+
+    /**
+     * Get tasks for a specific date for a user.
+     *
+     * @param int $userId
+     * @param string $date
+     * @return Collection
+     */
+    public function tasksByDate(int $userId, string $date): Collection
+    {
+        $date = Carbon::parse($date)->startOfDay();
+
+        return Task::with('subtasks')
+            ->where('user_id', $userId)
+            ->whereDate('scheduled_date', $date)
+            ->orderBy('scheduled_time')
+            ->get();
+    }
+
+    /**
+     * Get tasks for a specific day offset for a user.
+     *
+     * @param int $userId
+     * @param int $offset
+     * @return Collection
+     */
+    public function tasksByDayOffset(int $userId, int $offset): Collection
+    {
+        $date = Carbon::today()->addDays($offset);
+
+        return Task::with('subtasks')
+            ->where('user_id', $userId)
+            ->whereDate('scheduled_date', $date)
+            ->orderBy('scheduled_time')
+            ->get();
     }
 }

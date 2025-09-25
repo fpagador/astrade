@@ -32,10 +32,18 @@ function formatTimeToInput(timeString) {
     return match ? match[1] : timeString;
 }
 
-export function cloneTaskForm() {
+export function cloneTaskForm(oldSubtasks = []) {
     return {
         showClone: false,
-        subtasks: [{ id: crypto.randomUUID(), title: '', description: '', note: '', pictogram_path: '' }],
+        subtasks: oldSubtasks.length
+            ? oldSubtasks.map(s => ({
+                id: crypto.randomUUID(),
+                title: s.title ?? '',
+                description: s.description ?? '',
+                note: s.note ?? '',
+                pictogram_path: s.pictogram_path ?? ''
+            }))
+            : [{ id: crypto.randomUUID(), title: '', description: '', note: '', pictogram_path: '' }],
         recurrent: false,
         submitListenerAdded: false,
         dragSrcIndex: null,
@@ -48,6 +56,10 @@ export function cloneTaskForm() {
                 ...s,
                 id: s.id || crypto.randomUUID()
             }));
+
+            this.$nextTick(() => {
+                this.watchFields();
+            });
 
             const select = document.querySelector("#task-cloner");
             if (!select.classList.contains('tomselected')) {
@@ -145,6 +157,7 @@ export function cloneTaskForm() {
                 }
             });
         },
+
         addSubtask() {
             this.subtasks.push({
                 id: crypto.randomUUID(),
@@ -153,11 +166,22 @@ export function cloneTaskForm() {
                 note: '',
                 pictogram_path: ''
             });
+
+            this.$nextTick(() => {
+                const index = this.subtasks.length - 1;
+                ['title', 'description', 'note'].forEach(field => {
+                    const input = this.$el.querySelector(`[name="subtasks[${index}][${field}]"]`);
+                    if (input) {
+                        input.addEventListener('input', this.debounce(() => this.validateFormRealtime()));
+                    }
+                });
+            });
         },
 
         removeSubtask(index) {
             this.subtasks.splice(index, 1);
         },
+
         dragStart(event, index) {
             this.dragSrcIndex = index;
             event.dataTransfer.effectAllowed = 'move';
@@ -168,6 +192,7 @@ export function cloneTaskForm() {
             event.preventDefault();
             event.dataTransfer.dropEffect = 'move';
         },
+
         drop(event, targetIndex) {
             event.preventDefault();
             const sourceIndex = this.dragSrcIndex;
@@ -223,6 +248,7 @@ export function cloneTaskForm() {
                 }
             }
         },
+
         async fetchTask(taskId) {
             const container = document.querySelector('#task-form-container');
             const baseUrl = container?.dataset?.fetchUrl || '';
@@ -235,6 +261,108 @@ export function cloneTaskForm() {
                 console.error("Error al cargar la tarea:", error);
             }
         },
+
+        validateFormRealtime() {
+            const form = this.$el.querySelector('form');
+            if (!form) return;
+
+            const container = this.$el;
+            const baseUrl = container?.dataset?.validateTaskForm || '';
+
+            const formData = new FormData(form);
+            fetch(baseUrl, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: formData
+            })
+                .then(async res => {
+                    form.querySelectorAll('.realtime-error').forEach(el => el.remove());
+
+                    if (!res.ok) {
+                        const data = await res.json();
+                        if (data.errors) {
+                            Object.keys(data.errors).forEach(fieldName => {
+                                let inputName = fieldName.replace(/\.(\d+)/g, '[$1]');
+                                inputName = inputName.replace(/\.([^\.\]]+)$/,'[$1]');
+
+                                if(fieldName === 'days_of_week') {
+                                    let container = form.querySelector('#days-of-week-error');
+                                    if(container){
+                                        container.textContent = data.errors[fieldName][0];
+                                    }
+                                    return;
+                                }
+
+                                const inputs = form.querySelectorAll(`[name="${inputName}"]`);
+                                if(inputs.length > 0){
+                                    inputs.forEach(input => {
+                                        const p = document.createElement('p');
+                                        p.className = 'text-red-600 text-sm mt-1 realtime-error';
+                                        p.textContent = data.errors[fieldName][0];
+                                        input.insertAdjacentElement('afterend', p);
+                                    });
+                                } else {
+                                    // fallback al contenedor general
+                                    let container = form.querySelector('#general-errors');
+                                    if(!container){
+                                        container = document.createElement('div');
+                                        container.id = 'general-errors';
+                                        container.className = 'text-red-600 text-sm mb-2';
+                                        form.prepend(container);
+                                    }
+                                    container.textContent = data.errors[fieldName][0];
+                                }
+                            });
+                        }
+                    }
+                })
+                .catch(err => console.error('Error validando en tiempo real:', err));
+        },
+
+        watchFields() {
+            if(this.listenersAdded) return;
+            this.listenersAdded = true;
+
+            const form = this.$el.querySelector('form');
+            if (!form) return;
+
+            const fields = [
+                'title',
+                'scheduled_date',
+                'scheduled_time',
+                'estimated_duration_minutes',
+                'reminder_minutes',
+                'recurrent_start_date',
+                'recurrent_end_date',
+                'days_of_week'
+            ];
+
+            fields.forEach(name => {
+                const input = form.querySelector(`[name="${name}"]`);
+                if(input){
+                    input.addEventListener('input', this.debounce(() => this.validateFormRealtime()));
+                }
+            });
+
+            // Subtasks iniciales
+            this.subtasks.forEach((subtask, index) => {
+                const titleInput = form.querySelector(`[name="subtasks[${index}][title]"]`);
+                if(titleInput){
+                    titleInput.addEventListener('input', this.debounce(() => this.validateFormRealtime()));
+                }
+            });
+        },
+
+        debounce(fn, delay = 300) {
+            let timeout;
+            return (...args) => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => fn(...args), delay);
+            };
+        }
     };
 }
 

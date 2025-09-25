@@ -7,6 +7,7 @@ use App\Enums\CalendarType;
 use App\Errors\ErrorCodes;
 use App\Repositories\UserAbsenceRepository;
 use App\Exceptions\BusinessRuleException;
+use App\Repositories\UserRepository;
 use App\Repositories\WorkCalendarDayRepository;
 use App\Repositories\WorkCalendarTemplateRepository;
 use App\Models\WorkCalendarTemplate;
@@ -28,11 +29,13 @@ class CalendarService
      * @param UserAbsenceRepository $userAbsenceRepository
      * @param WorkCalendarDayRepository $workCalendarDayRepository
      * @param WorkCalendarTemplateRepository $workCalendarTemplateRepository
+     * @param UserRepository $userRepository
      */
     public function __construct(
         protected UserAbsenceRepository $userAbsenceRepository,
         protected WorkCalendarDayRepository $workCalendarDayRepository,
-        protected WorkCalendarTemplateRepository $workCalendarTemplateRepository
+        protected WorkCalendarTemplateRepository $workCalendarTemplateRepository,
+        protected UserRepository $userRepository
     ) {}
 
     //================================ API ======================================
@@ -163,6 +166,7 @@ class CalendarService
     public function updateTemplate(WorkCalendarTemplate $template, array $data, ?string $holidaysJson = null): bool
     {
         $updated = $this->workCalendarTemplateRepository->update($template, $data);
+        $this->userRepository->deleteWorkCalendarTemplateFromUsers($template);
         $this->workCalendarDayRepository->deleteDaysByYear($template->id, $template->year);
         $this->generateCalendarDays($template, $holidaysJson);
         return $updated;
@@ -179,6 +183,7 @@ class CalendarService
     {
         // Add holidays
         $holidays = json_decode($holidaysJson, true) ?? [];
+        $days = [];
         foreach ($holidays as $holiday) {
             $days[] = [
                 'template_id' => $template->id,

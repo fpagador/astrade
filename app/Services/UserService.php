@@ -214,14 +214,15 @@ class UserService
      */
     public function getFormData(Request $request, ?User $user = null): array
     {
-        $authUser = auth()->user();
+        $type = $request->get('type', UserTypeEnum::MOBILE->value);
+
+        $roleMap = [
+            UserTypeEnum::MOBILE->value     => [RoleEnum::USER->value],
+            UserTypeEnum::MANAGEMENT->value => [RoleEnum::ADMIN->value, RoleEnum::MANAGER->value],
+        ];
 
         // Assignable roles
-        $assignableRoleNames = match (true) {
-            $authUser->hasRole('admin') => ['admin','manager','user'],
-            $authUser->hasRole('manager') => ['user'],
-            default => [],
-        };
+        $assignableRoleNames = $roleMap[$type] ?? [RoleEnum::USER->value];
         $assignableRoles = $this->roleRepository->findByNames($assignableRoleNames);
 
         // Default role

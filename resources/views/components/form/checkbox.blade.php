@@ -12,8 +12,7 @@
         id="{{ $name }}"
         value="1"
         {{ old($name, $checked) ? 'checked' : '' }}
-        {{ $attributes->merge(['class' => 'rounded focus:ring-indigo-400']) }}
-        @if($readonly) readonly @endif
+        {{ $attributes->merge(['class' => 'rounded focus:ring-indigo-400'. ($readonly ? ' pointer-events-none' : '')]) }}
     />
     <label for="{{ $name }}" class="font-medium">
         {{ $label }}

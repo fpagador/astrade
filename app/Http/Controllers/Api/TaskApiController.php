@@ -42,7 +42,7 @@ class TaskApiController extends ApiController
             $tasks = $this->service->getAllTasks($request->user()->id);
 
             return $this->render($tasks);
-        }, 'Error getting tasks with subtasks', $request);
+        }, 'Error al obtener tareas con subtareas', $request);
     }
 
     /**
@@ -72,7 +72,7 @@ class TaskApiController extends ApiController
             }
             return $this->render($tasks);
 
-        }, "Error getting today's tasks", $request);
+        }, "Error al obtener las tareas de hoy", $request);
     }
 
     /**
@@ -111,7 +111,7 @@ class TaskApiController extends ApiController
             }
 
             return $this->render($tasks);
-        }, 'Error getting scheduled tasks', $request);
+        }, 'Error al obtener tareas programadas', $request);
     }
 
     /**
@@ -146,7 +146,7 @@ class TaskApiController extends ApiController
             $task = $this->service->getTaskDetails($request->user()->id, $taskId);
 
             return $this->render($task);
-        }, 'Error getting task details', $request);
+        }, 'Error al obtener los detalles de la tarea', $request);
     }
 
     /**
@@ -178,7 +178,7 @@ class TaskApiController extends ApiController
                 'pending' => Task::where('user_id', $userId)
                     ->where('status', 'pending')->count()
             ]);
-        }, 'Error getting task summary', $request);
+        }, 'Error al obtener el resumen de la tarea', $request);
     }
 
     /**
@@ -214,6 +214,93 @@ class TaskApiController extends ApiController
         return $this->handleApi(function () use ($request, $taskId) {
             $task = $this->service->getTaskWithCompany($request->user()->id, $taskId);
             return $this->render($task->user->company);
-        }, "Error retrieving companies for the task", $request);
+        }, "Error al obtener la empresa de la tarea", $request);
+    }
+
+    /**
+     * Returns the tasks scheduled for a specific date for the authenticated user.
+     *
+     * @param Request $request
+     * @param string $date Date in YYYY-MM-DD format
+     * @return JsonResponse
+     *
+     * @OA\Get(
+     *     path="/api/tasks/by-date/{date}",
+     *     summary="Get tasks for a specific date",
+     *     tags={"Tasks"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="date",
+     *         in="path",
+     *         description="Date in YYYY-MM-DD format",
+     *         required=true,
+     *         @OA\Schema(type="string", format="date", example="2025-09-25")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of tasks for the given date",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid date format"
+     *     )
+     * )
+     */
+    public function tasksByDate(Request $request, string $date): JsonResponse
+    {
+        return $this->handleApi(function () use ($request, $date) {
+            $tasks = $this->service->getTasksByDate($request->user()->id, $date);
+
+            if ($tasks->isEmpty()) {
+                return $this->render(null, "No tasks scheduled for $date");
+            }
+
+            return $this->render($tasks);
+        }, 'Error al obtener tareas por fecha', $request);
+    }
+
+    /**
+     * Returns the tasks for a specific day offset for the authenticated user.
+     *
+     * @param Request $request
+     * @param int $offset Number of days from today (0 = today, 1 = tomorrow, ...)
+     * @return JsonResponse
+     *
+     * @OA\Get(
+     *     path="/api/tasks/day-offset/{offset}",
+     *     summary="Get tasks for a specific day offset",
+     *     tags={"Tasks"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="offset",
+     *         in="path",
+     *         description="Number of days from today (0 = today)",
+     *         required=true,
+     *         @OA\Schema(type="integer", example=0)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of tasks for the given day",
+     *         @OA\JsonContent(ref="#/components/schemas/ApiResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid offset"
+     *     )
+     * )
+     */
+    public function tasksByDayOffset(Request $request, int $offset): JsonResponse
+    {
+        return $this->handleApi(function () use ($request, $offset) {
+            $offset = max(0, $offset);
+            $tasks = $this->service->getTasksByDayOffset($request->user()->id, $offset);
+
+            if ($tasks->isEmpty()) {
+                return $this->render(null, "No tasks scheduled for day offset $offset");
+            }
+
+            return $this->render($tasks);
+        }, 'Error al obtener tareas por día de compensación', $request);
     }
 }

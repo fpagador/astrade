@@ -21,8 +21,6 @@ class StoreOrUpdateTaskRequest extends FormRequest
      */
     public function rules(): array
     {
-        $isEdit = $this->route('task') || $this->route('taskId');
-
         $rules = [
             'title' => 'required|string',
             'description' => 'nullable|string',
@@ -34,8 +32,6 @@ class StoreOrUpdateTaskRequest extends FormRequest
 
             // Recurrente
             'is_recurrent' => 'nullable|boolean',
-            'days_of_week' => 'nullable|array',
-            'days_of_week.*' => 'string|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
 
             // Notifications
             'notifications_enabled' => 'boolean',
@@ -53,17 +49,17 @@ class StoreOrUpdateTaskRequest extends FormRequest
             'pictogram' => 'nullable|image|max:2048',
         ];
 
-        if ($this->boolean('is_recurrent')) {
+        // If it is a recurring task and or is serial
+        if ($this->boolean('is_recurrent') || $this->boolean('edit_series')) {
             $rules['days_of_week'] = 'required|array|min:1';
             $rules['days_of_week.*'] = 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday';
-
-            if (!$isEdit) {
-                $rules['recurrent_start_date'] = 'required|date|after_or_equal:today';
-                $rules['recurrent_end_date'] = 'required|date|after_or_equal:recurrent_start_date';
-            } else {
-                $rules['recurrent_start_date'] = 'required|date';
-                $rules['recurrent_end_date'] = 'required|date|after_or_equal:recurrent_start_date';
-            }
+            $rules['recurrent_start_date'] = 'required|date|after_or_equal:today';
+            $rules['recurrent_end_date'] = 'required|date|after_or_equal:recurrent_start_date';
+        } else {
+            $rules['days_of_week'] = 'nullable|array';
+            $rules['days_of_week.*'] = 'string|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday';
+            $rules['recurrent_start_date'] = 'nullable|date';
+            $rules['recurrent_end_date'] = 'nullable|date|after_or_equal:recurrent_start_date';
         }
 
         return $rules;

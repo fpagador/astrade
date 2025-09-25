@@ -6,12 +6,13 @@
     <div
         id="task-form-container"
         class="max-w-3xl mx-auto bg-white p-8 rounded shadow"
-        x-data="cloneTaskForm(@json(session('oldSubtasks', [])))"
+        x-data="cloneTaskForm(@js($oldSubtasks))"
         x-init="init()"
         data-fetch-url="{{ url('/admin/users/task') }}"
         data-asset="{{ asset('storage') }}"
         data-conflict-check-url="{{ url('/admin/users/{userId}/tasks/check-conflict') }}"
         data-non-working-check-url="{{ url('/admin/users/{userId}/tasks/check-nonworking') }}"
+        data-validate-task-form="{{ url('/admin/users/tasks/validate') }}"
     >
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-2xl font-semibold text-gray-800">
@@ -148,6 +149,7 @@
                                 >
                             </label>
                         </div>
+                        <div id="days-of-week-error" class="text-red-600 text-sm mb-2"></div>
 
                         {{-- Days of the week --}}
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm text-gray-600">
@@ -166,8 +168,8 @@
                         </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <x-form.input name="recurrent_start_date" label="Fecha de inicio" type="date" />
-                        <x-form.input name="recurrent_end_date" label="Fecha de fin" type="date" />
+                        <x-form.input name="recurrent_start_date" label="Fecha de inicio" type="date" required />
+                        <x-form.input name="recurrent_end_date" label="Fecha de fin" type="date" required />
                     </div>
                 </div>
             </div>
@@ -205,7 +207,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">Pictograma</label>
-                                    <input type="file" :name="'subtask_files['+index+']'" class="form-input w-full" accept="image/*">
+                                    <input type="file" :name="'subtask_pictograms['+index+']'" class="form-input w-full" accept="image/*">
                                 </div>
                             </div>
                         </div>

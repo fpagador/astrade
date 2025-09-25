@@ -42,7 +42,7 @@
                     label="Fecha"
                     value="{{ old('scheduled_date', optional($task->scheduled_date)->format('Y-m-d')) }}"
                     required
-                    :readonly=true
+                    :readonly="$disableFields"
                 />
 
                 <x-form.input
@@ -86,6 +86,7 @@
                         x-model.number="reminderMinutes"
                         :readonly="$disableFields"
                     />
+
                 </div>
             </div>
 
@@ -108,7 +109,7 @@
                         </div>
                     </div>
                 @endif
-                <input @if($disableFields) readonly @endif type="file" name="pictogram_path" accept="image/*" class="form-input w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                <input @if($disableFields) disabled @endif type="file" name="pictogram_path" accept="image/*" class="form-input w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
             </div>
 
             {{-- COLOR AND STATE --}}
@@ -139,7 +140,7 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Estado <span class="text-red-500">*</span></label>
-                    <select @if($disableFields) readonly @endif name="status" class="form-select w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" required>
+                    <select @if($disableFields) class="cursor-not-allowed pointer-events-none form-select w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" @endif name="status" class="form-select w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" required>
                         @foreach(\App\Enums\TaskStatus::cases() as $status)
                             <option value="{{ $status->value }}" {{ old('status', $task->status) == $status->value ? 'selected' : '' }} >
                                 {{ status_label($status) }}
@@ -185,6 +186,7 @@
                                     class="form-checkbox text-indigo-600"
                                     x-model="allSelected"
                                     @change="toggleAll($event)"
+                                    @if($disableFields) disabled @endif
                                 >
                             </label>
                         </div>
@@ -216,11 +218,13 @@
                             label="Fecha de inicio"
                             value="{{ old('recurrent_start_date', optional($task->recurrentTask?->start_date)->format('Y-m-d')) }}"
                             :readonly="$disableFields"
+                            required
                         />
                         <x-form.input
                             type="date"
                             name="recurrent_end_date"
-                            label="Fecha de fin (opcional)"
+                            label="Fecha de fin"
+                            required
                             value="{{ old('recurrent_end_date', optional($task->recurrentTask?->end_date)->format('Y-m-d')) }}"
                             :readonly="$disableFields"
                         />
@@ -251,6 +255,7 @@
                             <div class="drag-handle cursor-move p-2 bg-gray-300 rounded select-none" draggable="true" title="Arrastrar">☰</div>
 
                             <input type="hidden" :name="`subtasks[${index}][id]`" :value="subtask.id ?? ''">
+                            <input type="hidden" :name="`subtasks[${index}][external_id]`" :value="subtask.external_id ?? ''">
                             <input type="hidden" :name="`subtasks[${index}][order]`" :value="index">
 
                             <div class="flex-1 space-y-2">
@@ -312,13 +317,13 @@
                                         :name="`subtask_pictograms[${subtask.id ?? 'new_' + index}]`"
                                         class="form-input w-full"
                                         accept="image/*"
-                                        :readonly="@json($disableFields)"
+                                        @if($disableFields) disabled @endif
                                     >
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700">Estado <span class="text-red-500">*</span></label>
-                                        <select class="form-select w-full" :name="`subtasks[${index}][status]`" x-model="subtask.status">
+                                        <select class="form-select w-full" :name="`subtasks[${index}][status]`" x-model="subtask.status" @if($disableFields) disabled @endif>
                                             @foreach(\App\Enums\TaskStatus::cases() as $status)
                                                 <option value="{{ $status->value }}" :selected="subtask.status == '{{ $status->value }}'">{{ status_label($status) }}</option>
                                             @endforeach
@@ -335,7 +340,7 @@
                     type="button"
                     class="inline-flex items-center bg-green-600 text-white text-sm px-3 py-1.5 rounded hover:bg-green-500"
                     @click="addSubtask()"
-                    :readonly="@json($disableFields)"
+                    @if($disableFields) disabled @endif
                 >
                     + Añadir Subtarea
                 </button>

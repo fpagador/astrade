@@ -128,13 +128,19 @@
 
             {{-- ACTIONS --}}
             <div class="flex justify-end gap-2 mt-4">
-                <button type="submit" class="bg-indigo-900 text-white px-4 py-2 rounded">
+                <button type="button" data-open-modal="confirmModal_calendarTemplateForm" class="bg-indigo-900 text-white px-4 py-2 rounded">
                     Guardar
                 </button>
                 <a href="{{ route('admin.calendars.index') }}" class="bg-red-900 text-white px-4 py-2 rounded hover:bg-red-800 text-center">
                     Cancelar
                 </a>
             </div>
+
+            <x-admin.confirm-dates-modal
+                form-id="calendarTemplateForm"
+                mode="holiday"
+                modal-id="confirmModal_calendarTemplateForm"
+            />
 
         </x-form.form-wrapper>
     </div>

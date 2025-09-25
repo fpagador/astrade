@@ -2,7 +2,10 @@
 
 namespace App\Repositories;
 
+use App\Enums\CalendarStatus;
+use App\Enums\TaskStatus;
 use App\Models\User;
+use App\Models\WorkCalendarTemplate;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Enums\UserTypeEnum;
@@ -288,7 +291,43 @@ class UserRepository
      */
     public function countWithPendingTasks(): int
     {
-        return User::whereHas('tasks', fn($q) => $q->where('status', 'pending'))->count();
+        return User::whereHas('tasks', fn($q) => $q->where('status', TaskStatus::PENDING->value))->count();
     }
 
+    /**
+     * Get users without any tasks.
+     *
+     * @return Collection
+     */
+    public function getUsersWithoutTasks(): Collection
+    {
+        return User::doesntHave('tasks')->get(['id', 'name', 'surname']);
+    }
+
+    /**
+     * Group users by company and count.
+     *
+     * @return Collection
+     */
+    public function getUsersGroupedByCompany(): Collection
+    {
+        return User::selectRaw('company_id, COUNT(*) as total')
+            ->groupBy('company_id')
+            ->with('company:id,name')
+            ->get();
+    }
+
+    /**
+     * Delete users from the work calendar template with inactive status
+     *
+     * @param WorkCalendarTemplate $template
+     * @return void
+     */
+    public function deleteWorkCalendarTemplateFromUsers(WorkCalendarTemplate $template): void
+    {
+        if ($template->status === CalendarStatus::INACTIVE->value) {
+            User::where('work_calendar_template_id', $template->id)
+                ->update(['work_calendar_template_id' => null]);
+        }
+    }
 }

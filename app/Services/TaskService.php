@@ -95,4 +95,28 @@ class TaskService
 
         return $task;
     }
+
+    /**
+     * Get tasks for a specific date for a user.
+     *
+     * @param int $userId
+     * @param string $date Date in YYYY-MM-DD format
+     * @return Collection
+     */
+    public function getTasksByDate(int $userId, string $date): Collection
+    {
+        return $this->taskRepository->tasksByDate($userId, $date);
+    }
+
+    /**
+     * Get tasks for a specific day offset (0 = today) for a user.
+     *
+     * @param int $userId
+     * @param int $offset
+     * @return Collection
+     */
+    public function getTasksByDayOffset(int $userId, int $offset): Collection
+    {
+        return $this->taskRepository->tasksByDayOffset($userId, $offset);
+    }
 }

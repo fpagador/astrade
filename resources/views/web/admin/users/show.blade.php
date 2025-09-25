@@ -18,7 +18,7 @@
                 </a>
             </div>
 
-            {{-- Foto y nombre --}}
+            {{-- Photo and name --}}
             <div class="text-center mb-12">
                 @if ($user->photo)
                     <img src="{{ asset('storage/' . $user->photo) }}"
@@ -34,7 +34,7 @@
                 <p class="text-base text-gray-500">{{ $user->email }}</p>
             </div>
 
-            {{-- Datos personales --}}
+            {{-- Personal data --}}
             <div class="mb-16">
                 <h3 class="text-2xl font-bold text-indigo-800 mb-8 border-b border-indigo-200 pb-2">
                     📌 Datos personales
@@ -47,7 +47,7 @@
                 </div>
             </div>
 
-            {{-- Mostrar solo si es un usuario "user" --}}
+            {{-- Show only if it is a "user" user --}}
             @if(optional($user->role)->role_name === 'user')
 
                 {{-- Datos laborales --}}
@@ -60,6 +60,7 @@
                         @include('web.admin.users.partials.readonly-field', ['label' => 'Tipo de contrato', 'value' => $user->contract_type ? \App\Enums\ContractType::label(\App\Enums\ContractType::from($user->contract_type)) : '—'])
                         @include('web.admin.users.partials.readonly-field', ['label' => 'Inicio de contrato', 'value' => $user->contract_start_date ?? '—'])
                         @include('web.admin.users.partials.readonly-field', ['label' => 'Tipo de notificación', 'value' => $user->notification_type ? \App\Enums\NotificationType::label(\App\Enums\NotificationType::from($user->notification_type)) : '—'])
+                        @include('web.admin.users.partials.readonly-field', ['label' => 'Calendario laboral', 'value' => optional($user->workCalendarTemplate)->name ?? '—'])
                     </div>
                 </div>
 

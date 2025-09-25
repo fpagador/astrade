@@ -95,6 +95,7 @@ class UserTaskController extends WebController
                 'date' => $request->query('date', now()->toDateString()),
                 'viewMode' => $request->get('viewMode', 'weekly'),
                 'weekDays' => $this->userTaskService->weekDays,
+                'oldSubtasks' => old('subtasks', [])
             ]);
         }, route('admin.users.index', ['type' => UserTypeEnum::MOBILE->value]));
     }
@@ -112,17 +113,16 @@ class UserTaskController extends WebController
             $data = $request->validated();
 
             // attach uploaded main pictogram if present
-            if ($request->hasFile('pictogram')) {
-                $data['pictogram'] = $request->file('pictogram');
+            if ($request->hasFile('pictogram_path')) {
+                $data['pictogram_path'] = $request->file('pictogram_path');
             }
 
             // Normalize and attach subtask files (support both subtask_pictograms and subtask_files)
             $subtasks = $data['subtasks'] ?? [];
             foreach ($subtasks as $i => &$st) {
-                // Look for either input name
                 $file = $request->file("subtask_pictograms.$i") ?: $request->file("subtask_files.$i");
                 if ($file) {
-                    $st['pictogram'] = $file;
+                    $st['pictogram_path'] = $this->userTaskService->handlePictogramUpload($file);
                 }
             }
             $data['subtasks'] = $subtasks;
@@ -218,8 +218,8 @@ class UserTaskController extends WebController
             $data = $request->validated();
             $editSeries = $request->input('edit_series', 0);
 
-            if ($request->hasFile('pictogram')) {
-                $data['pictogram'] = $request->file('pictogram');
+            if ($request->hasFile('pictogram_path')) {
+                $data['pictogram_path'] = $request->file('pictogram_path');
             }
 
             // attach uploaded subtask files (supporting either naming convention)

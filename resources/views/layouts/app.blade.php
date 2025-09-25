@@ -28,7 +28,7 @@
 
         <nav class="mt-6 px-4 space-y-2 text-sm">
             {{-- Dashboard --}}
-            <x-admin.nav-link route="admin.dashboard" icon="layout-dashboard" label="Dashboard" />
+            <x-admin.nav-link route="admin.dashboard.index" icon="layout-dashboard" label="Dashboard" />
 
             {{-- Menú Usuarios para admin --}}
             @if(auth()->user()->hasRole('admin'))

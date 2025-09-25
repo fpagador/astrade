@@ -553,6 +553,91 @@
                 ]
             }
         },
+        "/api/tasks/by-date/{date}": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Get tasks for a specific date",
+                "description": "Returns the tasks scheduled for a specific date for the authenticated user.",
+                "operationId": "af33e2995c29fa37d93f7958a4e6d94b",
+                "parameters": [
+                    {
+                        "name": "date",
+                        "in": "path",
+                        "description": "Date in YYYY-MM-DD format",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2025-09-25"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of tasks for the given date",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid date format"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tasks/day-offset/{offset}": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Get tasks for a specific day offset",
+                "description": "Returns the tasks for a specific day offset for the authenticated user.",
+                "operationId": "3b73a426b1658c80ca7d70860a1dfdd9",
+                "parameters": [
+                    {
+                        "name": "offset",
+                        "in": "path",
+                        "description": "Number of days from today (0 = today)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 0
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of tasks for the given day",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid offset"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/logs/completions": {
             "get": {
                 "tags": [

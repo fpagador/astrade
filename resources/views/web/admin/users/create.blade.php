@@ -186,7 +186,7 @@
                 name="notification_type"
                 label="Tipo de notificación"
                 :options="$notificationTypeOptions"
-                value="{{ old('notification_type') }}"
+                :selected="old('notification_type')"
             />
         </div>
 

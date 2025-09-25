@@ -44,36 +44,47 @@ export function initCalendars() {
             if (!modal) return;
 
             const formId = modal.querySelector('.confirmBtn')?.dataset.formId;
-            if (formId) {
-                // Vacations
-                const hiddenInput = document.querySelector(`#${formId} #selectedDates`);
-                const dateList = modal.querySelector('#dateList');
-                if (hiddenInput && dateList) {
-                    let dates = [];
-                    try { dates = JSON.parse(hiddenInput.value || '[]'); } catch(e){console.error(e);}
-                    dateList.innerHTML = '';
-                    dates.forEach(d => {
-                        const li = document.createElement('li');
-                        const [year, month, day] = d.split('-');
-                        li.textContent = `${day}/${month}/${year}`;
-                        dateList.appendChild(li);
-                    });
-                }
+            if (!formId) return;
 
-                // Legal absences
-                const legalInput = document.querySelector(`#${formId} #selectedLegalAbsences`);
-                const legalList = modal.querySelector('#legalDateList');
-                if (legalInput && legalList) {
-                    let legalDates = [];
-                    try { legalDates = JSON.parse(legalInput.value || '[]'); } catch(e){console.error(e);}
-                    legalList.innerHTML = '';
-                    legalDates.forEach(d => {
-                        const li = document.createElement('li');
-                        const [year, month, day] = d.split('-');
-                        li.textContent = `${day}/${month}/${year}`;
-                        legalList.appendChild(li);
-                    });
+            const hiddenInput = document.querySelector(`#${formId} #selectedDates`);
+            const legalInput = document.querySelector(`#${formId} #selectedLegalAbsences`);
+            const dateList = modal.querySelector('#dateList');
+            const legalList = modal.querySelector('#legalDateList');
+
+            let vacationDates = [];
+            let legalDates = [];
+
+            try { vacationDates = JSON.parse(hiddenInput?.value || '[]'); } catch(e){ console.error(e); }
+            try { legalDates = JSON.parse(legalInput?.value || '[]'); } catch(e){ console.error(e); }
+
+            // Si no hay ningún día seleccionado
+            if (vacationDates.length === 0 && legalDates.length === 0) {
+                if (confirm("No has seleccionado ningún día. Se guardará la plantilla sin días. ¿Deseas continuar?")) {
+                    const form = document.getElementById(formId);
+                    if (form) form.submit();
                 }
+                return; // no abrir modal
+            }
+
+            // Rellenar modal con fechas seleccionadas
+            if (dateList) {
+                dateList.innerHTML = '';
+                vacationDates.forEach(d => {
+                    const li = document.createElement('li');
+                    const [year, month, day] = d.split('-');
+                    li.textContent = `${day}/${month}/${year}`;
+                    dateList.appendChild(li);
+                });
+            }
+
+            if (legalList) {
+                legalList.innerHTML = '';
+                legalDates.forEach(d => {
+                    const li = document.createElement('li');
+                    const [year, month, day] = d.split('-');
+                    li.textContent = `${day}/${month}/${year}`;
+                    legalList.appendChild(li);
+                });
             }
 
             modal.classList.remove('hidden');
@@ -127,6 +138,10 @@ export function initCalendars() {
 
 }
 
+function normalizeDates(dates = []) {
+    return dates.map(d => d.split('T')[0]);
+}
+
 /**
  * Initialize an interactive calendar inside a container.
  * Allows selecting holidays or vacation days and navigating months and years.
@@ -149,12 +164,19 @@ function initCalendar(options = {}) {
     if (!calendarGrid || !monthSelect) return;
 
     const pad = n => String(n).padStart(2, '0');
-    //const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
     const today = new Date();
-    const selectedVacationDates = new Set(vacationDates);
+    const selectedVacationDates = window.selectedVacationDatesForClone
+        ? new Set(normalizeDates(Array.from(window.selectedVacationDatesForClone)))
+        : new Set(vacationDates);
     const selectedLegalDates = new Set(legalDates);
     let currentYear = yearInput?.value ? parseInt(yearInput.value,10) : today.getFullYear();
-    let currentMonth = parseInt(monthSelect.value, 10) || today.getMonth();
+    let currentMonth;
+
+    if (mode === 'holiday') {
+        currentMonth = 0;
+    } else {
+        currentMonth = today.getMonth();
+    }
 
     const colorData = calendarGrid.dataset.colors ? JSON.parse(calendarGrid.dataset.colors) : {};
 
@@ -321,8 +343,6 @@ function initCalendar(options = {}) {
 export function initCloneSelect() {
     const container = document.getElementById('workCalendar-form-container');
     const cloneSelectEl = document.getElementById('clone_calendar_id');
-    const nameInput = document.querySelector('input[name="name"]');
-    const statusSelect = document.querySelector('select[name="status"]');
     const holidaysInput = document.getElementById('selectedDates');
     const cloneUrlTemplate = container?.dataset.cloneUrl;
 
@@ -341,8 +361,6 @@ export function initCloneSelect() {
                 const data = await res.json();
 
                 //Fill fields
-                nameInput.value = data.name;
-                statusSelect.value = data.status;
                 holidaysInput.value = JSON.stringify(data.holidays);
                 holidaysInput.dataset.dates = JSON.stringify(data.holidays);
 
@@ -351,6 +369,11 @@ export function initCloneSelect() {
                 if (calendarGrid) {
                     calendarGrid.innerHTML = '';
                     calendarGrid.dataset.holidays = JSON.stringify(data.holidays);
+
+                    window.selectedVacationDatesForClone = new Set(data.holidays);
+                    const holidayCheckbox = document.getElementById('enableHolidayMode');
+                    if (holidayCheckbox) holidayCheckbox.checked = true;
+
                     initCalendars();
                 }
 
@@ -374,4 +397,47 @@ export function confirmDelete(form) {
     } else {
         return confirm('¿Está seguro que desea eliminar esta plantilla?');
     }
+}
+
+export function calendarForm() {
+    return {
+        status: window.calendarData.oldStatus || window.calendarData.templateStatus,
+        warningOpen: false,
+        confirmDaysModalOpen: false,
+        dateList: window.calendarData.selectedDates || [],
+
+        openConfirmDaysModal() {
+            const selectedInput = document.getElementById('selectedDates');
+            const fromInput = selectedInput ? JSON.parse(selectedInput.value || '[]') : [];
+            const fromServer = window.calendarData.selectedDates || [];
+
+            const combined = Array.from(new Set([...fromServer, ...fromInput]));
+
+            if (combined.length > 0) {
+                this.dateList = combined;
+                this.confirmDaysModalOpen = true;
+            } else {
+                this.confirmAndCheckWarning();
+            }
+        },
+
+        confirmAndCheckWarning() {
+            this.confirmDaysModalOpen = false;
+            if (this.status === window.calendarData.templateStatus &&
+                window.calendarData.userCount > 0) {
+                this.warningOpen = true;
+            } else {
+                this.submitFormToServer();
+            }
+        },
+
+        confirmWarning() {
+            this.warningOpen = false;
+            this.submitFormToServer();
+        },
+
+        submitFormToServer() {
+            document.getElementById('calendarTemplateForm').submit();
+        }
+    };
 }

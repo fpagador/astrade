@@ -1,7 +1,7 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
 import { createIcons, icons } from 'lucide';
-import { initCalendars, confirmDelete  } from './calendar';
+import { initCalendars, confirmDelete, calendarForm  } from './calendar';
 import { cloneTaskForm, editTaskForm, imageModal, calendarView, actionTaskModal, dailyControls, enhancedLoadTasks} from './task';
 import { initCompaniesPhones } from './company';
 import { imageSelector } from './imageSelector';
@@ -22,6 +22,7 @@ window.actionTaskModal = actionTaskModal;
 
 window.imageSelector = imageSelector;
 window.initCalendars = initCalendars;
+window.calendarForm = calendarForm;
 window.confirmDelete = confirmDelete;
 window.userSelector = userSelector;
 

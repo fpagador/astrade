@@ -127,6 +127,15 @@ class StoreOrUpdateUserRequest extends FormRequest
             'phone.regex' => 'El teléfono debe contener 9 dígitos.',
             'contract_start_date.date' => 'La fecha de inicio de contrato no es válida.',
             'notification_type.in' => 'El tipo de notificación seleccionado no es válido.',
+            'company_id.required' => 'La empresa es obligatoria.',
+            'company_id.exists' => 'La empresa seleccionada no es válida.',
+            'work_calendar_template_id.required' => 'El calendario laboral es obligatorio.',
+            'work_calendar_template_id.exists' => 'El calendario laboral seleccionado no es válido.',
+            'work_schedule.required' => 'El horario de trabajo es obligatorio.',
+            'contract_type.required' => 'El tipo de contrato es obligatorio.',
+            'contract_type.in' => 'El tipo de contrato seleccionado no es válido.',
+            'notification_type.required' => 'El tipo de notificación es obligatorio.',
+            'contract_start_date.required' => 'La fecha de inicio del contrato es obligatoria.'
         ], $passwordMessages);
     }
 }
