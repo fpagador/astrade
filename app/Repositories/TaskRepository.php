@@ -16,57 +16,6 @@ use Illuminate\Support\Facades\Storage;
  */
 class TaskRepository
 {
-    /**
-     * Get all tasks with subtasks for a given user from today and up to 1 month ahead.
-     *
-     * @param int $userId
-     * @return Collection
-     */
-    public function allByUser(int $userId): Collection
-    {
-        $start = Carbon::today();
-        $end = Carbon::today()->addMonth();
-
-        return Task::with('subtasks')
-            ->where('user_id', $userId)
-            ->whereBetween('scheduled_date', [$start, $end])
-            ->orderBy('scheduled_date')
-            ->orderBy('scheduled_time')
-            ->get();
-    }
-
-    /**
-     * Get today's tasks with subtasks for a given user.
-     *
-     * @param int $userId
-     * @return Collection
-     */
-    public function todayByUser(int $userId): Collection
-    {
-        return Task::with('subtasks')
-            ->where('user_id', $userId)
-            ->whereDate('scheduled_date', now()->toDateString())
-            ->get();
-    }
-
-    /**
-     * Get planned tasks for the next N days (max 30) for a given user.
-     *
-     * @param int $userId
-     * @param int $days
-     * @return Collection
-     */
-    public function plannedByUser(int $userId, int $days): Collection
-    {
-        $days = min($days, 30);
-
-        return Task::with('subtasks')
-            ->where('user_id', $userId)
-            ->whereBetween('scheduled_date', [today(), today()->addDays($days)])
-            ->orderBy('scheduled_date')
-            ->orderBy('scheduled_time')
-            ->get();
-    }
 
     /**
      * Find a specific task with its subtasks for a given user.
@@ -393,8 +342,6 @@ class TaskRepository
      */
     public function tasksByDate(int $userId, string $date): Collection
     {
-        $date = Carbon::parse($date)->startOfDay();
-
         return Task::with('subtasks')
             ->where('user_id', $userId)
             ->whereDate('scheduled_date', $date)
@@ -406,16 +353,16 @@ class TaskRepository
      * Get tasks for a specific day offset for a user.
      *
      * @param int $userId
-     * @param int $offset
+     * @param Carbon $startDate
+     * @param Carbon $endDate
      * @return Collection
      */
-    public function tasksByDayOffset(int $userId, int $offset): Collection
+    public function getUserTasksByDateRange(int $userId, Carbon $startDate, Carbon $endDate): Collection
     {
-        $date = Carbon::today()->addDays($offset);
-
         return Task::with('subtasks')
             ->where('user_id', $userId)
-            ->whereDate('scheduled_date', $date)
+            ->whereBetween('scheduled_date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->orderBy('scheduled_date')
             ->orderBy('scheduled_time')
             ->get();
     }

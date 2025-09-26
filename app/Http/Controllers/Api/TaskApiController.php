@@ -107,12 +107,13 @@ class TaskApiController extends ApiController
     {
         return $this->handleApi(function () use ($days, $request) {
             $days = min($days, 30);
-            $tasks = $this->service->getPlannedTasks($request->user()->id, $days);
-            if ($tasks->isEmpty()) {
-                return $this->render(null, "No tasks scheduled for the next $days days");
+            $groupedTasks = $this->service->getPlannedTasks($request->user()->id, $days);
+
+            if ($groupedTasks->isEmpty()) {
+                return $this->render(null, "No hay tareas programadas para los próximos $days días");
             }
 
-            return $this->render($tasks);
+            return $this->render($groupedTasks);
         }, 'Error al obtener tareas programadas', $request);
     }
 
@@ -299,7 +300,7 @@ class TaskApiController extends ApiController
             $tasks = $this->service->getTasksByDayOffset($request->user()->id, $offset);
 
             if ($tasks->isEmpty()) {
-                return $this->render(null, "No tasks scheduled for day offset $offset");
+                return $this->render(null, "No hay tareas programadas para los días de compensación $offset");
             }
 
             return $this->render($tasks);

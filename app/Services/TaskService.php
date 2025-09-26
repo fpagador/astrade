@@ -8,6 +8,8 @@ use App\Repositories\TaskRepository;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
 use App\Models\Task;
+use Illuminate\Support\Carbon;
+use Carbon\CarbonPeriod;
 
 /**
  * Service class responsible for handling business logic related to tasks.
@@ -32,7 +34,11 @@ class TaskService
      */
     public function getAllTasks(int $userId): Collection
     {
-        return $this->taskRepository->allByUser($userId);
+        $startDate = Carbon::today();
+        $endDate = Carbon::today()->addMonth();
+        $tasks = $this->taskRepository->getUserTasksByDateRange($userId, $startDate, $endDate);
+
+        return $this->formatTasksByDateRange($tasks, $startDate, $endDate);
     }
 
     /**
@@ -43,11 +49,14 @@ class TaskService
      */
     public function getTodayTasks(int $userId): Collection
     {
-        return $this->taskRepository->todayByUser($userId);
+        $today = Carbon::today();
+        $tasks = $this->taskRepository->getUserTasksByDateRange($userId, $today, $today);
+
+        return $this->formatTasksByDateRange($tasks, $today, $today);
     }
 
     /**
-     * Get planned tasks for the next N days (max 30) for a given user.
+     * Get planned tasks grouped by date.
      *
      * @param int $userId
      * @param int $days
@@ -55,7 +64,13 @@ class TaskService
      */
     public function getPlannedTasks(int $userId, int $days): Collection
     {
-        return $this->taskRepository->plannedByUser($userId, $days);
+        $days = min($days, 30);
+        $startDate = today();
+        $endDate = today()->addDays($days);
+
+        $tasks = $this->taskRepository->getUserTasksByDateRange($userId, $startDate, $endDate);
+
+        return $this->formatTasksByDateRange($tasks, $startDate, $endDate);
     }
 
     /**
@@ -105,7 +120,10 @@ class TaskService
      */
     public function getTasksByDate(int $userId, string $date): Collection
     {
-        return $this->taskRepository->tasksByDate($userId, $date);
+        $date = Carbon::parse($date)->startOfDay();
+        $tasks = $this->taskRepository->tasksByDate($userId, $date);
+
+        return $this->formatTasksByDateRange($tasks, $date, $date);
     }
 
     /**
@@ -117,6 +135,39 @@ class TaskService
      */
     public function getTasksByDayOffset(int $userId, int $offset): Collection
     {
-        return $this->taskRepository->tasksByDayOffset($userId, $offset);
+        $startDate = Carbon::today();
+        $endDate   = Carbon::today()->addDays($offset);
+        $tasks = $this->taskRepository->getUserTasksByDateRange($userId, $startDate, $endDate);
+
+        return $this->formatTasksByDateRange($tasks, $startDate, $endDate);
+    }
+
+    /**
+     * Format a collection of tasks into an array grouped by date within a given range.
+     *
+     * @param Collection $tasks
+     * @param Carbon $startDate
+     * @param Carbon $endDate
+     * @return Collection
+     */
+    public function formatTasksByDateRange(Collection $tasks, Carbon $startDate, Carbon $endDate): Collection
+    {
+        $period    = CarbonPeriod::create($startDate, $endDate);
+
+        $grouped = $tasks->groupBy(function ($task) {
+            return Carbon::parse($task->scheduled_date)->format('d/m/Y');
+        });
+
+        return collect($period)->map(function ($date) use ($grouped) {
+            $formattedDate = $date->format('d/m/Y');
+
+            $dayTasks = $grouped->get($formattedDate, collect());
+
+            return [
+                'date' => $formattedDate,
+                'taskCount' => $dayTasks->count(),
+                'tasks' => $dayTasks->map(fn($task) => $task->toArray())->values(),
+            ];
+        })->values();
     }
 }

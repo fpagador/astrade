@@ -354,8 +354,8 @@
                 "tags": [
                     "Tasks"
                 ],
-                "summary": "Get all tasks with subtasks for the authenticated user",
-                "description": "Get all tasks and their subtasks for the authenticated user.",
+                "summary": "Get all tasks with subtasks for the authenticated user (from today up to 1 month)",
+                "description": "Get all tasks with subtasks for the authenticated user\nfrom today and up to 1 month ahead.",
                 "operationId": "7eb70d8d671c33c68394b46c6494a1b0",
                 "responses": {
                     "200": {
