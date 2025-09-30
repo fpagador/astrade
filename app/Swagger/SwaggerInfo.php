@@ -5,8 +5,8 @@ namespace App\Swagger;
 /**
  * @OA\Info(
  *     version="1.0.0",
- *     title="Astrade API",
- *     description="Astrade API Documentation",
+ *     title="Talentismo API",
+ *     description="Talentismo API Documentation",
  * )
  *
  * @OA\Server(

@@ -6,6 +6,7 @@
 'showCheckbox' => true,
 'checkboxLabel' => 'Modo selección de festivos',
 'showLegalAbsenceCheckbox' => false,
+'yearEditable' => true,
 ])
 
 @php
@@ -34,6 +35,7 @@
             value="{{ $year }}"
             required
             name="year"
+            {{ $yearEditable ? '' : 'readonly' }}
         >
 
         <button type="button" id="btnNext" class="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300">&gt;</button>

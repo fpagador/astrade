@@ -12,9 +12,11 @@ use App\Models\WorkCalendarTemplate;
 use App\Repositories\RoleRepository;
 use App\Repositories\UserRepository;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use App\Models\Log;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -355,6 +357,36 @@ class UserService
         } catch (\Throwable $e) {
             return ['error' => 'Server error during validation.'];
         }
+    }
+
+    /**
+     * Paginate users and add warning flags for missing company or work calendar.
+     *
+     * @param array $filters
+     * @param string $type
+     * @param int $perPage
+     * @return LengthAwarePaginator
+     */
+    public function paginateUsersWithWarnings(string $type, array $filters = [], int $perPage = 15): LengthAwarePaginator
+    {
+        $users = $this->userRepository->paginateUsers($type, $filters, $perPage);
+
+        $users->getCollection()->transform(function ($user) {
+            $warnings = [];
+            if (!$user->company_id) {
+                $warnings[] = 'No hay empresa asignada';
+            }
+            if (!$user->work_calendar_template_id) {
+                $warnings[] = 'No hay calendario laboral asignado';
+            }
+
+            $user->has_warning = !empty($warnings);
+            $user->warning_title = $warnings ? implode(' and ', $warnings) : null;
+
+            return $user;
+        });
+
+        return $users;
     }
 
 }

@@ -2,7 +2,7 @@
 'name',
 'label' => '',
 'checked' => false,
-'readonly' => false
+'disabled' => false
 ])
 
 <div class="mb-4 flex items-center space-x-2">
@@ -12,7 +12,10 @@
         id="{{ $name }}"
         value="1"
         {{ old($name, $checked) ? 'checked' : '' }}
-        {{ $attributes->merge(['class' => 'rounded focus:ring-indigo-400'. ($readonly ? ' pointer-events-none' : '')]) }}
+        {{ $attributes->merge([
+           'class' => 'rounded focus:ring-indigo-400 ' . ($disabled ? 'cursor-not-allowed opacity-50' : '')
+       ]) }}
+        @if($disabled) disabled @endif
     />
     <label for="{{ $name }}" class="font-medium">
         {{ $label }}

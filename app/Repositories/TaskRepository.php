@@ -324,13 +324,17 @@ class TaskRepository
      */
     public function deleteWithFiles(Collection|Task $task): void
     {
-        $task = $task instanceof Task ? collect([$task]) : $task;
+        $tasks = $task instanceof Task ? collect([$task]) : $task;
         // Delete pictogram
-        if ($task->pictogram_path && Storage::disk('public')->exists($task->pictogram_path)) {
-            Storage::disk('public')->delete($task->pictogram_path);
-        }
+        foreach ($tasks as $t) {
+            // Delete pictogram if exists
+            if ($t->pictogram_path && Storage::disk('public')->exists($t->pictogram_path)) {
+                Storage::disk('public')->delete($t->pictogram_path);
+            }
 
-        $task->delete();
+            // Delete the task itself
+            $t->delete();
+        }
     }
 
     /**
@@ -364,6 +368,14 @@ class TaskRepository
             ->whereBetween('scheduled_date', [$startDate->toDateString(), $endDate->toDateString()])
             ->orderBy('scheduled_date')
             ->orderBy('scheduled_time')
+            ->get();
+    }
+
+    public function getTasksByRecurrentId(int $recurrentId): Collection
+    {
+        return Task::query()
+            ->where('recurrent_task_id', $recurrentId)
+            ->orderBy('scheduled_date')
             ->get();
     }
 }

@@ -1,4 +1,4 @@
-@props(['label' => '', 'name', 'required' => false, 'rows' => 4, 'readonly' => false])
+@props(['label' => '', 'name', 'required' => false, 'rows' => 4, 'disabled' => false])
 
 <div class="mb-4">
     @if ($label)
@@ -11,9 +11,12 @@
         name="{{ $name }}"
         id="{{ $name }}"
         rows="{{ $rows }}"
-        {{ $attributes->merge(['class' => 'w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400']) }}
+        {{ $attributes->merge([
+            'class' => 'w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400 ' .
+                       ($disabled ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : '')
+        ]) }}
         {{ $required ? 'required' : '' }}
-        @if($readonly) readonly @endif
+        @if($disabled) disabled @endif
     >{{ trim($slot) != '' ? $slot : old($name) }}</textarea>
 
     @error($name)

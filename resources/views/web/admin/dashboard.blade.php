@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Dashboard')
 @section('content')
-    <div class="w-full p-4 space-y-6">
+<!--   <div class="w-full p-4 space-y-6">
         {{-- Page header --}}
         <h1 class="text-3xl font-semibold mb-6">Panel de Control</h1>
         <hr class="border-gray-300 mb-6">
@@ -46,7 +46,24 @@
                     <x-admin.kpi :value="$activeCalendars" label="Calendarios laborales activos" color="indigo"/>
                 </div>
             </div>
-            <div></div>
+        </section>
+
+        {{-- Tasks by Day --}}
+        <section class="mt-6 bg-white rounded-lg shadow p-4">
+            <h2 class="font-semibold mb-2">Tareas por día (mes actual)</h2>
+            <div id="tasksByDayChart"></div>
+        </section>
+
+        {{-- Users without tasks --}}
+        <section class="mt-6 bg-white rounded-lg shadow p-4">
+            <h2 class="font-semibold mb-2">Usuarios sin tareas</h2>
+            <div id="usersWithoutTasksChart"></div>
+        </section>
+
+        {{-- Employees by company --}}
+        <section class="mt-6 bg-white rounded-lg shadow p-4">
+            <h2 class="font-semibold mb-2">Empleados por empresa</h2>
+            <div id="employeesByCompanyChart"></div>
         </section>
 
         {{-- PENDING TASKS AND SUBTASKS --}}
@@ -269,4 +286,85 @@
             </div>
         </section>
     </div>
+    {{-- ApexCharts --}}
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // --- TASKS BY DAY ---
+            var tasksByDayOptions = {
+                chart: {
+                    type: 'bar',
+                    height: 350,
+                    toolbar: { show: true }
+                },
+                series: [{
+                    name: 'Tareas',
+                    data: @json(array_values($tasksByDay))
+                }],
+                xaxis: {
+                    categories: @json(array_keys($tasksByDay)),
+                    labels: { rotate: -45 }
+                },
+                plotOptions: {
+                    bar: { columnWidth: '50%', distributed: true }
+                },
+                tooltip: {
+                    y: {
+                        formatter: function (val) { return val + " tareas"; }
+                    }
+                }
+            };
+            var tasksByDayChart = new ApexCharts(document.querySelector("#tasksByDayChart"), tasksByDayOptions);
+            tasksByDayChart.render();
+
+            // Click event to show tasks for a day
+            tasksByDayChart.addEventListener('click', function(event, chartContext, config) {
+                var day = config.globals.categoryLabels[config.dataPointIndex];
+                fetch(`/admin/dashboard/tasks-by-day/${day}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        let list = data.map(t => `<li>${t.title}</li>`).join('');
+                        Swal.fire({
+                            title: `Tareas del ${day}`,
+                            html: `<ul>${list}</ul>`,
+                            width: 600
+                        });
+                    });
+            });
+
+            // --- USERS WITHOUT TASKS ---
+            var usersWithoutTasksOptions = {
+                chart: {
+                    type: 'bar',
+                    height: 350
+                },
+                series: [{
+                    name: 'Usuarios sin tareas',
+                    data: [@json($usersWithoutTasks->count())]
+                }],
+                xaxis: {
+                    categories: ['Sin tareas']
+                }
+            };
+            var usersWithoutTasksChart = new ApexCharts(document.querySelector("#usersWithoutTasksChart"), usersWithoutTasksOptions);
+            usersWithoutTasksChart.render();
+
+            // --- EMPLOYEES BY COMPANY ---
+            var employeesByCompanyOptions = {
+                chart: { type: 'bar', height: 350 },
+                series: [{
+                    name: 'Empleados',
+                    data: @json($employeesByCompany->pluck('total'))
+                }],
+                xaxis: {
+                    categories: @json($employeesByCompany->pluck('company.name')),
+                    labels: { rotate: -45 }
+                }
+            };
+            var employeesByCompanyChart = new ApexCharts(document.querySelector("#employeesByCompanyChart"), employeesByCompanyOptions);
+            employeesByCompanyChart.render();
+
+        });
+    </script>
 @endsection

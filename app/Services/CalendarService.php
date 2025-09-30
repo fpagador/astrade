@@ -247,6 +247,16 @@ class CalendarService
     }
 
     /**
+     * Retrieve all active Work Calendar Templates.
+     *
+     * @return Collection
+     */
+    public function getActiveFutureTemplates(): Collection
+    {
+        return $this->workCalendarTemplateRepository->getActiveFutureTemplates();
+    }
+
+    /**
      * Prepare data needed for editing a calendar template.
      *
      * @param WorkCalendarTemplate $template
@@ -259,7 +269,7 @@ class CalendarService
             'template' => $template,
             'holidaysJson' => json_encode($holidays),
             'statusOptions' => $this->getStatusOptions($template),
-            'existingCalendars' => $this->getActiveTemplates(),
+            'futureCalendars' => $this->getActiveFutureTemplates()->where('id', '!=', $template->id),
             'holidayDates' => $holidays,
         ];
     }
@@ -303,8 +313,8 @@ class CalendarService
         $template->load('days');
 
         return [
-            'name' => $template->name,
-            'status' => $template->status,
+            'continuity_template_id' => $template->continuityTemplate?->id,
+            'year' => $template->year,
             'holidays' => $template->days
                 ->where('day_type', 'holiday')
                 ->pluck('date')

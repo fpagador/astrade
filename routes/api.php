@@ -46,6 +46,7 @@ Route::middleware(['auth:sanctum', 'role:admin|manager|user|'])->group(function 
     | Calendar / vacation, holiday
     |--------------------------------------------------------------------------
     */
+    Route::get('/calendar/colors', [CalendarApiController::class, 'getColors']);
     Route::get('/calendar/{type}', [CalendarApiController::class, 'getCalendarByType']);
 
     /*

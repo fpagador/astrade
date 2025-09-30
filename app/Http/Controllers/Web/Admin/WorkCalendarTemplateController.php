@@ -60,10 +60,17 @@ class WorkCalendarTemplateController extends WebController
     public function create(): View
     {
         $statusOptions = $this->calendarService->getStatusOptions();
-        $existingCalendars = $this->calendarService->getActiveTemplates();
+        $cloneableCalendars = $this->calendarService->getActiveTemplates();
+        $futureCalendars = $this->calendarService->getActiveFutureTemplates();
         $companies = $this->companyRepository->getAll();
         $users = $this->userRepository->getAllUsersForCompany();
-        return view('web.admin.calendars.create', compact('statusOptions','existingCalendars', 'companies', 'users'));
+        return view('web.admin.calendars.create', compact(
+            'statusOptions',
+            'cloneableCalendars',
+            'companies',
+            'users',
+            'futureCalendars'
+        ));
     }
 
     /**

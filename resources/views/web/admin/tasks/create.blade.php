@@ -118,58 +118,72 @@
             </div>
 
             {{-- RECURRENT --}}
-            <div class="border-t pt-6 mt-6">
-                <x-form.checkbox name="is_recurrent" label="¿Tarea recurrente?" x-model="recurrent" :checked="old('is_recurrent')" />
+            <div class="border-t pt-6 mt-6"
+                 x-data="{
+                    recurrent: {{ old('is_recurrent') ? 'true' : 'false' }},
+                    weekDaysSelected: {{ Js::from(old('days_of_week', [])) }},
+                    allSelected: false,
+                    weekDays: {{ Js::from(array_keys($weekDays)) }},
+                    toggleAll(event) {
+                        let checkboxes = $el.querySelectorAll('input[name=\'days_of_week[]\']');
+                        checkboxes.forEach(cb => cb.checked = event.target.checked);
+                    },
+                    updateAllSelected() {
+                        let checkboxes = $el.querySelectorAll('input[name=\'days_of_week[]\']');
+                        this.allSelected = Array.from(checkboxes).every(cb => cb.checked);
+                    }
+                }"
+            >
+                <x-form.checkbox name="is_recurrent" label="¿Tarea recurrente?" x-model="recurrent" />
 
                 <div x-show="recurrent" x-cloak class="space-y-4 bg-gray-50 p-4 rounded border border-gray-200">
-                    <div
-                        x-data="{
-                            allSelected: false,
-                            weekDays: {{ Js::from(array_keys($weekDays)) }},
-                            toggleAll(event) {
-                                let checkboxes = $el.querySelectorAll('input[name=\'days_of_week[]\']');
-                                checkboxes.forEach(cb => cb.checked = event.target.checked);
-                            },
-                            updateAllSelected() {
-                                let checkboxes = $el.querySelectorAll('input[name=\'days_of_week[]\']');
-                                this.allSelected = Array.from(checkboxes).every(cb => cb.checked);
-                            }
-                        }"
-                    >
-                        {{-- Title and select all --}}
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="block text-sm font-medium text-gray-700">Días de la semana *</span>
-                            <label class="inline-flex items-center text-sm font-medium text-gray-700">
-                                <span class="mr-2">Seleccionar todos</span>
+                    {{-- Title and select all --}}
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="block text-sm font-medium text-gray-700">Días de la semana *</span>
+                        <label class="inline-flex items-center text-sm font-medium text-gray-700">
+                            <span class="mr-2">Seleccionar todos</span>
+                            <input
+                                type="checkbox"
+                                class="form-checkbox text-indigo-600"
+                                x-model="allSelected"
+                                @change="toggleAll($event)"
+                            >
+                        </label>
+                    </div>
+                    <div id="days-of-week-error" class="text-red-600 text-sm mb-2"></div>
+
+                    {{-- Days of the week --}}
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm text-gray-600">
+                        @foreach($weekDays as $english => $spanish)
+                            <label class="inline-flex items-center">
                                 <input
                                     type="checkbox"
-                                    class="form-checkbox text-indigo-600"
-                                    x-model="allSelected"
-                                    @change="toggleAll($event)"
+                                    name="days_of_week[]"
+                                    value="{{ $english }}"
+                                    class="form-checkbox text-indigo-600 mr-2"
+                                    @change="updateAllSelected()"
+                                    x-bind:checked="weekDaysSelected.includes('{{ $english }}')"
                                 >
+                                <span class="capitalize">{{ $spanish }}</span>
                             </label>
-                        </div>
-                        <div id="days-of-week-error" class="text-red-600 text-sm mb-2"></div>
-
-                        {{-- Days of the week --}}
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm text-gray-600">
-                            @foreach($weekDays as $english => $spanish)
-                                <label class="inline-flex items-center">
-                                    <input
-                                        type="checkbox"
-                                        name="days_of_week[]"
-                                        value="{{ $english }}"
-                                        class="form-checkbox text-indigo-600 mr-2"
-                                        @change="updateAllSelected()"
-                                    >
-                                    <span class="capitalize">{{ $spanish }}</span>
-                                </label>
-                            @endforeach
-                        </div>
+                        @endforeach
                     </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <x-form.input name="recurrent_start_date" label="Fecha de inicio" type="date" required />
-                        <x-form.input name="recurrent_end_date" label="Fecha de fin" type="date" required />
+                        <x-form.input
+                            name="recurrent_start_date"
+                            label="Fecha de inicio"
+                            type="date"
+                            x-bind:required="recurrent"
+                            value="{{ old('recurrent_start_date') }}"
+                        />
+                        <x-form.input
+                            name="recurrent_end_date"
+                            label="Fecha de fin"
+                            type="date"
+                            x-bind:required="recurrent"
+                            value="{{ old('recurrent_end_date') }}"
+                        />
                     </div>
                 </div>
             </div>

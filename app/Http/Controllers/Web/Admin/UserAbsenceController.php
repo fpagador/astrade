@@ -79,7 +79,7 @@ class UserAbsenceController extends WebController
             $this->calendarService->saveUserAbsences($user, CalendarType::VACATION->value, $vacationDates);
             $this->calendarService->saveUserAbsences($user, CalendarType::LEGAL_ABSENCE->value, $legalDates);
 
-            return redirect()->route('admin.users.absences', $user->id);
+            return redirect()->route('admin.users.index');
         }, route('admin.users.index'), 'Vacaciones y ausencias legales creadas correctamente.');
     }
 

@@ -69,7 +69,7 @@ class UserAbsenceRepository
     {
         return UserAbsence::where('user_id', $userId)
             ->whereDate('date', $date)
-            ->whereIn('type', [CalendarType::HOLIDAY->value, CalendarType::LEGAL_ABSENCE->value])
+            ->whereIn('type', [CalendarType::VACATION->value, CalendarType::LEGAL_ABSENCE->value])
             ->exists();
     }
 

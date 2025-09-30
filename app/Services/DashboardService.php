@@ -14,6 +14,7 @@ use App\Repositories\UserRepository;
 use App\Repositories\WorkCalendarDayRepository;
 use App\Repositories\WorkCalendarTemplateRepository;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 /**
  * Service class responsible for handling Dashboard logic.
@@ -104,6 +105,11 @@ class DashboardService
         $userLegalAbsencesNextMonth = $this->userAbsenceRepository
             ->getAbsencesGroupedByUser($nextMonthStart, $nextMonthEnd, CalendarType::LEGAL_ABSENCE->value);
 
+        // --- GRAPH DATA ---
+        $tasksByDay = $this->taskRepository->getTasksCountGroupedByDay($startMonth, $endMonth);
+        $usersWithoutTasks = $this->userRepository->getUsersWithoutTasks();
+        $employeesByCompany = $this->userRepository->getUsersGroupedByCompany();
+
         return compact(
             'totalUsers',
             'usersWithoutCalendar',
@@ -123,7 +129,43 @@ class DashboardService
             'userVacationsThisMonth',
             'userLegalAbsencesThisMonth',
             'userVacationsNextMonth',
-            'userLegalAbsencesNextMonth'
+            'userLegalAbsencesNextMonth',
+            'usersWithPendingTasks',
+            'tasksByDay',
+            'usersWithoutTasks',
+            'employeesByCompany'
         );
+    }
+
+    /**
+     * Get tasks grouped by day in a given month.
+     *
+     * @param Carbon $startMonth
+     * @param Carbon $endMonth
+     * @return array<string,int>
+     */
+    public function getTasksGroupedByDay(Carbon $startMonth, Carbon $endMonth): array
+    {
+        return $this->taskRepository->getTasksCountGroupedByDay($startMonth, $endMonth);
+    }
+
+    /**
+     * Get users without pending tasks.
+     *
+     * @return Collection
+     */
+    public function getUsersWithoutTasks()
+    {
+        return $this->userRepository->getUsersWithoutTasks();
+    }
+
+    /**
+     * Get number of employees grouped by company.
+     *
+     * @return Collection
+     */
+    public function getEmployeesByCompany()
+    {
+        return $this->userRepository->getUsersGroupedByCompany();
     }
 }

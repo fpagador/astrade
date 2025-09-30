@@ -117,25 +117,15 @@ export function initCalendars() {
     const legalCheckbox = document.getElementById('enableLegalAbsenceMode');
 
     if (vacationCheckbox && legalCheckbox) {
-        vacationCheckbox.addEventListener('change', () => {
-            if (vacationCheckbox.checked) {
-                legalCheckbox.checked = false;
-                legalCheckbox.disabled = true;
-            } else {
-                legalCheckbox.disabled = false;
+        function handleCheckboxClick(clicked, other) {
+            if (clicked.checked && other.checked) {
+                other.checked = false;
             }
-        });
+        }
 
-        legalCheckbox.addEventListener('change', () => {
-            if (legalCheckbox.checked) {
-                vacationCheckbox.checked = false;
-                vacationCheckbox.disabled = true;
-            } else {
-                vacationCheckbox.disabled = false;
-            }
-        });
+        vacationCheckbox.addEventListener('change', () => handleCheckboxClick(vacationCheckbox, legalCheckbox));
+        legalCheckbox.addEventListener('change', () => handleCheckboxClick(legalCheckbox, vacationCheckbox));
     }
-
 }
 
 function normalizeDates(dates = []) {
@@ -268,7 +258,14 @@ function initCalendar(options = {}) {
                     render();
                 }
 
-                if (mode === 'vacation' && vacationMode) {
+                if (vacationMode) {
+                    if (selectedLegalDates.has(dateStr)) {
+                        if (!confirm('Este día está marcado como ausencia legal. ¿Desea cambiarlo a vacaciones?')) {
+                            return;
+                        }
+                        selectedLegalDates.delete(dateStr);
+                    }
+
                     if (selectedVacationDates.has(dateStr)) selectedVacationDates.delete(dateStr);
                     else selectedVacationDates.add(dateStr);
 
@@ -278,7 +275,15 @@ function initCalendar(options = {}) {
                     }
                 }
 
-                if (mode === 'vacation' && legalMode) {
+                // Ausencias legales activado
+                if (legalMode) {
+                    if (selectedVacationDates.has(dateStr)) {
+                        if (!confirm('Este día está marcado como vacaciones. ¿Desea cambiarlo a ausencias legales?')) {
+                            return; // cancelar cambio
+                        }
+                        selectedVacationDates.delete(dateStr);
+                    }
+
                     if (selectedLegalDates.has(dateStr)) selectedLegalDates.delete(dateStr);
                     else selectedLegalDates.add(dateStr);
 
@@ -344,7 +349,9 @@ export function initCloneSelect() {
     const container = document.getElementById('workCalendar-form-container');
     const cloneSelectEl = document.getElementById('clone_calendar_id');
     const holidaysInput = document.getElementById('selectedDates');
+    const continuitySelect = document.querySelector('[name="continuity_template_id"]');
     const cloneUrlTemplate = container?.dataset.cloneUrl;
+    const yearInput = document.getElementById('year');
 
     if (!cloneSelectEl || !cloneUrlTemplate) return;
 
@@ -361,8 +368,16 @@ export function initCloneSelect() {
                 const data = await res.json();
 
                 //Fill fields
+                yearInput.value = data.year;
                 holidaysInput.value = JSON.stringify(data.holidays);
                 holidaysInput.dataset.dates = JSON.stringify(data.holidays);
+
+                if (continuitySelect) {
+                    Array.from(continuitySelect.options).forEach(opt => {
+                        opt.disabled = opt.value == value;
+                    });
+                    continuitySelect.value = data.continuity_template_id || '';
+                }
 
                 // Update calendar
                 const calendarGrid = document.getElementById('calendarGrid');

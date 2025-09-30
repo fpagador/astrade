@@ -431,9 +431,13 @@ export function imageModal() {
         open: false,
         imgSrc: '',
         context: '',
-        openModal({ src, type }) {
-            this.imgSrc = src;
-            this.context = type;
+        openModal(srcOrObj) {
+            if (typeof srcOrObj === 'string') {
+                this.imgSrc = srcOrObj;
+            } else {
+                this.imgSrc = srcOrObj.src;
+                this.context = srcOrObj.type;
+            }
             this.open = true;
         },
         close() {
@@ -710,17 +714,17 @@ export function calendarView() {
                 // Base
                 let classes = 'border p-2 rounded relative hover:bg-gray-200';
 
-                // Día seleccionado
+                // Selected day
                 if (dayKey === formatDateLocal(this.currentDate)) {
                     classes += ' bg-blue-200';
                 }
 
-                // Fines de semana
+                // Weekends
                 if (dayDate.getDay() === 0 || dayDate.getDay() === 6) {
                     classes += ' bg-gray-200';
                 }
 
-                // Festivos o vacaciones o ausencias legales
+                // Holidays, vacations or legal absences
                 if (this.specialDays[dayKey]) {
                     const type = this.specialDays[dayKey].toUpperCase();
                     const colorConfig = window.calendarColors[type];
@@ -732,7 +736,6 @@ export function calendarView() {
                 btn.className = classes;
                 btn.textContent = d;
 
-                // Indicador de tareas
                 if (this.tasks[dayKey]?.length) {
                     const indicator = document.createElement('div');
                     indicator.className = 'absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 rounded-full';
@@ -740,7 +743,6 @@ export function calendarView() {
                     btn.appendChild(indicator);
                 }
 
-                // Click del día
                 btn.addEventListener('click', () => {
                     this.currentDate = dayDate;
                     this.updateDisplayedDays(7);
@@ -778,7 +780,18 @@ export function calendarView() {
                     document.getElementById('task-detail-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
                 })
                 .catch(()=>alert('No se pudo cargar la tarea'));
-        }
+        },
+        goPrevWeek() {
+            this.currentDate.setDate(this.currentDate.getDate() - 7);
+            this.updateDisplayedDays(7);
+            this.renderMiniCalendar();
+        },
+
+        goNextWeek() {
+            this.currentDate.setDate(this.currentDate.getDate() + 7);
+            this.updateDisplayedDays(7);
+            this.renderMiniCalendar();
+        },
     }
 }
 
@@ -853,7 +866,7 @@ export function dailyControls(initialDate = null) {
     }
 }
 
-/* ----------------- CARGA DE TAREAS MEJORADA ----------------- */
+/* ----------------- IMPROVED TASK LOADING ----------------- */
 export function enhancedLoadTasks(selectedDate, filters, userId) {
     showLoading('daily-tasks-container');
     const formatted = formatDateConsistent(selectedDate);

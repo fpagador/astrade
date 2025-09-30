@@ -35,6 +35,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     initCalendars();
-
     createIcons({ icons });
+
+    // === Translation of required fields tooltips ===
+    const requiredFields = document.querySelectorAll('input[required], select[required], textarea[required]');
+    requiredFields.forEach(field => {
+        field.addEventListener('invalid', function(event) {
+            this.setCustomValidity('Por favor completa este campo');
+        });
+        field.addEventListener('input', function() {
+            this.setCustomValidity('');
+        });
+    });
 });

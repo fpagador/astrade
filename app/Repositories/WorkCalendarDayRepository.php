@@ -89,21 +89,6 @@ class WorkCalendarDayRepository
     }
 
     /**
-     * Determine if a given date is marked as a holiday for the specified calendar template.
-     *
-     * @param int    $templateId
-     * @param string $date
-     * @return bool
-     */
-    public function isHolidayForTemplate(int $templateId, string $date): bool
-    {
-        return WorkCalendarDay::where('template_id', $templateId)
-            ->whereDate('date', $date)
-            ->where('day_type', CalendarType::HOLIDAY->value)
-            ->exists();
-    }
-
-    /**
      * Get active calendar days of the month
      *
      * @param int $year

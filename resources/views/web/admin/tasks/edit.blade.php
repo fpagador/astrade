@@ -21,7 +21,7 @@
                 name="title"
                 value="{{ old('title', $task->title) }}"
                 required
-                :readonly="$disableFields"
+                :disabled="$disableFields"
             />
 
             {{-- DESCRIPTION --}}
@@ -29,7 +29,7 @@
                 label="Descripción"
                 name="description"
                 rows="4"
-                :readonly="$disableFields"
+                :disabled="$disableFields"
             >
                 {{ old('description', $task->description) }}
             </x-form.textarea>
@@ -42,7 +42,7 @@
                     label="Fecha"
                     value="{{ old('scheduled_date', optional($task->scheduled_date)->format('Y-m-d')) }}"
                     required
-                    :readonly="$disableFields"
+                    :disabled="$disableFields"
                 />
 
                 <x-form.input
@@ -57,7 +57,7 @@
                     type="number" name="estimated_duration_minutes" label="Duración estimada (min)"
                     min="1"
                     value="{{ old('estimated_duration_minutes', $task->estimated_duration_minutes) }}"
-                    :readonly="$disableFields"
+                    :disabled="$disableFields"
                 />
             </div>
 
@@ -73,7 +73,7 @@
                         label="Activar notificaciones para esta tarea"
                         x-model="notifications"
                         value="1"
-                        :readonly="$disableFields"
+                        :disabled="$disableFields"
                     />
                 </div>
 
@@ -84,7 +84,7 @@
                         type="number"
                         min="1"
                         x-model.number="reminderMinutes"
-                        :readonly="$disableFields"
+                        :disabled="$disableFields"
                     />
 
                 </div>
@@ -124,7 +124,7 @@
                         value="{{ old('color', $task->color ?? '#FFFFFF') }}"
                         style="background-color: {{ old('color', $task->color ?? '#FFFFFF') }}; color: transparent;
                         {{ (old('color', $task->color ?? '#FFFFFF') === '#FFFFFF') ? 'border: 1px solid #ccc;' : 'border: none;' }}"
-                        :readonly="@json($disableFields)"
+                        :disabled="@json($disableFields)"
                     >
 
                     <div class="flex flex-wrap justify-center gap-2 mt-2">
@@ -140,7 +140,7 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Estado <span class="text-red-500">*</span></label>
-                    <select @if($disableFields) class="cursor-not-allowed pointer-events-none form-select w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" @endif name="status" class="form-select w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" required>
+                    <select @if($disableFields) disabled @endif name="status" class="form-select w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" required>
                         @foreach(\App\Enums\TaskStatus::cases() as $status)
                             <option value="{{ $status->value }}" {{ old('status', $task->status) == $status->value ? 'selected' : '' }} >
                                 {{ status_label($status) }}
@@ -155,9 +155,9 @@
                 <x-form.checkbox
                     name="is_recurrent"
                     x-model="recurrent"
-                    value="1"
                     label="¿Tarea recurrente?"
-                    :readonly="$disableFields"
+                    :disabled="$disableFields"
+                    value="{{ old('is_recurrent', $task->is_recurrent) }}"
                 />
 
                 <div x-show="recurrent" x-cloak class="space-y-4 bg-gray-50 p-4 rounded border border-gray-200">
@@ -199,7 +199,7 @@
                                         type="checkbox"
                                         name="days_of_week[]"
                                         value="{{ $english }}"
-                                        class="form-checkbox text-indigo-600 mr-2"
+                                        class="form-checkbox text-indigo-600 mr-2 {{$disableFields ? 'cursor-not-allowed opacity-50' : ''}}"
                                         {{ in_array($english, $selectedDays) ? 'checked' : '' }}
                                         @if($disableFields) disabled @endif
                                         @change="updateAllSelected()"
@@ -217,7 +217,7 @@
                             name="recurrent_start_date"
                             label="Fecha de inicio"
                             value="{{ old('recurrent_start_date', optional($task->recurrentTask?->start_date)->format('Y-m-d')) }}"
-                            :readonly="$disableFields"
+                            :disabled="$disableFields"
                             required
                         />
                         <x-form.input
@@ -226,7 +226,7 @@
                             label="Fecha de fin"
                             required
                             value="{{ old('recurrent_end_date', optional($task->recurrentTask?->end_date)->format('Y-m-d')) }}"
-                            :readonly="$disableFields"
+                            :disabled="$disableFields"
                         />
                     </div>
                 </div>
@@ -257,6 +257,9 @@
                             <input type="hidden" :name="`subtasks[${index}][id]`" :value="subtask.id ?? ''">
                             <input type="hidden" :name="`subtasks[${index}][external_id]`" :value="subtask.external_id ?? ''">
                             <input type="hidden" :name="`subtasks[${index}][order]`" :value="index">
+                            <input type="hidden" :name="`subtasks[${index}][title]`" :value="subtask.title ?? ''">
+                            <input type="hidden" :name="`subtasks[${index}][description]`" :value="subtask.description ?? ''">
+                            <input type="hidden" :name="`subtasks[${index}][note]`" :value="subtask.note ?? ''">
 
                             <div class="flex-1 space-y-2">
                                 <div>
@@ -264,10 +267,10 @@
                                     <input
                                         type="text"
                                         :name="`subtasks[${index}][title]`"
-                                        class="form-input w-full"
+                                        class="form-input w-full {{ $disableFields ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : '' }}"
                                         x-model="subtask.title"
                                         required
-                                        :readonly="@json($disableFields)"
+                                        :disabled="@json($disableFields)"
                                     >
                                 </div>
 
@@ -275,10 +278,10 @@
                                     <label class="block text-sm font-medium text-gray-700">Descripción</label>
                                     <textarea
                                         :name="`subtasks[${index}][description]`"
-                                        class="form-textarea w-full"
+                                        class="form-textarea w-full {{ $disableFields ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : '' }}"
                                         rows="2"
                                         x-model="subtask.description"
-                                        :readonly="@json($disableFields)"
+                                        :disabled="@json($disableFields)"
                                     ></textarea>
                                 </div>
 
@@ -286,10 +289,10 @@
                                     <label class="block text-sm font-medium text-gray-700">Nota</label>
                                     <textarea
                                         :name="`subtasks[${index}][note]`"
-                                        class="form-textarea w-full"
+                                        class="form-textarea w-full {{ $disableFields ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : '' }}"
                                         rows="2"
                                         x-model="subtask.note"
-                                        :readonly="@json($disableFields)"
+                                        :disabled="@json($disableFields)"
                                     ></textarea>
                                 </div>
 

@@ -43,7 +43,7 @@
             <x-form.select
                 name="continuity_template_id"
                 label="Calendario de Continuidad"
-                :options="$existingCalendars->pluck('name','id')->toArray()"
+                :options="$futureCalendars->pluck('name','id')->toArray()"
                 :selected="old('continuity_template_id', $template->continuity_template_id ?? null)"
                 placeholderOption="Ninguno"
             />
@@ -58,6 +58,7 @@
             :selectedDates="$holidayDates"
             :holidayDates="$holidayDates"
             checkboxLabel="Modo selección de festivos"
+            :yearEditable="false"
         />
 
         <input type="hidden" name="holidays_json" id="selectedDates" value='@json($holidayDates)'>

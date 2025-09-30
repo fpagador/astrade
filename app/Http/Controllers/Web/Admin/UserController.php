@@ -50,8 +50,7 @@ class UserController extends WebController
 
             // Extract only the filters we expect
             $filters = $request->only(['name','email','dni','role','company_id','sort','direction']);
-
-            $users = $this->userRepository->paginateUsers($type, $filters);
+            $users = $this->userService->paginateUsersWithWarnings($type, $filters);
 
             if ($type === UserTypeEnum::MOBILE->value) {
                 $companies = Company::orderBy('name')->get();

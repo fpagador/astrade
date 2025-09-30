@@ -59,7 +59,7 @@
                             @click="$dispatch('open-action-modal', {
                                             taskId: {{ $task->id }},
                                             type: 'edit',
-                                            editUrl: '{{ route('admin.users.tasks.edit', ['user' => $user->id, 'id' => $task->id]) }}'
+                                            editUrl: '{{ route('admin.users.tasks.edit', ['user' => $user->id, 'id' => $task->id, 'date' => $date]) }}'
                                         })"
                             title="Editar tarea recurrente">
                         <i data-lucide="pencil" class="w-5 h-5 text-indigo-800"></i>

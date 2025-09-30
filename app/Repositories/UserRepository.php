@@ -85,7 +85,7 @@ class UserRepository
     }
 
     /**
-     * Paginate users with filters applied.
+     * Paginate the base query of users.
      *
      * @param array $filters
      * @param string $type
@@ -98,7 +98,7 @@ class UserRepository
     }
 
     /**
-     * Build a query for users with optional filters and sorting.
+     * Build a query for users with optional filters, relations and sorting.
      *
      * @param array $filters
      * @param string $type
@@ -107,6 +107,9 @@ class UserRepository
     public function queryUsers(string $type, array $filters = [] ): Builder
     {
         $query = User::query()->with('role');
+
+        $query->select('users.*')
+            ->selectRaw('(CASE WHEN company_id IS NULL OR work_calendar_template_id IS NULL THEN 1 ELSE 0 END) as has_warning');
 
         // Filter by type
         if ($type === UserTypeEnum::MOBILE->value) {
@@ -140,7 +143,9 @@ class UserRepository
             'company' => ['table' => 'companies', 'local_key' => 'company_id', 'foreign_key' => 'id', 'column' => 'name'],
         ];
 
-        if (in_array($sort, $sortableColumns)) {
+        if ($sort === 'has_warning') {
+            $query->orderByRaw('(CASE WHEN company_id IS NULL OR work_calendar_template_id IS NULL THEN 1 ELSE 0 END) ' . $direction);
+        } elseif (in_array($sort, $sortableColumns)) {
             $query->orderBy("users.$sort", $direction);
         } elseif (array_key_exists($sort, $sortableRelations)) {
             $rel = $sortableRelations[$sort];
@@ -213,17 +218,6 @@ class UserRepository
     public function delete(User $user): void
     {
         $user->delete();
-    }
-
-    /**
-     * Get the work_calendar_template_id assigned to the user.
-     *
-     * @param int $userId
-     * @return int|null Returns the template id or null if none assigned.
-     */
-    public function getWorkCalendarTemplateId(int $userId): ?int
-    {
-        return User::where('id', $userId)->value('work_calendar_template_id');
     }
 
     /**

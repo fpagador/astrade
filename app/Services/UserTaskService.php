@@ -10,6 +10,7 @@ use App\Repositories\WorkCalendarDayRepository;
 use App\Models\Task;
 use App\Models\RecurrentTask;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -17,6 +18,7 @@ use Illuminate\Http\UploadedFile;
 use App\Enums\CalendarColor;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Service class responsible for handling User Task logic.
@@ -211,7 +213,7 @@ class UserTaskService
      * @param int $userId
      * @param array $data
      * @return Task
-     * @throws \Exception
+     * @throws ValidationException
      */
     public function createTask(int $userId, array $data): Task
     {
@@ -223,8 +225,10 @@ class UserTaskService
 
             // Check vacations on scheduled date
             if (!empty($data['scheduled_date']) &&
-                $this->userAbsenceRepository->hasAbsence($userId, $data['scheduled_date'])) {
-                throw new \Exception('El usuario está de vacaciones o tiene una ausencia legal en esta fecha.');
+                $this->isNonWorkingDay($userId, $data['scheduled_date'])) {
+                throw ValidationException::withMessages([
+                    'general' => ['El usuario está de vacaciones o tiene una ausencia legal en esta fecha.'],
+                ]);
             }
 
             // Handle pictogram
@@ -273,8 +277,11 @@ class UserTaskService
         // Generate instances
         $dates = $this->generateDatesForRecurrentTask($days, $startDate, $endDate);
 
-        // First task date as Carbon
         $firstTaskDate = $firstTask->scheduled_date ? Carbon::parse($firstTask->scheduled_date) : null;
+        if ($firstTaskDate && $firstTaskDate->lt($startDate)) {
+            $firstTask->update(['scheduled_date' => $startDate]);
+            $firstTaskDate = $startDate;
+        }
 
         foreach ($dates as $date) {
             $dateCarbon = Carbon::parse($date);
@@ -285,7 +292,7 @@ class UserTaskService
             }
 
             // Skip if user has absence
-            if ($this->userAbsenceRepository->hasAbsence($firstTask->user_id, $date)) {
+            if ($this->isNonWorkingDay($firstTask->user_id, $date)) {
                 continue;
             }
 
@@ -390,7 +397,7 @@ class UserTaskService
         return DB::transaction(function () use ($task, $data, $editSeries) {
             // Sync subtasks of the base task
             if (isset($data['subtasks'])) {
-                $this->syncSubtasks($task, $data['subtasks']);
+                $this->syncSubtasks($task, $data['subtasks'], $editSeries);
                 $task->load('subtasks');
             }
 
@@ -402,10 +409,7 @@ class UserTaskService
 
             // If editing the whole series, update all future tasks
             if ($editSeries && $task->recurrent_task_id) {
-                $this->updateFutureTasksInSeries($task, $data);
-
-                // Update the recurrent task record itself
-                //$task->recurrentTask->update($seriesData);
+                $this->updateFutureTasksInSeries($task, $data, $editSeries);
             }
 
             // Return updated task(s)
@@ -454,63 +458,61 @@ class UserTaskService
      *
      * @param Task $baseTask
      * @param array $data
+     * @param bool $editSeries
      * @return void
      */
-    protected function updateFutureTasksInSeries(Task $baseTask, array $data): void
+    protected function updateFutureTasksInSeries(Task $baseTask, array $data, bool $editSeries = false): void
     {
         $recurrent = $baseTask->recurrentTask ?? new RecurrentTask();
-
-        // Save the original date of the recurrence
-        $originalStartDate = $recurrent->start_date;
-        $originalEndDate = $recurrent->end_date;
-
         $recurrent->fill([
             'start_date'   => $data['recurrent_start_date'] ?? $recurrent->start_date,
             'end_date'     => $data['recurrent_end_date'] ?? $recurrent->end_date,
             'days_of_week' => json_encode($data['days_of_week'])  ?? $recurrent->days_of_week,
         ]);
-
         $recurrent->save();
 
         $startDate = Carbon::parse($recurrent->start_date);
         $endDate = Carbon::parse($recurrent->end_date);
 
-        // Check if the range has changed
-        $rangeChanged = ($originalStartDate && $originalEndDate) &&
-            ($originalStartDate != $recurrent->start_date || $originalEndDate != $recurrent->end_date);
-
-        $today = now()->toDateString();
-
-        if ($rangeChanged) {
-            //New range: Create/edit tasks only from the largest date between today and the startDate
-            $cutoffDate = max($today, $startDate->toDateString());
-        } else {
-            // Same rank: only modify from today
-            $cutoffDate = $today;
-        }
-
-        // Generate all dates according to days of the week and new range
-        $allNewDates = collect(
+        $allCandidateDates = collect(
             $this->generateDatesForRecurrentTask($data['days_of_week'], $startDate, $endDate)
-        );
+        )->map(fn($d) => Carbon::parse($d)->toDateString());
 
-        // Filter the dates to update/create based on cutoffDate
-        $futureNewDates = $allNewDates->filter(fn($date) => $date >= $cutoffDate);
+        // Fechas que deberían existir según el nuevo rango
+        $expectedDates = $allCandidateDates
+            ->reject(fn($date) => $this->isNonWorkingDay($baseTask->user_id, $date))
+            ->values()
+            ->toArray();
 
-        // --- Step 1: get all future tasks from today
-        $futureTasks = $this->taskRepository->getFutureRecurrentTasks(
-            $recurrent->id,
-            $cutoffDate
-        );
+        // Todas las tareas del recurrente (pasadas, presentes y futuras)
+        $allTasks = $this->taskRepository->getTasksByRecurrentId($recurrent->id);
 
-        $existingFutureDates = $futureTasks->pluck('scheduled_date')->toArray();
+        $existingDates = $allTasks->pluck('scheduled_date')
+            ->map(fn($d) => Carbon::parse($d)->toDateString())
+            ->toArray();
 
-
-        $datesToDelete = array_diff($existingFutureDates, $futureNewDates->toArray());
+        // 1. Eliminar las que sobran
+        $datesToDelete = array_diff($existingDates, $expectedDates);
         $this->taskRepository->deleteByDates($recurrent->id, $datesToDelete);
 
-        //Create new missing dates
-        $datesToCreate = array_diff($futureNewDates->toArray(), $existingFutureDates);
+        // 2. Actualizar las que permanecen (excepto la base)
+        foreach ($allTasks as $task) {
+            $taskDate = Carbon::parse($task->scheduled_date)->toDateString();
+
+            if (!in_array($taskDate, $expectedDates) || $task->id === $baseTask->id) {
+                continue;
+            }
+
+            $updateData = $this->buildTaskUpdateData($task, $data, true);
+            $task->update($updateData);
+
+            if (isset($data['subtasks'])) {
+                $this->syncSubtasks($task, $data['subtasks'], $editSeries);
+            }
+        }
+
+        // 3. Crear las que faltan
+        $datesToCreate = array_diff($expectedDates, $existingDates);
         foreach ($datesToCreate as $date) {
             $newTask = $this->taskRepository->replicateWithDate($baseTask, $recurrent->id, $date);
             $this->subtaskRepository->replicateMany($baseTask->subtasks, $newTask);
@@ -592,9 +594,10 @@ class UserTaskService
      *
      * @param Task $task
      * @param array<int,array> $formSubtasks
+     * @param bool $editSeries
      * @return void
      */
-    public function syncSubtasks(Task $task, array $formSubtasks): void
+    public function syncSubtasks(Task $task, array $formSubtasks, bool $editSeries = false): void
     {
         $submittedExternalIds = [];
 
@@ -628,7 +631,9 @@ class UserTaskService
         }
 
         // delete missing subtasks
-        $this->subtaskRepository->deleteAllExcept($task, $submittedExternalIds);
+        if (!$editSeries) {
+            $this->subtaskRepository->deleteAllExcept($task, $submittedExternalIds);
+        }
     }
 
     /**
@@ -693,9 +698,7 @@ class UserTaskService
      * Determine if the given date is a non-working day for the user.
      *
      * Non-working is defined as:
-     *  - a holiday in the user's assigned work calendar template,
      *  - the user has a vacation / legal_absence recorded,
-     *  - or the date falls on a weekend.
      *
      * @param int    $userId
      * @param string $date Date in 'Y-m-d' format
@@ -703,19 +706,7 @@ class UserTaskService
      */
     public function isNonWorkingDay(int $userId, string $date): bool
     {
-        // 1) Get user's calendar template id
-        $templateId = $this->userRepository->getWorkCalendarTemplateId($userId);
-
-        // 2) Check holiday for that template (if template assigned)
-        $isHoliday = false;
-        if ($templateId !== null) {
-            $isHoliday = $this->workCalendarDayRepository->isHolidayForTemplate($templateId, $date);
-        }
-
-        // 3) Check user absences (vacation or legal_absence)
-        $isAbsence = $this->userAbsenceRepository->hasAbsence($userId, $date);
-
-        return $isHoliday || $isAbsence;
+        return $this->userAbsenceRepository->hasAbsence($userId, $date);
     }
 
     /**

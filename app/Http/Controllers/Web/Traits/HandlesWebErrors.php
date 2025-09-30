@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web\Traits;
 
 use App\Models\Log;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
@@ -39,6 +40,8 @@ trait HandlesWebErrors
             $this->logRecord('Error de base de datos: ',$errorRedirect, $e);
             return redirect($errorRedirect ?: url()->previous())
                 ->withErrors(['general' => 'Error de base de datos. Verifique los datos.'])->withInput();
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (Throwable $e) {
             $this->logRecord('Error inesperado: ',$errorRedirect, $e);
             return redirect($errorRedirect ?: url()->previous())

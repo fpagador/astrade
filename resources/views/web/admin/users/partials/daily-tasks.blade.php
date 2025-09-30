@@ -62,7 +62,7 @@
                      class="rounded shadow p-6 border-4"
                      style="border-color: {{ $task->color === '' ? '#e5e7eb' : $task->color }}; background-color: #ffffff;">
 
-                    {{-- CABECERA --}}
+                    {{-- HEADER --}}
                     <div class="flex justify-between items-start">
                         <div>
                             <div class="flex items-center gap-2">
@@ -97,7 +97,7 @@
                                 </div>
                             @endif
 
-                            {{-- PROGRESO --}}
+                            {{-- PROGRESS --}}
                             @if($totalSubtasks)
                                 <div class="mt-2">
                                     @if($progressPercent === 100)
@@ -119,9 +119,9 @@
                             @endif
                         </div>
 
-                        {{-- ACCIONES --}}
+                        {{-- ACTIONS --}}
                         <div class="flex items-center gap-3">
-                            {{-- Conflicto de hora --}}
+                            {{-- Time conflict --}}
                             @if($isConflict)
                                 <button title="Conflicto de horario con otra tarea"
                                         class="w-8 h-8 flex items-center justify-center bg-yellow-200 border-2 border-red-600 text-red-800 rounded-none hover:bg-yellow-300 transition"
@@ -130,13 +130,13 @@
                                 </button>
                             @endif
 
-                            {{-- Editar --}}
+                            {{-- Edit --}}
                             @if($task->recurrentTask)
                                 <button type="button"
                                         @click="$dispatch('open-action-modal', {
                                             taskId: {{ $task->id }},
                                             type: 'edit',
-                                            editUrl: '{{ route('admin.users.tasks.edit', ['user' => $user->id, 'id' => $task->id]) }}'
+                                            editUrl: '{{ route('admin.users.tasks.edit', ['user' => $user->id, 'id' => $task->id, 'date' => $date]) }}'
                                         })"
                                         title="Editar tarea recurrente">
                                     <i data-lucide="pencil" class="w-5 h-5 text-indigo-800"></i>
@@ -147,7 +147,7 @@
                                 </a>
                             @endif
 
-                            {{-- Eliminar --}}
+                            {{-- Delete --}}
                             <button type="button"
                                     @click="$dispatch('open-action-modal', {
                                         taskId: {{ $task->id }},
@@ -160,7 +160,7 @@
                                 <i data-lucide="trash-2" class="w-5 h-5 text-red-600 hover:text-red-700 transition"></i>
                             </button>
 
-                            {{-- Ver subtareas --}}
+                            {{-- View Subtasks --}}
                             @if ($task->subtasks->count())
                                 <button type="button"
                                         @click="open = !open"
@@ -173,7 +173,7 @@
                         </div>
                     </div>
 
-                    {{-- SUBTAREAS --}}
+                    {{-- SUBTASKS --}}
                     <div x-show="open" x-transition.duration.300ms x-cloak
                          class="mt-4 bg-indigo-50 p-3 rounded">
                         <ul class="space-y-2">
@@ -221,7 +221,7 @@
         </div>
     @endif
 
-    {{-- PAGINACIÓN --}}
+    {{-- PAGINATION --}}
     @if ($tasks->hasPages())
         <div class="mt-6">
             {{ $tasks->appends(request()->query())->links('vendor.pagination.tailwind') }}

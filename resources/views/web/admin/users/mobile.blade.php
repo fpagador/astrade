@@ -67,7 +67,7 @@
         </a>
     </div>
     @php
-        $gridCols = 'grid-cols-[1fr_1fr_1fr_2fr_1fr_2fr_2fr]';
+        $gridCols = 'grid-cols-[1fr_1fr_1fr_2fr_1fr_1fr_5rem_10rem]';
     @endphp
     {{-- TABLE HEADER --}}
     <div class="grid {{ $gridCols }} bg-indigo-900 text-white font-medium text-sm rounded-t-md px-4 py-2">
@@ -77,6 +77,7 @@
         <div><x-admin.sortable-column label="Email" field="email" /></div>
         <div><x-admin.sortable-column label="Teléfono" field="phone" /></div>
         <div><x-admin.sortable-column label="Empresa" field="company" /></div>
+        <div class="flex justify-center"><x-admin.sortable-column label="!" field="has_warning" /></div>
         <div>Acciones</div>
     </div>
 
@@ -101,6 +102,19 @@
                     </a>
                 @else
                     —
+                @endif
+            </div>
+
+            {{-- WARNING ICON --}}
+            <div class="justify-center flex">
+                @if($user->has_warning)
+                    <div class="relative group">
+                        <i data-lucide="alert-circle" class="w-5 h-5 text-yellow-500"></i>
+                        <div class="absolute left-1/2 -translate-x-1/2 mt-2 hidden group-hover:block
+                        bg-red-900 text-white text-xs rounded px-2 py-1 w-max max-w-xs z-10 shadow-lg">
+                            <strong>{{ $user->warning_title }}</strong>
+                        </div>
+                    </div>
                 @endif
             </div>
 

@@ -1,8 +1,8 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "Astrade API",
-        "description": "Astrade API Documentation",
+        "title": "Talentismo API",
+        "description": "Talentismo API Documentation",
         "version": "1.0.0"
     },
     "servers": [
@@ -233,6 +233,64 @@
                                                 }
                                             },
                                             "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/calendar/colors": {
+            "get": {
+                "tags": [
+                    "Calendar"
+                ],
+                "summary": "Get all available calendar colors",
+                "description": "Returns all available calendar colors.",
+                "operationId": "8a5affa635dbd94d29692e552b632958",
+                "responses": {
+                    "200": {
+                        "description": "Calendar colors retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Colors retrieved successfully"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": [
+                                                {
+                                                    "properties": {
+                                                        "class": {
+                                                            "type": "string",
+                                                            "example": "bg-green-500"
+                                                        },
+                                                        "hex": {
+                                                            "type": "string",
+                                                            "example": "#22c55e"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            ]
                                         }
                                     },
                                     "type": "object"

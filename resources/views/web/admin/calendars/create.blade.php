@@ -29,7 +29,7 @@
                 id="clone_calendar_id"
                 name="clone_calendar_id"
                 label="Seleccionar plantilla para clonar"
-                :options="$existingCalendars->pluck('name','id')->toArray()"
+                :options="$cloneableCalendars->pluck('name','id')->toArray()"
                 placeholder="Elegir plantilla"
             />
         </div>
@@ -63,7 +63,7 @@
                     <x-form.select
                         name="continuity_template_id"
                         label="Calendario de Continuidad"
-                        :options="$existingCalendars->pluck('name','id')->toArray()"
+                        :options="$futureCalendars->pluck('name','id')->toArray()"
                         :selected="old('continuity_template_id', null)"
                         placeholderOption="Ninguno"
                         tooltip="Cada año se inactivará el calendario anterior y se activará el calendario que esté configurado como continuidad."

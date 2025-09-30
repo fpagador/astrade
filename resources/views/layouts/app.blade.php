@@ -19,24 +19,26 @@
 
 <div class="flex flex-1">
     {{-- Sidebar --}}
-    <aside class="fixed inset-y-0 left-0 w-64 bg-gray-500 text-white z-50 transform md:translate-x-0 md:block transition-transform duration-200 ease-in-out"
+    <aside class="fixed inset-y-0 left-0 w-64 bg-black text-white z-50 transform md:translate-x-0 md:block transition-transform duration-200 ease-in-out"
            :class="{ '-translate-x-full': !sidebarOpen, 'translate-x-0': sidebarOpen }" x-cloak>
         {{-- Logo --}}
-        <div class="h-20 border-b border-gray-200 flex items-center justify-center px-4 md:px-14">
-            <img src="{{ asset('images/logo_admin.png') }}" alt="Logo" class="w-96 h-auto mx-auto">
+        <div class="border-b border-gray-200 flex items-center justify-center">
+            <a href="{{ route('admin.dashboard.index') }}" class="block">
+                <img src="{{ asset('images/logo_admin.svg') }}" alt="Logo" class="h-16 w-auto cursor-pointer">
+            </a>
         </div>
 
         <nav class="mt-6 px-4 space-y-2 text-sm">
             {{-- Dashboard --}}
             <x-admin.nav-link route="admin.dashboard.index" icon="layout-dashboard" label="Dashboard" />
 
-            {{-- Menú Usuarios para admin --}}
+            {{-- Users menu for admin --}}
             @if(auth()->user()->hasRole('admin'))
                 <div x-data="{ open: @json(request()->routeIs('admin.users.*')) }" class="space-y-1">
                     {{-- Main button Users --}}
                     <button
                         @click="open = !open"
-                        class="flex items-center gap-3 w-full py-2 px-4 rounded hover:bg-gray-700 transition
+                        class="flex items-center gap-3 w-full py-2 px-4 rounded hover:bg-gray-900 transition
                         {{ request()->routeIs('admin.users.*') ? 'bg-gray-800' : '' }}"
                     >
                         <i data-lucide="users" class="w-5 h-5 shrink-0"></i>
@@ -65,7 +67,7 @@
                 </div>
             @endif
 
-            {{-- Users menu for manager--}}
+            {{-- Users menu for manager --}}
             @if(auth()->user()->hasRole('manager'))
                 <x-admin.nav-link
                     route="admin.users.index"
@@ -129,7 +131,7 @@
 
         {{-- Footer --}}
         <footer class="bg-gray-200 border-t p-4 text-center text-sm text-gray-700 mt-auto">
-            &copy; {{ now()->year }} Astrade. Todos los derechos reservados.
+            &copy; {{ now()->year }} Talentismo. Todos los derechos reservados.
         </footer>
     </div>
 </div>

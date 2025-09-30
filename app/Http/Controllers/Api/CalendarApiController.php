@@ -105,4 +105,47 @@ class CalendarApiController extends ApiController
             return $this->render($data);
         }, 'Error getting ' . $type . ' from user', $request);
     }
+
+    /**
+     * Returns all available calendar colors.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     *
+     * @OA\Get(
+     *     path="/api/calendar/colors",
+     *     summary="Get all available calendar colors",
+     *     tags={"Calendar"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Calendar colors retrieved successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Colors retrieved successfully"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 additionalProperties={
+     *                     @OA\Schema(
+     *                         type="object",
+     *                         @OA\Property(property="class", type="string", example="bg-green-500"),
+     *                         @OA\Property(property="hex", type="string", example="#22c55e")
+     *                     )
+     *                 }
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=500, description="Internal server error")
+     * )
+     */
+    public function getColors(Request $request): JsonResponse
+    {
+        return $this->handleApi(function () {
+            $colors = CalendarColor::values();
+
+            return $this->render($colors);
+        }, 'Error getting calendar colors', $request);
+    }
 }

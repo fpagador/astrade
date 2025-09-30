@@ -124,6 +124,18 @@ class WorkCalendarTemplateRepository
     }
 
     /**
+     * Retrieve all active Work Calendar Templates with year in the future.
+     *
+     * @return Collection
+     */
+    public function getActiveFutureTemplates(): Collection
+    {
+        return WorkCalendarTemplate::where('status', CalendarStatus::ACTIVE->value)
+            ->where('year', '>', now()->year)
+            ->get();
+    }
+
+    /**
      * Count all WorkCalendarTemplate.
      *
      * @return int
