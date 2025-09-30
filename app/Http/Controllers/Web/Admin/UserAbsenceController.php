@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web\Admin;
 
 use App\Enums\CalendarType;
+use App\Enums\UserTypeEnum;
 use App\Http\Controllers\Web\WebController;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -79,7 +80,7 @@ class UserAbsenceController extends WebController
             $this->calendarService->saveUserAbsences($user, CalendarType::VACATION->value, $vacationDates);
             $this->calendarService->saveUserAbsences($user, CalendarType::LEGAL_ABSENCE->value, $legalDates);
 
-            return redirect()->route('admin.users.index');
+            return redirect()->route('admin.users.index',  ['type' => UserTypeEnum::MOBILE->value]);
         }, route('admin.users.index'), 'Vacaciones y ausencias legales creadas correctamente.');
     }
 
