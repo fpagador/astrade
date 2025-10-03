@@ -75,15 +75,16 @@
             </a>
         </div>
 
-        {{-- Warning modal for assigned users --}}
+        {{-- Modal de confirmación de cambio de estado --}}
         <x-admin.modal
-            title="Advertencia"
-            message="Existen usuarios actualmente asignados a este calendario laboral. Al inactivarlo, estos usuarios quedarán sin un calendario laboral asignado. ¿Desea proceder?"
-            confirm-label="Sí"
+            title="Confirmación de cambio de estado"
+            confirm-label="Confirmar"
             cancel-label="Cancelar"
-            confirm-action="confirmWarning()"
-            open="warningOpen"
-        />
+            confirm-action="confirmStateChange()"
+            open="stateConfirmOpen"
+        >
+            <p x-text="confirmMessage"></p>
+        </x-admin.modal>
 
         {{-- Day confirmation modal --}}
         <div x-show="confirmDaysModalOpen"

@@ -6,6 +6,7 @@ enum ContractType: string
 {
     case TEMPORARY = 'temporary';
     case PERMANENT = 'permanent';
+    case FIXED_DISCONTINUOUS = 'fixed_discontinuous';
 
     /**
      * Get all values as array.
@@ -28,6 +29,7 @@ enum ContractType: string
         return match ($status) {
             self::TEMPORARY => 'Temporal',
             self::PERMANENT => 'Indefinido',
+            self::FIXED_DISCONTINUOUS => 'Fijo discontinuo'
         };
     }
 }

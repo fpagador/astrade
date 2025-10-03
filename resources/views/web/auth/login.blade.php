@@ -5,16 +5,16 @@
     <form method="POST" action="{{ route('login') }}">
         @csrf
 
-        <!-- DNI -->
+        <!-- DNI/NIE -->
         <div>
-            <x-input-label for="dni" :value="__('DNI')" />
+            <x-input-label for="dni" :value="__('DNI/NIE')" />
             <x-text-input id="dni" class="block mt-1 w-full" type="text" name="dni" :value="old('dni')" required autofocus autocomplete="username" />
             <x-input-error :messages="$errors->get('dni')" class="mt-2" />
         </div>
 
         <!-- Password -->
         <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+            <x-input-label for="password" :value="__('Contraseña')" />
 
             <x-text-input id="password" class="block mt-1 w-full"
                             type="password"

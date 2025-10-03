@@ -119,7 +119,7 @@ class UserTaskService
         $specialDays = $this->getSpecialDays($userId);
 
         // Calendar colors from enum
-        $calendarColors = CalendarColor::values();
+        $calendarColors = CalendarColor::taskLegend();
 
         return [
             'tasksByDate'   => $tasksByDate,
@@ -193,7 +193,7 @@ class UserTaskService
      * @param string|null $oldPath
      * @return string|null
      */
-    public function handlePictogramUpload(UploadedFile|string|null $file, ?string $oldPath = null): ?string
+    public function normalizePictogram(UploadedFile|string|null $file, ?string $oldPath = null): ?string
     {
         if ($file instanceof UploadedFile) {
             // Delete old file if exists
@@ -208,14 +208,41 @@ class UserTaskService
     }
 
     /**
+     * Normalize a single subtask (upload pictogram, ensure external_id).
+     *
+     * @param array $subtask
+     * @return array
+     */
+    protected function normalizeSubtask(array $subtask): array
+    {
+        if (!empty($subtask['pictogram_path'])) {
+            $subtask['pictogram_path'] = $this->normalizePictogram($subtask['pictogram_path']);
+        }
+        $subtask['external_id'] = $subtask['external_id'] ?? (string) Str::uuid();
+        return $subtask;
+    }
+
+    /**
+     * Normalize an array of subtasks.
+     *
+     * @param array $subtasks
+     * @return array
+     */
+    protected function normalizeSubtasks(array $subtasks): array
+    {
+        return array_map(fn($st) => $this->normalizeSubtask($st), $subtasks);
+    }
+
+
+    /**
      * Create a task for a user with subtasks and optional recurrent data.
      *
      * @param int $userId
      * @param array $data
-     * @return Task
+     * @return ?Task
      * @throws ValidationException
      */
-    public function createTask(int $userId, array $data): Task
+    public function createTask(int $userId, array $data): ?Task
     {
         return DB::transaction(function () use ($userId, $data) {
             // Validate subtasks
@@ -223,7 +250,7 @@ class UserTaskService
                 throw new \Exception('Debe añadir al menos una subtarea.');
             }
 
-            // Check vacations on scheduled date
+            // Check non-working day
             if (!empty($data['scheduled_date']) &&
                 $this->isNonWorkingDay($userId, $data['scheduled_date'])) {
                 throw ValidationException::withMessages([
@@ -231,31 +258,62 @@ class UserTaskService
                 ]);
             }
 
-            // Handle pictogram
-            if (!empty($data['pictogram_path']) && $data['pictogram_path'] instanceof UploadedFile) {
-                $data['pictogram_path'] = $this->handlePictogramUpload($data['pictogram_path']);
-            }
+            // Normalize pictogram and subtasks
+            $data['pictogram_path'] = $this->normalizePictogram($data['pictogram_path'] ?? null);
+            $data['subtasks'] = $this->normalizeSubtasks($data['subtasks']);
 
             // Create main task
             $task = $this->taskRepository->createFromData($userId, $data);
 
-            // Create subtasks
-            foreach ($data['subtasks'] as $subtask) {
-                if (!empty($subtask['pictogram_path']) && $subtask['pictogram_path'] instanceof UploadedFile) {
-                    $subtask['pictogram_path'] = $this->handlePictogramUpload($subtask['pictogram_path']);
-                    $subtask['external_id'] = $subtask['external_id'] ?? (string) Str::uuid();
-                }
-                $this->subtaskRepository->createManyFromArray($task, $subtask);
+            if (empty($data['is_recurrent'])) {
+                // Simple case: save task and subtasks
+                $task->save();
+                $this->createSubtasksForTask($task, $data['subtasks']);
+                return $task->load('subtasks');
             }
-
-            // Handle recurrent series
-            if (!empty($data['is_recurrent'])) {
-                $recurrentId = $this->createRecurrentFromData($task, $data);
-                $task->update(['recurrent_task_id' => $recurrentId]);
-            }
-
+            // Handle recurrent Tasks
+            $this->handleRecurrentTask($task, $data);
             return $task->load('subtasks', 'recurrentTask');
         });
+    }
+
+    /**
+     * Create subtasks for a given task.
+     *
+     * @param Task $task
+     * @param array $subtasks
+     * @return void
+     */
+    protected function createSubtasksForTask(Task $task, array $subtasks): void
+    {
+        foreach ($subtasks as $subtask) {
+            $this->subtaskRepository->createManyFromArray($task, $subtask);
+        }
+    }
+
+    /**
+     * Handles recurrent task creation and instance generation.
+     *
+     * @param Task $firstTask
+     * @param array $data
+     * @return void
+     */
+    protected function handleRecurrentTask(Task $firstTask, array $data): void
+    {
+        $scheduledDate = Carbon::parse($data['scheduled_date']);
+        $scheduledDay  = strtolower($scheduledDate->format('l'));
+        $daysOfWeek    = array_map('strtolower', $data['days_of_week'] ?? []);
+
+        if (in_array($scheduledDay, $daysOfWeek)) {
+            $firstTask->save();
+            $this->createSubtasksForTask($firstTask, $data['subtasks']);
+        }
+
+        $recurrentId = $this->createRecurrentFromData($firstTask, $data);
+
+        if ($firstTask->exists) {
+            $firstTask->update(['recurrent_task_id' => $recurrentId]);
+        }
     }
 
     /**
@@ -267,21 +325,27 @@ class UserTaskService
      */
     protected function createRecurrentFromData(Task $firstTask, array $data): int
     {
-        $days = $data['days_of_week'];
-        $startDate = Carbon::parse($data['recurrent_start_date']);
-        $endDate   = Carbon::parse($data['recurrent_end_date']);
+        $userId = $firstTask->user_id;
+
+        // Normalize main task pictogram if firstTask doesn't exist yet
+        if (!$firstTask->exists && !empty($data['pictogram_path'])) {
+            $data['pictogram_path'] = $this->normalizePictogram($data['pictogram_path']);
+        }
 
         // Create recurrent task definition
-        $recurrent = $this->recurrentTaskRepository->createFromData($firstTask->user_id, $data);
+        $recurrent = $this->recurrentTaskRepository->createFromData($userId, $data);
 
-        // Generate instances
-        $dates = $this->generateDatesForRecurrentTask($days, $startDate, $endDate);
+        // Generate dates for the recurrence
+        $startDate = Carbon::parse($data['recurrent_start_date']);
+        $endDate   = Carbon::parse($data['recurrent_end_date']);
+        $dates     = $this->generateDatesForRecurrentTask($data['days_of_week'], $startDate, $endDate);
 
         $firstTaskDate = $firstTask->scheduled_date ? Carbon::parse($firstTask->scheduled_date) : null;
-        if ($firstTaskDate && $firstTaskDate->lt($startDate)) {
-            $firstTask->update(['scheduled_date' => $startDate]);
-            $firstTaskDate = $startDate;
-        }
+
+        // Prepare subtasks if first task is not saved
+        $preparedSubtasks = !$firstTask->exists
+            ? $this->normalizeSubtasks($data['subtasks'] ?? [])
+            : [];
 
         foreach ($dates as $date) {
             $dateCarbon = Carbon::parse($date);
@@ -291,16 +355,29 @@ class UserTaskService
                 continue;
             }
 
-            // Skip if user has absence
+            // Skip non-working days
             if ($this->isNonWorkingDay($firstTask->user_id, $date)) {
                 continue;
             }
 
-            // Create instance
-            $task = $this->taskRepository->replicateWithDate($firstTask, $recurrent->id, $date);
+            if ($firstTask->exists) {
+                // Normal case: replicate the first task and its subtasks
+                $task = $this->taskRepository->replicateWithDate($firstTask, $recurrent->id, $date);
+                $this->subtaskRepository->replicateMany($firstTask->subtasks, $task);
+            } else {
+                // Create instance task from normalized data
+                $instanceData = $data;
+                $instanceData['scheduled_date'] = $date;
 
-            // Copy subtasks
-            $this->subtaskRepository->replicateMany($firstTask->subtasks, $task);
+                $instanceTask = $this->taskRepository->createFromData($userId, $instanceData);
+                $instanceTask->save();
+                $instanceTask->update(['recurrent_task_id' => $recurrent->id]);
+
+                // Create subtasks
+                foreach ($preparedSubtasks as $pst) {
+                    $this->subtaskRepository->createManyFromArray($instanceTask, $pst);
+                }
+            }
         }
 
         return $recurrent->id;
@@ -397,7 +474,7 @@ class UserTaskService
         return DB::transaction(function () use ($task, $data, $editSeries) {
             // Sync subtasks of the base task
             if (isset($data['subtasks'])) {
-                $this->syncSubtasks($task, $data['subtasks'], $editSeries);
+                $this->syncSubtasks($task, $data['subtasks']);
                 $task->load('subtasks');
             }
 
@@ -409,7 +486,7 @@ class UserTaskService
 
             // If editing the whole series, update all future tasks
             if ($editSeries && $task->recurrent_task_id) {
-                $this->updateFutureTasksInSeries($task, $data, $editSeries);
+                $this->updateFutureTasksInSeries($task, $data);
             }
 
             // Return updated task(s)
@@ -438,7 +515,7 @@ class UserTaskService
             'scheduled_time'        => $data['scheduled_time'] ?? $task->scheduled_time,
             'estimated_duration_minutes' => $data['estimated_duration_minutes'] ?? $task->estimated_duration_minutes,
             'pictogram_path'        => isset($data['pictogram_path'])
-                ? $this->handlePictogramUpload($data['pictogram_path'], $task->pictogram_path)
+                ? $this->normalizePictogram($data['pictogram_path'], $task->pictogram_path)
                 : $task->pictogram_path,
             'status'                => $data['status'] ?? $task->status,
             'notifications_enabled' => $data['notifications_enabled'] ?? $task->notifications_enabled,
@@ -458,10 +535,9 @@ class UserTaskService
      *
      * @param Task $baseTask
      * @param array $data
-     * @param bool $editSeries
      * @return void
      */
-    protected function updateFutureTasksInSeries(Task $baseTask, array $data, bool $editSeries = false): void
+    protected function updateFutureTasksInSeries(Task $baseTask, array $data): void
     {
         $recurrent = $baseTask->recurrentTask ?? new RecurrentTask();
         $recurrent->fill([
@@ -499,19 +575,21 @@ class UserTaskService
         foreach ($allTasks as $task) {
             $taskDate = Carbon::parse($task->scheduled_date)->toDateString();
 
-            if (!in_array($taskDate, $expectedDates) || $task->id === $baseTask->id) {
+            if ($task->id === $baseTask->id || !in_array($taskDate, $expectedDates)) {
                 continue;
             }
 
             $updateData = $this->buildTaskUpdateData($task, $data, true);
             $task->update($updateData);
 
-            if (isset($data['subtasks'])) {
-                $this->syncSubtasks($task, $data['subtasks'], $editSeries);
-            }
+            // Eliminar subtasks existentes antes de replicar
+            $task->subtasks()->delete();
+
+            // Replicar subtasks desde la base
+            $this->subtaskRepository->replicateMany($baseTask->subtasks, $task);
         }
 
-        // 3. Crear las que faltan
+        // 3. Crear tareas faltantes
         $datesToCreate = array_diff($expectedDates, $existingDates);
         foreach ($datesToCreate as $date) {
             $newTask = $this->taskRepository->replicateWithDate($baseTask, $recurrent->id, $date);
@@ -594,10 +672,9 @@ class UserTaskService
      *
      * @param Task $task
      * @param array<int,array> $formSubtasks
-     * @param bool $editSeries
      * @return void
      */
-    public function syncSubtasks(Task $task, array $formSubtasks, bool $editSeries = false): void
+    public function syncSubtasks(Task $task, array $formSubtasks): void
     {
         $submittedExternalIds = [];
 
@@ -616,7 +693,7 @@ class UserTaskService
 
             // pictogram logic (business rule)
             if (!empty($subtaskData['pictogram']) && $subtaskData['pictogram'] instanceof UploadedFile) {
-                $values['pictogram_path'] = $this->handlePictogramUpload(
+                $values['pictogram_path'] = $this->normalizePictogram(
                     $subtaskData['pictogram'],
                     $existing?->pictogram_path
                 );
@@ -626,14 +703,11 @@ class UserTaskService
 
             // delegate persistence to repository
             $this->subtaskRepository->updateOrCreate($task, $externalId, $values);
-
             $submittedExternalIds[] = $externalId;
         }
 
         // delete missing subtasks
-        if (!$editSeries) {
-            $this->subtaskRepository->deleteAllExcept($task, $submittedExternalIds);
-        }
+        $this->subtaskRepository->deleteAllExcept($task, $submittedExternalIds);
     }
 
     /**

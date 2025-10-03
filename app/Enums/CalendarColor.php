@@ -40,4 +40,27 @@ enum CalendarColor: string
             ],
         ];
     }
+
+    /**
+     * Returns an array of visible colors with their class and name in Spanish
+     *
+     * @return array
+     */
+    public static function taskLegend(): array
+    {
+        return [
+            'VACATION' => [
+                'class' => self::VACATION->value,
+                'label' => 'Vacaciones',
+            ],
+            'LEGAL_ABSENCE' => [
+                'class' => self::LEGAL_ABSENCE->value,
+                'label' => 'Ausencias legales',
+            ],
+            'HOLIDAY' => [
+                'class' => self::HOLIDAY->value,
+                'label' => 'Festivos',
+            ],
+        ];
+    }
 }

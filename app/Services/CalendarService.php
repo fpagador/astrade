@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\CalendarStatus;
 use App\Enums\CalendarType;
 use App\Errors\ErrorCodes;
+use App\Repositories\TaskRepository;
 use App\Repositories\UserAbsenceRepository;
 use App\Exceptions\BusinessRuleException;
 use App\Repositories\UserRepository;
@@ -30,12 +31,14 @@ class CalendarService
      * @param WorkCalendarDayRepository $workCalendarDayRepository
      * @param WorkCalendarTemplateRepository $workCalendarTemplateRepository
      * @param UserRepository $userRepository
+     * @param TaskRepository $taskRepository
      */
     public function __construct(
         protected UserAbsenceRepository $userAbsenceRepository,
         protected WorkCalendarDayRepository $workCalendarDayRepository,
         protected WorkCalendarTemplateRepository $workCalendarTemplateRepository,
-        protected UserRepository $userRepository
+        protected UserRepository $userRepository,
+        protected TaskRepository $taskRepository
     ) {}
 
     //================================ API ======================================
@@ -331,5 +334,57 @@ class CalendarService
     public function removeDayFromTemplate(WorkCalendarDay $day): void
     {
         $this->workCalendarDayRepository->removeDay($day);
+    }
+
+    /**
+     * Check if selected vacation or legal absence dates have assigned tasks.
+     *
+     * @param User $user
+     * @param array $dates
+     * @param array $vacationDates
+     * @param array $legalDates
+     * @return array
+     */
+    public function checkTaskConflicts(User $user, array $dates, array $vacationDates = [], array $legalDates = []): array
+    {
+        $tasks = $this->taskRepository->getTasksByUserAndDates($user->id, $dates);
+
+        $conflicts = [];
+        foreach ($dates as $date) {
+            $type = null;
+
+            if (in_array($date, $vacationDates)) {
+                $type = 'Vacaciones';
+            } elseif (in_array($date, $legalDates)) {
+                $type = 'Ausencia legal';
+            }
+
+            // Si hay tareas en esa fecha
+            foreach ($tasks as $task) {
+                $taskDate = Carbon::parse($task->scheduled_date)->format('Y-m-d');
+
+                if ($taskDate === $date) {
+                    $conflicts[] = [
+                        'title' => $task->title,
+                        'date'  => Carbon::parse($task->scheduled_date)->format('d/m/Y'),
+                        'type'  => $type ?? 'Tarea asignada',
+                    ];
+                }
+            }
+        }
+
+        return $conflicts;
+    }
+
+    /**
+     * Delete all tasks (normal + recurrent instances) for a user on specific dates.
+     *
+     * @param User $user
+     * @param array $dates
+     * @return void
+     */
+    public function deleteTasksForDates(User $user, array $dates): void
+    {
+        $this->taskRepository->deleteTasksByUserAndDates($user->id, $dates);
     }
 }

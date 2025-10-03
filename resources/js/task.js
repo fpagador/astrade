@@ -247,6 +247,8 @@ export function cloneTaskForm(oldSubtasks = []) {
                     });
                 }
             }
+
+            document.dispatchEvent(new CustomEvent('task-loaded', { detail: { recurrent: !!task.is_recurrent, days: days } }));
         },
 
         async fetchTask(taskId) {

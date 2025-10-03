@@ -57,16 +57,42 @@ export function initCalendars() {
             try { vacationDates = JSON.parse(hiddenInput?.value || '[]'); } catch(e){ console.error(e); }
             try { legalDates = JSON.parse(legalInput?.value || '[]'); } catch(e){ console.error(e); }
 
-            // Si no hay ningún día seleccionado
-            if (vacationDates.length === 0 && legalDates.length === 0) {
-                if (confirm("No has seleccionado ningún día. Se guardará la plantilla sin días. ¿Deseas continuar?")) {
-                    const form = document.getElementById(formId);
-                    if (form) form.submit();
+            const vacationHeader = modal.querySelector('#vacationHeader');
+            const legalHeader = modal.querySelector('#legalHeader');
+
+            if (vacationHeader && dateList) {
+                if (vacationDates.length > 0) {
+                    vacationHeader.style.display = 'block';
+                    dateList.innerHTML = vacationDates.map(d => {
+                        const [year, month, day] = d.split('-');
+                        return `<li>${day}/${month}/${year}</li>`;
+                    }).join('');
+                } else {
+                    vacationHeader.style.display = 'none';
+                    dateList.innerHTML = '';
                 }
-                return; // no abrir modal
             }
 
-            // Rellenar modal con fechas seleccionadas
+            if (legalHeader && legalList) {
+                if (legalDates.length > 0) {
+                    legalHeader.style.display = 'block';
+                    legalList.innerHTML = legalDates.map(d => {
+                        const [year, month, day] = d.split('-');
+                        return `<li>${day}/${month}/${year}</li>`;
+                    }).join('');
+                } else {
+                    legalHeader.style.display = 'none';
+                    legalList.innerHTML = '';
+                }
+            }
+
+            // If no day is selected
+            if (vacationDates.length === 0 && legalDates.length === 0) {
+                alert("No has seleccionado ningún día. Debes seleccionar al menos uno antes de guardar.");
+                return;
+            }
+
+            // Fill modal with selected dates
             if (dateList) {
                 dateList.innerHTML = '';
                 vacationDates.forEach(d => {
@@ -125,6 +151,119 @@ export function initCalendars() {
 
         vacationCheckbox.addEventListener('change', () => handleCheckboxClick(vacationCheckbox, legalCheckbox));
         legalCheckbox.addEventListener('change', () => handleCheckboxClick(legalCheckbox, vacationCheckbox));
+    }
+
+    const saveBtn = document.querySelector('#vacationFormSaveAjax');
+    if (saveBtn) {
+        const baseUrl = saveBtn.dataset.url;
+        saveBtn.addEventListener('click', async () => {
+            const form = document.querySelector('#vacationForm');
+            const vacationInput = form.querySelector('#selectedDates');
+            const legalInput = form.querySelector('#selectedLegalAbsences');
+
+            const data = {
+                vacation_dates: JSON.parse(vacationInput.value || '[]'),
+                legal_dates: JSON.parse(legalInput.value || '[]'),
+            };
+
+            try {
+                const res = await fetch(baseUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                const result = await res.json();
+
+                if (result.status === 'conflicts' && result.conflicts.length > 0) {
+                    checkTaskConflicts(result.conflicts, async () => {
+                        const res2 = await fetch(baseUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            },
+                            body: JSON.stringify({
+                                vacation_dates: data.vacation_dates,
+                                legal_dates: data.legal_dates,
+                                confirm_delete_tasks: true
+                            }),
+                        });
+                        const finalResult = await res2.json();
+
+                        if (finalResult.status === "success") {
+
+                            const successDiv = document.getElementById('successMessageContainer');
+                            if (successDiv) {
+                                successDiv.innerHTML = `<strong>${finalResult.message}</strong>`;
+                                successDiv.classList.remove('hidden');
+                            }
+                            if (finalResult.redirect) {
+                                setTimeout(() => {
+                                    localStorage.setItem("successMessage", finalResult.message);
+                                    window.location.href = finalResult.redirect;
+                                }, 2000);
+                            }
+                        }
+                    });
+                } else {
+                    let vacationDates = [];
+                    let legalDates = [];
+                    const hiddenInput = document.querySelector(`#vacationForm #selectedDates`);
+                    const legalInput = document.querySelector(`#vacationForm #selectedLegalAbsences`);
+                    try { vacationDates = JSON.parse(hiddenInput?.value || '[]'); } catch(e){}
+                    try { legalDates = JSON.parse(legalInput?.value || '[]'); } catch(e){}
+                    if (vacationDates.length === 0 && legalDates.length === 0) {
+                        alert("No has seleccionado ningún día. Debes seleccionar al menos uno antes de guardar.");
+                        return;
+                    } else {
+                        const modal = document.getElementById('confirmModal_vacationForm');
+                        if (modal) {
+                            const dateList = modal.querySelector('#dateList');
+                            const legalList = modal.querySelector('#legalDateList');
+                            const vacationHeader = modal.querySelector('#vacationHeader');
+                            const legalHeader = modal.querySelector('#legalHeader');
+
+                            if (vacationHeader && dateList) {
+                                if (vacationDates.length > 0) {
+                                    vacationHeader.style.display = 'block';
+                                    dateList.innerHTML = vacationDates.map(d => {
+                                        const [year, month, day] = d.split('-');
+                                        return `<li>${day}/${month}/${year}</li>`;
+                                    }).join('');
+                                } else {
+                                    vacationHeader.style.display = 'none';
+                                    dateList.innerHTML = '';
+                                }
+                            }
+                            if (legalHeader && legalList) {
+                                if (legalDates.length > 0) {
+                                    legalHeader.style.display = 'block';
+                                    legalList.innerHTML = legalDates.map(d => {
+                                        const [year, month, day] = d.split('-');
+                                        return `<li>${day}/${month}/${year}</li>`;
+                                    }).join('');
+                                } else {
+                                    legalHeader.style.display = 'none';
+                                    legalList.innerHTML = '';
+                                }
+                            }
+
+                            modal.classList.remove('hidden');
+                            modal.classList.add('flex');
+                        }
+                    }
+
+                }
+
+            } catch(err) {
+                console.error(err);
+                alert('Error al guardar las ausencias.');
+            }
+        });
     }
 }
 
@@ -233,12 +372,6 @@ function initCalendar(options = {}) {
                         cell.classList.add('opacity-50','cursor-not-allowed');
                     }
                 }
-            }
-
-            if (isWeekend) {
-                bgClass = modeClasses.weekend;
-            } else if (!isVacation && !isLegal && !holidayDates.includes(dateStr)) {
-                bgClass = modeClasses.working;
             }
 
             cell.className = ['border aspect-square p-2 text-left transition hover:bg-gray-200', bgClass].join(' ');
@@ -399,9 +532,54 @@ export function initCloneSelect() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    initCloneSelect();
-});
+export function checkTaskConflicts(conflicts, onConfirm) {
+    let modal = document.getElementById('taskConflictModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'taskConflictModal';
+        modal.classList.add('fixed', 'inset-0', 'bg-gray-600', 'bg-opacity-50', 'flex', 'items-center', 'justify-center', 'z-50');
+
+        modal.innerHTML = `
+            <div class="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full">
+                <h2 class="text-xl font-bold mb-4 text-gray-900">Conflicto de Tareas</h2>
+                <p class="mb-4 text-gray-700">Los siguientes días seleccionados tienen tareas asignadas.
+                Si confirmas, esas tareas se eliminarán:</p>
+                <ul id="conflictTaskList" class="mb-4 space-y-2 text-gray-800 list-disc pl-5"></ul>
+                <div class="flex justify-end space-x-2">
+                    <button id="cancelConflictBtn" class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Cancelar</button>
+                    <button id="confirmConflictBtn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Confirmar y eliminar tareas</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    const ul = modal.querySelector('#conflictTaskList');
+    ul.innerHTML = '';
+    conflicts.forEach(task => {
+        const li = document.createElement('li');
+        li.textContent = `${task.title} - ${task.date} (${task.type})`;
+        ul.appendChild(li);
+    });
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    const cancelBtn = modal.querySelector('#cancelConflictBtn');
+    cancelBtn.onclick = () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    };
+
+    const confirmBtn = modal.querySelector('#confirmConflictBtn');
+    confirmBtn.onclick = () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        if (typeof onConfirm === 'function') {
+            onConfirm();
+        }
+    };
+}
 
 export function confirmDelete(form) {
     const userCount = parseInt(form.dataset.users);
@@ -420,6 +598,8 @@ export function calendarForm() {
         warningOpen: false,
         confirmDaysModalOpen: false,
         dateList: window.calendarData.selectedDates || [],
+        confirmMessage: '',
+        stateConfirmOpen: false,
 
         openConfirmDaysModal() {
             const selectedInput = document.getElementById('selectedDates');
@@ -438,12 +618,34 @@ export function calendarForm() {
 
         confirmAndCheckWarning() {
             this.confirmDaysModalOpen = false;
-            if (this.status === window.calendarData.templateStatus &&
-                window.calendarData.userCount > 0) {
-                this.warningOpen = true;
-            } else {
-                this.submitFormToServer();
+
+            // Evaluar cambio de estado
+            if (this.status !== window.calendarData.oldStatus) {
+                // Caso: activar calendario (desde borrador o inactivo)
+                if (this.status === 'active' &&
+                    (window.calendarData.oldStatus === 'draft' || window.calendarData.oldStatus === 'inactive')) {
+                    this.confirmMessage = "Está a punto de activar este calendario laboral. De confirmarse, quedará disponible para que los usuarios de gestión lo asignen a usuarios móviles.";
+                    this.stateConfirmOpen = true;
+                    return;
+                }
+
+                // Caso: inactivar calendario
+                if (this.status === 'inactive') {
+                    this.confirmMessage = "Está a punto de inactivar este calendario laboral. No podrá ser utilizado nuevamente.";
+                    if (window.calendarData.userCount > 0) {
+                        this.confirmMessage += " Actualmente existen usuarios asignados que quedarán sin calendario laboral.";
+                    }
+                    this.stateConfirmOpen = true;
+                    return;
+                }
             }
+
+            this.submitFormToServer();
+        },
+
+        confirmStateChange() {
+            this.stateConfirmOpen = false;
+            this.submitFormToServer();
         },
 
         confirmWarning() {

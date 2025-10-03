@@ -11,7 +11,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
-<body class="bg-gray-100 text-gray-900 font-sans min-h-screen flex flex-col" x-data="{ sidebarOpen: false }" data-page="{{ str_replace('.', '-', Route::currentRouteName()) }}">
+<body class="body font-sans min-h-screen flex flex-col" x-data="{ sidebarOpen: false }" data-page="{{ str_replace('.', '-', Route::currentRouteName()) }}">
 {{-- Offcanvas Overlay --}}
 <div class="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
      x-show="sidebarOpen" x-transition
@@ -19,12 +19,12 @@
 
 <div class="flex flex-1">
     {{-- Sidebar --}}
-    <aside class="fixed inset-y-0 left-0 w-64 bg-black text-white z-50 transform md:translate-x-0 md:block transition-transform duration-200 ease-in-out"
+    <aside class="sidebar fixed inset-y-0 left-0 w-64 z-50 transform md:translate-x-0 md:block transition-transform duration-200 ease-in-out"
            :class="{ '-translate-x-full': !sidebarOpen, 'translate-x-0': sidebarOpen }" x-cloak>
         {{-- Logo --}}
-        <div class="border-b border-gray-200 flex items-center justify-center">
+        <div class=" flex items-center justify-center" style="padding:16px;">
             <a href="{{ route('admin.dashboard.index') }}" class="block">
-                <img src="{{ asset('images/logo_admin.svg') }}" alt="Logo" class="h-16 w-auto cursor-pointer">
+                <img src="{{ asset('images/logo_admin.png') }}" alt="Logo" class="h-auto w-auto cursor-pointer">
             </a>
         </div>
 
@@ -38,11 +38,11 @@
                     {{-- Main button Users --}}
                     <button
                         @click="open = !open"
-                        class="flex items-center gap-3 w-full py-2 px-4 rounded hover:bg-gray-900 transition
-                        {{ request()->routeIs('admin.users.*') ? 'bg-gray-800' : '' }}"
+                        class="flex items-center gap-3 w-full py-2 px-4 rounded sidebar-link transition
+                        {{ request()->routeIs('admin.users.*') ? 'sidebar-link' : '' }}"
                     >
                         <i data-lucide="users" class="w-5 h-5 shrink-0"></i>
-                            <span class=" text-sm font-medium text-white">Usuarios</span>
+                            <span class=" text-sm font-medium ">Usuarios</span>
                         <i data-lucide="chevron-down" :class="{ 'rotate-180': open }" class="w-4 h-4 transition-transform"></i>
                     </button>
 
@@ -91,17 +91,17 @@
     {{-- Main content --}}
     <div class="flex-1 flex flex-col min-h-screen md:ml-64">
         {{-- Header --}}
-        <header class="h-16 bg-gray-200 shadow px-4 flex items-center justify-between md:px-6">
+        <header class="h-16 header shadow px-4 flex items-center justify-between md:px-6">
             <div class="flex items-center gap-3">
                 {{-- Toggle Sidebar on Mobile --}}
-                <button class="md:hidden text-gray-700" @click="sidebarOpen = true">
+                <button class="md:hidden text-black" @click="sidebarOpen = true">
                     <i data-lucide="menu" class="w-6 h-6"></i>
                 </button>
                 <div class="text-lg font-semibold">Panel de Administración</div>
             </div>
 
             <div class="flex items-center gap-4">
-                <div class="text-sm text-gray-700">
+                <div class="text-sm">
                     @php
                         $user = Auth::user();
                         $nombre = trim(($user->name ?? '') . ' ' . ($user->surname ?? ''));
@@ -117,7 +117,7 @@
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit"
-                            class="text-sm bg-gray-800 text-white px-3 py-1.5 rounded hover:bg-gray-700 transition">
+                            class="text-sm header px-3 py-1.5 rounded transition">
                         Cerrar sesión
                     </button>
                 </form>
@@ -130,7 +130,7 @@
         </main>
 
         {{-- Footer --}}
-        <footer class="bg-gray-200 border-t p-4 text-center text-sm text-gray-700 mt-auto">
+        <footer class="footer border-t p-4 text-center text-sm mt-auto">
             &copy; {{ now()->year }} Talentismo. Todos los derechos reservados.
         </footer>
     </div>

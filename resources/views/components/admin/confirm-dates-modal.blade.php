@@ -14,10 +14,10 @@
         <h3 class="text-xl font-semibold mb-4">{{ $title }}</h3>
 
         @if($mode === 'vacation')
-            <p class="text-sm text-gray-600 mb-2">Has marcado los siguientes días como vacaciones:</p>
+            <p class="text-sm text-gray-600 mb-2" id="vacationHeader">Has marcado los siguientes días como vacaciones:</p>
             <ul id="dateList" class="list-disc list-inside text-sm max-h-40 overflow-auto mb-4"></ul>
 
-            <p class="text-sm text-gray-600 mb-2">Has marcado los siguientes días como ausencias legales:</p>
+            <p class="text-sm text-gray-600 mb-2" id="legalHeader">Has marcado los siguientes días como ausencias legales:</p>
             <ul id="legalDateList" class="list-disc list-inside text-sm max-h-40 overflow-auto mb-4"></ul>
         @else
             <p class="text-sm text-gray-600 mb-3">Has marcado los siguientes días como festivos:</p>

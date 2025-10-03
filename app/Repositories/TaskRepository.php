@@ -181,7 +181,7 @@ class TaskRepository
      */
     public function createFromData(int $userId, array $data): Task
     {
-        return Task::create([
+        return new Task([
             'user_id' => $userId,
             'assigned_by' => $data['assigned_by'] ?? auth()->id(),
             'title' => $data['title'],
@@ -371,11 +371,45 @@ class TaskRepository
             ->get();
     }
 
+    /**
+     * Get tasks for a specific recurrentID
+     *
+     * @param int $recurrentId
+     * @return Collection
+     */
     public function getTasksByRecurrentId(int $recurrentId): Collection
     {
         return Task::query()
             ->where('recurrent_task_id', $recurrentId)
             ->orderBy('scheduled_date')
             ->get();
+    }
+
+    /**
+     * Get all tasks assigned to a user on specific dates.
+     *
+     * @param int $userId
+     * @param array $dates
+     * @return Collection
+     */
+    public function getTasksByUserAndDates(int $userId, array $dates): Collection
+    {
+        return Task::where('user_id', $userId)
+            ->whereIn('scheduled_date', $dates)
+            ->get();
+    }
+
+    /**
+     * Delete tasks for a user on specific dates.
+     *
+     * @param int $userId
+     * @param array $dates
+     * @return void
+     */
+    public function deleteTasksByUserAndDates(int $userId, array $dates): void
+    {
+        Task::where('user_id', $userId)
+            ->whereIn('scheduled_date', $dates)
+            ->delete();
     }
 }

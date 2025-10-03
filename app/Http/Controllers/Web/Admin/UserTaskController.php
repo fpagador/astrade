@@ -122,7 +122,7 @@ class UserTaskController extends WebController
             foreach ($subtasks as $i => &$st) {
                 $file = $request->file("subtask_pictograms.$i") ?: $request->file("subtask_files.$i");
                 if ($file) {
-                    $st['pictogram_path'] = $this->userTaskService->handlePictogramUpload($file);
+                    $st['pictogram_path'] = $this->userTaskService->normalizePictogram($file);
                 }
             }
             $data['subtasks'] = $subtasks;

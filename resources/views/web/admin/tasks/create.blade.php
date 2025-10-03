@@ -120,7 +120,7 @@
             {{-- RECURRENT --}}
             <div class="border-t pt-6 mt-6"
                  x-data="{
-                    recurrent: {{ old('is_recurrent') ? 'true' : 'false' }},
+                    recurrent: @js((bool) old('is_recurrent')),
                     weekDaysSelected: {{ Js::from(old('days_of_week', [])) }},
                     allSelected: false,
                     weekDays: {{ Js::from(array_keys($weekDays)) }},
@@ -131,6 +131,13 @@
                     updateAllSelected() {
                         let checkboxes = $el.querySelectorAll('input[name=\'days_of_week[]\']');
                         this.allSelected = Array.from(checkboxes).every(cb => cb.checked);
+                    },
+                    init() {
+                        document.addEventListener('task-loaded', e => {
+                            this.recurrent = e.detail.recurrent;
+                            this.weekDaysSelected = e.detail.days;
+                            this.updateAllSelected();
+                        });
                     }
                 }"
             >

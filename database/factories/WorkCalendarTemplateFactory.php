@@ -1,6 +1,7 @@
 <?php
 namespace Database\Factories;
 
+use App\Enums\CalendarStatus;
 use App\Models\WorkCalendarTemplate;
 use App\Models\WorkCalendarDay;
 use Illuminate\Support\Carbon;
@@ -12,12 +13,12 @@ class WorkCalendarTemplateFactory  extends Factory
 
     public function definition(): array
     {
-        $year = $this->faker->year();
+        $year = $this->faker->numberBetween($currentYear - 1, $currentYear + 1);
 
         return [
             'name' => 'Calendario ' . $this->faker->city(),
             'year' => $year,
-            'status' => $this->faker->randomElement(['draft', 'active', 'inactive']),
+            'status' => $this->faker->randomElement([CalendarStatus::DRAFT->value, CalendarStatus::ACTIVE->value, CalendarStatus::INACTIVE->value]),
             'created_at' => now(),
             'updated_at' => now(),
         ];

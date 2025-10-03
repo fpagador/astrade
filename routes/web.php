@@ -79,6 +79,8 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
         */
         Route::get('/{user}/absences', [UserAbsenceController::class, 'index'])->name('absences');
         Route::post('/{user}/absences', [UserAbsenceController::class, 'store'])->name('absences.store');
+        Route::post('{user}/absences/check-save', [UserAbsenceController::class, 'checkAndSave'])
+            ->name('absences.checkSave');
 
         /*
         |--------------------------------------------------------------------------

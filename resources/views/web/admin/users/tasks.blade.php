@@ -98,11 +98,11 @@
                     </div>
 
                     {{-- Third block: Colors according to type of task --}}
-                    <div class="flex flex-wrap gap-4">
-                        <template x-for="(color, type) in window.calendarColors" :key="type">
-                            <div class="flex items-center gap-1" x-show="type !== 'WEEKEND'">
+                    <div class="flex flex-wrap gap-4" x-data="{ calendarColors: @js($calendarColors) }">
+                        <template x-for="color in calendarColors" :key="color.class">
+                            <div class="flex items-center gap-1">
                                 <span class="w-4 h-4 inline-block rounded-sm border border-gray-300" :class="color.class"></span>
-                                <span x-text="type.charAt(0) + type.slice(1).toLowerCase()"></span>
+                                <span x-text="color.label"></span>
                             </div>
                         </template>
                     </div>

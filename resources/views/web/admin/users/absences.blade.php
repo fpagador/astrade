@@ -33,7 +33,16 @@
         <input type="hidden" name="legal_absences_json" id="selectedLegalAbsences" value="{{ json_encode($legalAbsences ?? []) }}">
 
         <div class="flex justify-end gap-2 mt-4">
-            <button type="button" data-open-modal="confirmModal_vacationForm" class="bg-indigo-900 text-white px-4 py-2 rounded">
+            <!--<button type="button" data-open-modal="confirmModal_vacationForm" class="bg-indigo-900 text-white px-4 py-2 rounded">
+                Guardar
+            </button>-->
+            <button
+                type="button"
+                id="vacationFormSaveAjax"
+                data-user-id="{{ $user->id }}"
+                data-url="{{ route('admin.users.absences.checkSave', $user) }}"
+                data-redirect="{{ route('admin.users.absences', ['user' => $user->id, 'back_url' => url()->full()]) }}"
+                class="bg-indigo-900 text-white px-4 py-2 rounded">
                 Guardar
             </button>
             <a href="{{ route('admin.users.index', ['type' => \App\Enums\UserTypeEnum::MOBILE->value]) }}" class="bg-red-900 text-white px-4 py-2 rounded hover:bg-red-800 text-center">Cancelar</a>

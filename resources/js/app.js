@@ -1,7 +1,7 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
 import { createIcons, icons } from 'lucide';
-import { initCalendars, confirmDelete, calendarForm  } from './calendar';
+import {initCalendars, confirmDelete, calendarForm, initCloneSelect, checkTaskConflicts} from './calendar';
 import { cloneTaskForm, editTaskForm, imageModal, calendarView, actionTaskModal, dailyControls, enhancedLoadTasks} from './task';
 import { initCompaniesPhones } from './company';
 import { imageSelector } from './imageSelector';
@@ -36,6 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initCalendars();
     createIcons({ icons });
+
+    initCloneSelect();
 
     // === Translation of required fields tooltips ===
     const requiredFields = document.querySelectorAll('input[required], select[required], textarea[required]');
