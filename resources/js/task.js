@@ -477,8 +477,8 @@ export function actionTaskModal() {
                 this.title = 'Tarea recurrente';
                 this.message = 'Está intentando editar una tarea recurrente. ¿Desea modificar solo esta tarea o toda la serie?';
                 this.buttons = [
-                    { label: 'Modificar solo esta tarea', action: 'single', color: 'bg-indigo-900 hover:bg-indigo-800' },
-                    { label: 'Modificar la serie', action: 'series', color: 'bg-green-600 hover:bg-green-500' },
+                    { label: 'Modificar solo esta tarea', action: 'single', color: 'bg-color-button' },
+                    { label: 'Modificar la serie', action: 'series', color: 'bg-indigo-900 hover:bg-indigo-800' },
                     { label: 'Cancelar', action: 'cancel', color: 'bg-red-900 hover:bg-red-800' },
                 ];
                 this.callback = (action) => {

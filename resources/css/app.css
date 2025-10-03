@@ -26,6 +26,14 @@ input[type="password"]::-moz-password-suggest {
     background: linear-gradient(to top right, #85C7F2, #A06CD5);
 }
 
+.bg-color-button {
+    background-color: #2D72C4;
+}
+
+.bg-color-button:hover {
+    background-color: #4482CF;
+}
+
 /* Sidebar link states DE AZUL A MORADO*/
 /*.sidebar {
     background: linear-gradient(to bottom, #A06CD5 0%, #85C7F2 100%);
