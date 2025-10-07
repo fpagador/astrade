@@ -28,7 +28,7 @@
             </a>
         </div>
 
-        <nav class="mt-6 px-4 space-y-2 text-sm">
+        <nav class="mt-6 px-4 space-y-2 text-sm nav">
             {{-- Dashboard --}}
             <x-admin.nav-link route="admin.dashboard.index" icon="layout-dashboard" label="Dashboard" />
 

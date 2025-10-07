@@ -64,7 +64,6 @@ class DashboardService
         // --- USERS ---
         $totalUsers = $this->userRepository->countAll() ?? 0;
         $usersWithoutCalendar = $this->userRepository->countWithoutCalendar() ?? 0;
-        $usersWithAbsences = $this->userAbsenceRepository->countBetweenDates($startMonth, $endMonth) ?? 0;
         $usersManagement = $this->userRepository->countByRoles([RoleEnum::ADMIN->value, RoleEnum::MANAGER->value]);
         $usersMobile = $this->userRepository->countByRoles([RoleEnum::USER->value]);
 
@@ -106,14 +105,13 @@ class DashboardService
             ->getAbsencesGroupedByUser($nextMonthStart, $nextMonthEnd, CalendarType::LEGAL_ABSENCE->value);
 
         // --- GRAPH DATA ---
-        $tasksByDay = $this->taskRepository->getTasksCountGroupedByDay($startMonth, $endMonth);
+        $tasksByDay = $this->getTasksGroupedByDay();
         $usersWithoutTasks = $this->userRepository->getUsersWithoutTasks();
         $employeesByCompany = $this->userRepository->getUsersGroupedByCompany();
 
         return compact(
             'totalUsers',
             'usersWithoutCalendar',
-            'usersWithAbsences',
             'usersManagement',
             'usersMobile',
             'tasksToday',
@@ -140,13 +138,20 @@ class DashboardService
     /**
      * Get tasks grouped by day in a given month.
      *
-     * @param Carbon $startMonth
-     * @param Carbon $endMonth
      * @return array<string,int>
      */
-    public function getTasksGroupedByDay(Carbon $startMonth, Carbon $endMonth): array
+    public function getTasksGroupedByDay(): array
     {
-        return $this->taskRepository->getTasksCountGroupedByDay($startMonth, $endMonth);
+        $startDay = now()->startOfDay();
+        $endDay = now()->copy()->addDays(6)->endOfDay();
+        $tasksByDay = $this->taskRepository->getTasksCountGroupedByDay($startDay, $endDay);
+
+        $tasksByDayFormatted = [];
+        for ($date = $startDay->copy(); $date->lte($endDay); $date->addDay()) {
+            $formattedDate = $date->format('d-m-Y');
+            $tasksByDayFormatted[$formattedDate] = $tasksByDay[$date->format('Y-m-d')] ?? 0;
+        }
+        return $tasksByDayFormatted;
     }
 
     /**
@@ -164,8 +169,8 @@ class DashboardService
      *
      * @return Collection
      */
-    public function getEmployeesByCompany()
+    public function getEmployeesByCompany(?int $companyId = null): Collection
     {
-        return $this->userRepository->getUsersGroupedByCompany();
+        return $this->userRepository->getUsersByCompany($companyId);
     }
 }

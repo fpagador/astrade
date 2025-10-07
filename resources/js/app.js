@@ -6,6 +6,7 @@ import { cloneTaskForm, editTaskForm, imageModal, calendarView, actionTaskModal,
 import { initCompaniesPhones } from './company';
 import { imageSelector } from './imageSelector';
 import { userSelector } from './users';
+import './dashboard';
 
 
 window.Alpine = Alpine;

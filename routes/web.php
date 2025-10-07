@@ -39,9 +39,10 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
     */
     Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('index');
-        Route::get('/tasks-by-day/{day}', [DashboardController::class, 'tasksByDay']);
-        Route::get('/tasks-by-user/{userId?}', [DashboardController::class, 'tasksByUser']);
-        Route::get('/employees-by-company', [DashboardController::class, 'employeesByCompany']);
+        Route::get('/tasks-by-day/{day}', [DashboardController::class, 'tasksByDay'])->name('tasks-by-day');
+        Route::get('/tasks-by-user/{userId?}', [DashboardController::class, 'tasksByUser'])->name('tasks-by-user');
+        Route::get('/employees-by-company/{companyId?}', [DashboardController::class, 'employeesByCompany'])->name('employees-by-company');
+        Route::get('/users-without-tasks', [DashboardController::class, 'usersWithoutTasks'])->name('users-without-tasks');
     });
 
     /*

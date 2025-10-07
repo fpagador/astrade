@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Dashboard')
 @section('content')
-<!--   <div class="w-full p-4 space-y-6">
+<div class="w-full p-4 space-y-6">
         {{-- Page header --}}
         <h1 class="text-3xl font-semibold mb-6">Panel de Control</h1>
         <hr class="border-gray-300 mb-6">
@@ -50,7 +50,7 @@
 
         {{-- Tasks by Day --}}
         <section class="mt-6 bg-white rounded-lg shadow p-4">
-            <h2 class="font-semibold mb-2">Tareas por día (mes actual)</h2>
+            <h2 class="font-semibold mb-2">Tareas por día</h2>
             <div id="tasksByDayChart"></div>
         </section>
 
@@ -64,72 +64,6 @@
         <section class="mt-6 bg-white rounded-lg shadow p-4">
             <h2 class="font-semibold mb-2">Empleados por empresa</h2>
             <div id="employeesByCompanyChart"></div>
-        </section>
-
-        {{-- PENDING TASKS AND SUBTASKS --}}
-        <section class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-            {{-- Tasks pending --}}
-            <div class="bg-white rounded-lg shadow p-4 overflow-x-auto">
-                <h2 class="font-semibold mb-2">Tareas pendientes</h2>
-                <div class="flex font-semibold bg-gray-100 px-4 py-2 rounded-t">
-                    <div class="w-40">Nombre</div>
-                    <div class="flex-1 min-w-0 px-2">Título tarea</div>
-                    <div class="w-24 text-right">Fecha</div>
-                </div>
-                <ul class="divide-y divide-gray-200">
-                    @foreach(\App\Models\Task::with('user')->where('status','pending')->orderBy('scheduled_date')->get() as $task)
-                        <li class="flex px-4 py-2 hover:bg-gray-50">
-                        <span class="w-40 truncate" title="{{ $task->user->name ?? '—' }} {{ $task->user->surname ?? '' }}">
-                            {{ $task->user->name ?? '—' }} {{ $task->user->surname ?? '' }}
-                        </span>
-                            <span class="flex-1 min-w-0 px-2 truncate" title="{{ $task->title }}">{{ $task->title }}</span>
-                            <span class="w-24 text-right text-sm text-gray-500">{{ $task->scheduled_date->format('d/m/Y') }}</span>
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-
-            {{-- Subtasks pending --}}
-            <div class="bg-white rounded-lg shadow p-4 overflow-x-auto">
-                <h2 class="font-semibold mb-2">Subtareas pendientes</h2>
-                <div class="flex font-semibold bg-gray-100 px-4 py-2 rounded-t">
-                    <div class="w-40">Nombre</div>
-                    <div class="flex-1 min-w-0 px-2">Subtarea</div>
-                    <div class="w-24 text-right">Fecha</div>
-                </div>
-                <ul class="divide-y divide-gray-200">
-                    @foreach(\App\Models\Subtask::with('task.user')->where('status','pending')->get() as $subtask)
-                        <li class="flex px-4 py-2 hover:bg-gray-50">
-                        <span class="w-40 truncate" title="{{ $subtask->task->user->name ?? '—' }} {{ $subtask->task->user->surname ?? '' }}">
-                            {{ $subtask->task->user->name ?? '—' }} {{ $subtask->task->user->surname ?? '' }}
-                        </span>
-                            <span class="flex-1 min-w-0 px-2 truncate" title="{{ $subtask->title }}">{{ $subtask->title }}</span>
-                            <span class="w-24 text-right text-sm text-gray-500">{{ $subtask->task?->scheduled_date?->format('d/m/Y') ?? '—' }}</span>
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-        </section>
-
-        {{-- LAST ASSIGNED TASKS --}}
-        <section class="mt-6 bg-white rounded-lg shadow p-4 overflow-x-auto">
-            <h2 class="font-semibold mb-2">Últimas tareas asignadas</h2>
-            <div class="flex font-semibold bg-gray-100 px-4 py-2 rounded-t">
-                <div class="w-40">Nombre</div>
-                <div class="flex-1 min-w-0 px-2">Título tarea</div>
-                <div class="w-24 text-right">Fecha</div>
-            </div>
-            <ul class="divide-y divide-gray-200">
-                @foreach(\App\Models\Task::with('user')->latest()->take(5)->get() as $task)
-                    <li class="flex px-4 py-2 hover:bg-gray-50">
-                    <span class="w-40 truncate" title="{{ $task->user->name ?? '—' }} {{ $task->user->surname ?? '' }}">
-                        {{ $task->user->name ?? '—' }} {{ $task->user->surname ?? '' }}
-                    </span>
-                        <span class="flex-1 min-w-0 px-2 truncate" title="{{ $task->title }}">{{ $task->title }}</span>
-                        <span class="w-24 text-right text-sm text-gray-500">{{ $task->scheduled_date->format('d/m/Y') }}</span>
-                    </li>
-                @endforeach
-            </ul>
         </section>
 
         {{-- AUSENCIAS Y FESTIVOS MES ACTUAL --}}
@@ -286,85 +220,16 @@
             </div>
         </section>
     </div>
-    {{-- ApexCharts --}}
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        window.tasksByDayData = @json($tasksByDay);
+        window.usersWithoutTasksCount = {{ $usersWithoutTasks->count() }};
+        window.employeesByCompany = @json($employeesByCompany);
 
-            // --- TASKS BY DAY ---
-            var tasksByDayOptions = {
-                chart: {
-                    type: 'bar',
-                    height: 350,
-                    toolbar: { show: true }
-                },
-                series: [{
-                    name: 'Tareas',
-                    data: @json(array_values($tasksByDay))
-                }],
-                xaxis: {
-                    categories: @json(array_keys($tasksByDay)),
-                    labels: { rotate: -45 }
-                },
-                plotOptions: {
-                    bar: { columnWidth: '50%', distributed: true }
-                },
-                tooltip: {
-                    y: {
-                        formatter: function (val) { return val + " tareas"; }
-                    }
-                }
-            };
-            var tasksByDayChart = new ApexCharts(document.querySelector("#tasksByDayChart"), tasksByDayOptions);
-            tasksByDayChart.render();
-
-            // Click event to show tasks for a day
-            tasksByDayChart.addEventListener('click', function(event, chartContext, config) {
-                var day = config.globals.categoryLabels[config.dataPointIndex];
-                fetch(`/admin/dashboard/tasks-by-day/${day}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        let list = data.map(t => `<li>${t.title}</li>`).join('');
-                        Swal.fire({
-                            title: `Tareas del ${day}`,
-                            html: `<ul>${list}</ul>`,
-                            width: 600
-                        });
-                    });
-            });
-
-            // --- USERS WITHOUT TASKS ---
-            var usersWithoutTasksOptions = {
-                chart: {
-                    type: 'bar',
-                    height: 350
-                },
-                series: [{
-                    name: 'Usuarios sin tareas',
-                    data: [@json($usersWithoutTasks->count())]
-                }],
-                xaxis: {
-                    categories: ['Sin tareas']
-                }
-            };
-            var usersWithoutTasksChart = new ApexCharts(document.querySelector("#usersWithoutTasksChart"), usersWithoutTasksOptions);
-            usersWithoutTasksChart.render();
-
-            // --- EMPLOYEES BY COMPANY ---
-            var employeesByCompanyOptions = {
-                chart: { type: 'bar', height: 350 },
-                series: [{
-                    name: 'Empleados',
-                    data: @json($employeesByCompany->pluck('total'))
-                }],
-                xaxis: {
-                    categories: @json($employeesByCompany->pluck('company.name')),
-                    labels: { rotate: -45 }
-                }
-            };
-            var employeesByCompanyChart = new ApexCharts(document.querySelector("#employeesByCompanyChart"), employeesByCompanyOptions);
-            employeesByCompanyChart.render();
-
-        });
+        window.dashboardRoutes = {
+            tasksByDay: "{{ route('admin.dashboard.tasks-by-day', ['day' => '__DAY__']) }}",
+            usersWithoutTasks: "{{ route('admin.dashboard.users-without-tasks') }}",
+            employeesByCompanyRoute: "{{ route('admin.dashboard.employees-by-company', ['companyId' => '__ID__']) }}"
+        };
     </script>
 @endsection

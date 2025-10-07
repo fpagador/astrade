@@ -324,4 +324,20 @@ class UserRepository
                 ->update(['work_calendar_template_id' => null]);
         }
     }
+
+    /**
+     * Gets users who have a company or those who do not have one.
+     *
+     * @return Collection
+     */
+    public function getUsersByCompany(?int $companyId): Collection
+    {
+        if (is_null($companyId)) {
+            return User::whereNull('company_id')
+                ->get(['name', 'surname']);
+        } else {
+            return User::where('company_id', $companyId)
+                ->get(['name', 'surname']);
+        }
+    }
 }

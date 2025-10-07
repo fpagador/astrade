@@ -34,6 +34,10 @@ input[type="password"]::-moz-password-suggest {
     background-color: #4482CF;
 }
 
+.nav {
+    padding-top: 30px;
+}
+
 /* Sidebar link states DE AZUL A MORADO*/
 /*.sidebar {
     background: linear-gradient(to bottom, #A06CD5 0%, #85C7F2 100%);

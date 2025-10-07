@@ -44,7 +44,7 @@ class DashboardController extends WebController
      */
     public function tasksByDay(string $day): JsonResponse
     {
-        $date = Carbon::createFromFormat('d/m', $day);
+        $date = Carbon::createFromFormat('d-m-Y', $day);
         $tasks = $this->taskRepository->getTasksByDate($date);
         return response()->json($tasks);
     }
@@ -69,11 +69,23 @@ class DashboardController extends WebController
     /**
      * Return number of employees per company.
      *
+     * @param ?int $companyId
      * @return JsonResponse
      */
-    public function employeesByCompany(): JsonResponse
+    public function employeesByCompany(?int $companyId = null): JsonResponse
     {
-        $data = $this->dashboardService->getEmployeesByCompany();
+        $data = $this->dashboardService->getEmployeesByCompany($companyId);
         return response()->json($data);
+    }
+
+    /**
+     *
+
+     * @return JsonResponse
+     */
+    public function usersWithoutTasks(): JsonResponse
+    {
+        $usersWithoutTasks = $this->dashboardService->getUsersWithoutTasks();
+        return response()->json($usersWithoutTasks);
     }
 }

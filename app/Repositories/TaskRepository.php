@@ -300,7 +300,9 @@ class TaskRepository
      */
     public function getTasksByDate(Carbon $date): CollectionDatabase
     {
-        return Task::whereDate('scheduled_date', $date)->get(['id', 'title', 'status']);
+        return Task::with('user:id,name,surname')
+            ->whereDate('scheduled_date', $date)
+            ->get(['id', 'title', 'status', 'user_id']);
     }
 
     /**
