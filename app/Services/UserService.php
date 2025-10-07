@@ -276,7 +276,7 @@ class UserService
 
             // Prevent activating if there are already 2 selected users
             if (!$user->can_be_called && $count >= 2) {
-                return ['error' => 'There are already 2 users selected.'];
+                return ['error' => 'Ya hay 2 usuarios seleccionados.'];
             }
 
             // Toggle status

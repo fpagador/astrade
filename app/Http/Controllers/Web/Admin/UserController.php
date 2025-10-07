@@ -244,15 +244,11 @@ class UserController extends WebController
     {
         $result = $this->userService->toggleCall($user);
 
-        if (request()->ajax()) {
-            return response()->json($result, $result['error'] ? 422 : 200);
-        }
-
         if (isset($result['success'])) {
             return back()->with('success', $result['success']);
         }
 
-        return back()->with('error', $result['error']);
+        return back()->with('general', $result['error']);
     }
 
     /**

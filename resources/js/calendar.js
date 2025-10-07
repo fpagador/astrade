@@ -294,6 +294,7 @@ function initCalendar(options = {}) {
 
     const pad = n => String(n).padStart(2, '0');
     const today = new Date();
+
     const selectedVacationDates = window.selectedVacationDatesForClone
         ? new Set(normalizeDates(Array.from(window.selectedVacationDatesForClone)))
         : new Set(vacationDates);
@@ -317,9 +318,15 @@ function initCalendar(options = {}) {
         working: colorData.WORKING?.class
     };
 
+    const holidayCheckboxEl = document.getElementById('enableHolidayMode');
+    const legalCheckboxEl = document.getElementById('enableLegalAbsenceMode');
+
+    holidayCheckboxEl?.addEventListener('change', () => render());
+    legalCheckboxEl?.addEventListener('change', () => render());
     function render() {
         // Clear previous calendar cells
         calendarGrid.innerHTML = '';
+
         const weekdays = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
         weekdays.forEach(day => {
             const cell = document.createElement('div');
@@ -357,15 +364,11 @@ function initCalendar(options = {}) {
 
             let bgClass = 'bg-gray-100';
             if (mode === 'holiday') {
-                if (selectedVacationDates.has(dateStr)) {
-                    bgClass = modeClasses.holiday;
-                }
+                if (selectedVacationDates.has(dateStr)) bgClass = modeClasses.holiday;
             } else {
-                if (isVacation) {
-                    bgClass = modeClasses.vacation;
-                } else if (isLegal) {
-                    bgClass = modeClasses.legal_absence;
-                } else if (holidayDates.includes(dateStr)) {
+                if (isVacation) bgClass = modeClasses.vacation;
+                else if (isLegal) bgClass = modeClasses.legal_absence;
+                else if (holidayDates.includes(dateStr)) {
                     bgClass = modeClasses.holiday;
                     if (mode === 'vacation') {
                         cell.disabled = true;
@@ -379,26 +382,30 @@ function initCalendar(options = {}) {
             cell.innerHTML = `<div class="text-xs text-gray-600">${d}</div>`;
 
             cell.addEventListener('click', () => {
-                const vacationMode = document.getElementById('enableHolidayMode')?.checked;
-                const legalMode = document.getElementById('enableLegalAbsenceMode')?.checked;
+                const holidayActive = document.getElementById('enableHolidayMode')?.checked;
+                const legalActive = document.getElementById('enableLegalAbsenceMode')?.checked;
 
-                if (mode === 'holiday' && vacationMode) {
+                // --- MODO 'holiday' (plantilla de festivos) ---
+                if (mode === 'holiday') {
+                    if (!holidayActive) return;
+
                     if (selectedVacationDates.has(dateStr)) selectedVacationDates.delete(dateStr);
                     else selectedVacationDates.add(dateStr);
+
                     if (vacationInput) {
                         vacationInput.value = JSON.stringify(Array.from(selectedVacationDates).sort());
                     }
+
                     render();
+                    return;
                 }
 
-                if (vacationMode) {
+                // --- MODO 'vacation' (selector general) ---
+                if (holidayActive) {
                     if (selectedLegalDates.has(dateStr)) {
-                        if (!confirm('Este día está marcado como ausencia legal. ¿Desea cambiarlo a vacaciones?')) {
-                            return;
-                        }
+                        if (!confirm('Este día está marcado como ausencia legal. ¿Desea cambiarlo a vacaciones?')) return;
                         selectedLegalDates.delete(dateStr);
                     }
-
                     if (selectedVacationDates.has(dateStr)) selectedVacationDates.delete(dateStr);
                     else selectedVacationDates.add(dateStr);
 
@@ -406,17 +413,15 @@ function initCalendar(options = {}) {
                         const updated = Array.from(selectedVacationDates).filter(d => d.startsWith(String(currentYear)));
                         vacationInput.value = JSON.stringify(updated.sort());
                     }
+                    render();
+                    return;
                 }
 
-                // Ausencias legales activado
-                if (legalMode) {
+                if (legalActive) {
                     if (selectedVacationDates.has(dateStr)) {
-                        if (!confirm('Este día está marcado como vacaciones. ¿Desea cambiarlo a ausencias legales?')) {
-                            return; // cancelar cambio
-                        }
+                        if (!confirm('Este día está marcado como vacaciones. ¿Desea cambiarlo a ausencias legales?')) return;
                         selectedVacationDates.delete(dateStr);
                     }
-
                     if (selectedLegalDates.has(dateStr)) selectedLegalDates.delete(dateStr);
                     else selectedLegalDates.add(dateStr);
 
@@ -424,9 +429,8 @@ function initCalendar(options = {}) {
                         const updated = Array.from(selectedLegalDates).filter(d => d.startsWith(String(currentYear)));
                         legalInput.value = JSON.stringify(updated.sort());
                     }
+                    render();
                 }
-
-                render();
             });
 
             calendarGrid.appendChild(cell);
@@ -437,9 +441,14 @@ function initCalendar(options = {}) {
             vacationInput.value = JSON.stringify(updatedDates.sort());
         }
 
+        if (legalInput) {
+            const updatedLegal = Array.from(selectedLegalDates).filter(date => date.startsWith(String(currentYear)));
+            legalInput.value = JSON.stringify(updatedLegal.sort());
+        }
+
         btnPrev.disabled = currentMonth === 0;
         btnNext.disabled = currentMonth === 11;
-        monthSelect.value = currentMonth; // sync select with current month
+        monthSelect.value = currentMonth;
     }
 
     btnPrev?.addEventListener('click', () => {

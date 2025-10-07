@@ -2,6 +2,7 @@ import Swal from 'sweetalert2';
 import ApexCharts from 'apexcharts';
 
 document.addEventListener('DOMContentLoaded', function () {
+    if (!window.dashboardRoutes) return;
     // --- ROUTES ---
     const { tasksByDay, usersWithoutTasks, employeesByCompanyRoute } = window.dashboardRoutes;
 
