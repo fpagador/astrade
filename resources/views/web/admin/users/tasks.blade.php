@@ -87,18 +87,11 @@
                         </div>
                     </div>
 
-                    {{-- Second block: Current day and Weekend --}}
-                    <div class="flex flex-wrap gap-4">
+                    {{-- Second block: Colors according to type of task --}}
+                    <div class="flex flex-wrap gap-4" x-data="{ calendarColors: @js($calendarColors) }">
                         <div class="flex items-center gap-1">
                             <span class="w-4 h-4 inline-block bg-blue-200 rounded-sm"></span> Día actual
                         </div>
-                        <div class="flex items-center gap-1">
-                            <span class="w-4 h-4 inline-block bg-gray-100 rounded-sm border border-gray-300"></span> Fin de semana
-                        </div>
-                    </div>
-
-                    {{-- Third block: Colors according to type of task --}}
-                    <div class="flex flex-wrap gap-4" x-data="{ calendarColors: @js($calendarColors) }">
                         <template x-for="color in calendarColors" :key="color.class">
                             <div class="flex items-center gap-1">
                                 <span class="w-4 h-4 inline-block rounded-sm border border-gray-300" :class="color.class"></span>
@@ -127,7 +120,7 @@
                         <div class="grid grid-cols-7 text-center border-b border-gray-300">
                             <template x-for="day in displayedDays" :key="day.date">
                                 <div class="py-2 font-semibold"
-                                     :class="{'bg-blue-200': day.isSelected, 'bg-gray-200': day.isWeekend}">
+                                     :class="{'bg-blue-200': day.isSelected}">
                                     <div x-text="day.label"></div>
                                     <div x-text="day.weekday"></div>
                                 </div>

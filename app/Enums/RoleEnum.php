@@ -42,8 +42,11 @@ enum RoleEnum: string
 
     public static function options(): array
     {
-        return collect(self::cases())->mapWithKeys(function ($role) {
-            return [$role->value => $role->label()];
-        })->toArray();
+        $allowedRoles = [self::ADMIN, self::MANAGER];
+
+        return collect(self::cases())
+            ->filter(fn($role) => in_array($role, $allowedRoles))
+            ->mapWithKeys(fn($role) => [$role->value => $role->label()])
+            ->toArray();
     }
 }

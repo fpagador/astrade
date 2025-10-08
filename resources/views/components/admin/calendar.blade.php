@@ -91,8 +91,4 @@
         <span class="w-4 h-4 border rounded inline-block {{ $calendarColors['WORKING']['class'] }}"></span>
         Laborable
     </div>
-    <div class="flex items-center gap-2">
-        <span class="w-4 h-4 border rounded inline-block {{ $calendarColors['WEEKEND']['class'] }}"></span>
-        Fin de semana
-    </div>
 </div>

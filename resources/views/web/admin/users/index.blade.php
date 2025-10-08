@@ -128,9 +128,10 @@
 
                     {{-- DELETE --}}
                     @can('delete', $user)
-                        <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST"
-                              onsubmit="return confirm('¿Está seguro de eliminar este usuario?');"
-                              class="flex items-center">
+                        <form action="{{ route('admin.users.destroy', $user->id) }}"
+                              method="POST"
+                              data-message="¿Está seguro de eliminar este usuario?"
+                              class="flex items-center delete-form">
                             @csrf
                             @method('DELETE')
                             <button type="submit" title="Eliminar" class="flex items-center justify-center">
@@ -185,9 +186,10 @@
 
                     {{-- DELETE --}}
                     @can('delete', $user)
-                        <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST"
-                              onsubmit="return confirm('¿Está seguro de eliminar este usuario?');"
-                              class="flex items-center">
+                        <form action="{{ route('admin.users.destroy', $user->id) }}"
+                              method="POST"
+                              data-message="¿Está seguro de eliminar este usuario?"
+                              class="flex items-center delete-form">
                             @csrf
                             @method('DELETE')
                             <button type="submit" title="Eliminar" class="flex items-center justify-center">

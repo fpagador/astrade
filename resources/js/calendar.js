@@ -381,7 +381,7 @@ function initCalendar(options = {}) {
             cell.dataset.date = dateStr;
             cell.innerHTML = `<div class="text-xs text-gray-600">${d}</div>`;
 
-            cell.addEventListener('click', () => {
+            cell.addEventListener('click', async() => {
                 const holidayActive = document.getElementById('enableHolidayMode')?.checked;
                 const legalActive = document.getElementById('enableLegalAbsenceMode')?.checked;
 
@@ -403,7 +403,8 @@ function initCalendar(options = {}) {
                 // --- MODO 'vacation' (selector general) ---
                 if (holidayActive) {
                     if (selectedLegalDates.has(dateStr)) {
-                        if (!confirm('Este día está marcado como ausencia legal. ¿Desea cambiarlo a vacaciones?')) return;
+                        const confirmed = await customConfirm('Este día está marcado como ausencia legal. ¿Desea cambiarlo a vacaciones?');
+                        if (!confirmed) return;
                         selectedLegalDates.delete(dateStr);
                     }
                     if (selectedVacationDates.has(dateStr)) selectedVacationDates.delete(dateStr);
@@ -419,7 +420,8 @@ function initCalendar(options = {}) {
 
                 if (legalActive) {
                     if (selectedVacationDates.has(dateStr)) {
-                        if (!confirm('Este día está marcado como vacaciones. ¿Desea cambiarlo a ausencias legales?')) return;
+                        const confirmed = await customConfirm('Este día está marcado como vacaciones. ¿Desea cambiarlo a ausencias legales?');
+                        if (!confirmed) return;
                         selectedVacationDates.delete(dateStr);
                     }
                     if (selectedLegalDates.has(dateStr)) selectedLegalDates.delete(dateStr);
@@ -590,14 +592,12 @@ export function checkTaskConflicts(conflicts, onConfirm) {
     };
 }
 
-export function confirmDelete(form) {
+export async function confirmDelete(form) {
     const userCount = parseInt(form.dataset.users);
     if (userCount > 0) {
-        return confirm(
-            'Existen usuarios actualmente asignados a este calendario laboral. Al borrar este calendario laboral, estos usuarios quedarán sin un calendario laboral asignado. ¿Desea proceder con el borrado?'
-        );
+        return await customConfirm('Existen usuarios actualmente asignados a este calendario laboral. Al borrar este calendario laboral, estos usuarios quedarán sin un calendario laboral asignado. ¿Desea proceder con el borrado?');
     } else {
-        return confirm('¿Está seguro que desea eliminar esta plantilla?');
+        return await customConfirm('¿Está seguro que desea eliminar esta plantilla de calendario laboral?');
     }
 }
 

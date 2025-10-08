@@ -136,6 +136,7 @@
     </div>
 </div>
 
+<x-confirm-modal />
 @stack('modals')
 @stack('scripts')
 </body>

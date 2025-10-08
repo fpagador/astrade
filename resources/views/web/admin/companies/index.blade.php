@@ -69,8 +69,11 @@
                 </a>
 
                 {{-- DELETE --}}
-                    <form action="{{ route('admin.companies.destroy', $company->id) }}" method="POST"
-                          onsubmit="return confirm('¿Está seguro de eliminar esta ubicación?');">
+                    <form action="{{ route('admin.companies.destroy', $company->id) }}"
+                          method="POST"
+                          data-message="¿Está seguro de eliminar esta empresa?"
+                          class="delete-form"
+                    >
                         @csrf
                         @method('DELETE')
                         <button type="submit" title="Eliminar">

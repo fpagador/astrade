@@ -158,7 +158,11 @@
                 </a>
 
                 {{-- DELETE --}}
-                <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('¿Está seguro de eliminar este usuario?');">
+                <form action="{{ route('admin.users.destroy', $user->id) }}"
+                      method="POST"
+                      class="delete-form"
+                      data-message="¿Está seguro de eliminar este usuario?"
+                >
                     @csrf
                     @method('DELETE')
                     <button type="submit" title="Eliminar">

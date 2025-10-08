@@ -79,7 +79,7 @@
                     {{-- DELETE --}}
                     <form action="{{ route('admin.calendars.destroy', $template) }}" method="POST"
                           data-users="{{ $template->users()->count() }}"
-                          onsubmit="return confirmDelete(this);">
+                          data-confirm-delete>
                         @csrf
                         @method('DELETE')
                         <button type="submit" title="Eliminar">

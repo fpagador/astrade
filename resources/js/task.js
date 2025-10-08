@@ -117,8 +117,7 @@ export function cloneTaskForm(oldSubtasks = []) {
                     const nonWorkingData = await nonWorkingResponse.json();
 
                     if (nonWorkingData.nonWorking) {
-                        const proceed = confirm('La fecha seleccionada corresponde a un día no laboral (festivo o ausencia legal). ' +
-                            '¿Desea continuar?');
+                        const proceed = await customConfirm('La fecha seleccionada corresponde a un día no laboral (festivo o ausencia legal). ¿Desea continuar?');
                         if (!proceed) {
                             checkingConflict = false;
                             return;
@@ -139,7 +138,7 @@ export function cloneTaskForm(oldSubtasks = []) {
                     const response = await fetch(url);
                     const data = await response.json();
                     if (data.conflict) {
-                        const proceed = confirm('Ya existe una tarea para este usuario a la misma hora. ¿Desea continuar?');
+                        const proceed = await customConfirm('Ya existe una tarea para este usuario a la misma hora. ¿Desea continuar?');
                         if (proceed) {
                             conflictChecked = true;
                             HTMLFormElement.prototype.submit.call(form);
@@ -479,7 +478,7 @@ export function actionTaskModal() {
                 this.buttons = [
                     { label: 'Modificar solo esta tarea', action: 'single', color: 'bg-color-button' },
                     { label: 'Modificar la serie', action: 'series', color: 'bg-indigo-900 hover:bg-indigo-800' },
-                    { label: 'Cancelar', action: 'cancel', color: 'bg-red-900 hover:bg-red-800' },
+                    { label: 'Cancelar', action: 'cancel', color: 'px-4 py-2 bg-gray-500 rounded hover:bg-gray-400' },
                 ];
                 this.callback = (action) => {
                     if (action !== 'cancel') {
@@ -498,13 +497,13 @@ export function actionTaskModal() {
                     this.buttons = [
                         { label: 'Eliminar solo esta tarea', action: 'single', color: 'bg-red-600 hover:bg-red-500' },
                         { label: 'Eliminar toda la serie', action: 'series', color: 'bg-red-900 hover:bg-red-800' },
-                        { label: 'Cancelar', action: 'cancel', color: 'bg-gray-500 hover:bg-gray-400' },
+                        { label: 'Cancelar', action: 'cancel', color: 'px-4 py-2 bg-gray-500 rounded hover:bg-gray-400' },
                     ];
                 } else {
                     this.message = '¿Está seguro que desea eliminar esta tarea del usuario?';
                     this.buttons = [
                         { label: 'Eliminar', action: 'single', color: 'bg-red-900 hover:bg-red-800' },
-                        { label: 'Cancelar', action: 'cancel', color: 'bg-gray-500 hover:bg-gray-400' },
+                        { label: 'Cancelar', action: 'cancel', color: 'px-4 py-2 bg-gray-500 rounded hover:bg-gray-400' },
                     ];
                 }
 
@@ -719,11 +718,6 @@ export function calendarView() {
                 // Selected day
                 if (dayKey === formatDateLocal(this.currentDate)) {
                     classes += ' bg-blue-200';
-                }
-
-                // Weekends
-                if (dayDate.getDay() === 0 || dayDate.getDay() === 6) {
-                    classes += ' bg-gray-200';
                 }
 
                 // Holidays, vacations or legal absences
