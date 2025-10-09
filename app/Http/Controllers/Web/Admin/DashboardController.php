@@ -6,6 +6,7 @@ use App\Http\Controllers\Web\WebController;
 use App\Repositories\TaskRepository;
 use App\Services\DashboardService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
@@ -26,9 +27,9 @@ class DashboardController extends WebController
     /**
      * Display the dashboard.
      *
-     * @return View
+     * @return View| RedirectResponse
      */
-    public function index(): View
+    public function index(): View|RedirectResponse
     {
         return $this->tryCatch(function () {
             $data = $this->dashboardService->getDashboardData();

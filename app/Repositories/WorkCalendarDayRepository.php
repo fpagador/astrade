@@ -93,11 +93,15 @@ class WorkCalendarDayRepository
      *
      * @param int $year
      * @param int $month
-     * @param WorkCalendarTemplate $template
+     * @param ?WorkCalendarTemplate $template
      * @return Collection
      */
-    public function getDaysByMonth(int $year, int $month, WorkCalendarTemplate $template): Collection
+    public function getDaysByMonth(int $year, int $month, ?WorkCalendarTemplate $template): Collection
     {
+        if (!$template) {
+            return new Collection();
+        }
+
         return WorkCalendarDay::where('template_id', $template->id)
             ->whereYear('date', $year)
             ->whereMonth('date', $month)

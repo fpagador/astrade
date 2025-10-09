@@ -149,9 +149,9 @@ class WorkCalendarTemplateRepository
      * Count all WorkCalendarTemplate.
      *
      * @param int $year
-     * @return WorkCalendarTemplate
+     * @return ?WorkCalendarTemplate
      */
-    public function getActiveTemplateForYear(int $year): WorkCalendarTemplate
+    public function getActiveTemplateForYear(int $year): ?WorkCalendarTemplate
     {
         return WorkCalendarTemplate::where('year', $year)
             ->where('status', CalendarStatus::ACTIVE->value)
