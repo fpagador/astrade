@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Collection;
+use App\Notifications\ResetPasswordNotification;
 
 /**
  * @property int $id
@@ -191,5 +192,15 @@ class User extends Authenticatable
     public function absences(): HasMany
     {
         return $this->hasMany(UserAbsence::class);
+    }
+
+    /**
+     * Send password reset notification
+     *
+     * @return void
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 }
