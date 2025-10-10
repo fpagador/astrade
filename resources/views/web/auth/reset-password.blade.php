@@ -13,7 +13,7 @@
 
             <!-- New read-only field showing the email -->
             <div>
-                <x-input-label for="email" :value="__('Email (informativo)')" />
+                <x-input-label for="email" :value="__('Email')" />
                 <x-text-input id="email" class="block mt-1 w-full bg-gray-100 text-gray-600" type="text" value="{{ $request->email }}" disabled />
             </div>
 

@@ -85,7 +85,7 @@
                 <label class="block font-medium mb-1" for="photo">Foto</label>
                 <div class="flex items-center space-x-2 mb-4">
                     <!-- Select file button -->
-                    <label for="photo" class="cursor-pointer bg-indigo-900 text-white px-4 py-2 rounded hover:bg-indigo-800 transition">
+                    <label for="photo" class="cursor-pointer button-success px-4 py-2 rounded transition">
                         Seleccionar archivo
                     </label>
                     <span x-text="filename" class="text-gray-700"></span>

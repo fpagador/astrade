@@ -9,14 +9,14 @@
         <div class="flex justify-end space-x-2">
             <button
                 @click="cancel()"
-                class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                class="px-4 py-2 rounded button-cancel"
                 type="button"
             >
                 Cancelar
             </button>
             <button
                 @click="confirm()"
-                class="px-4 py-2 bg-indigo-900 text-white rounded hover:bg-indigo-800"
+                class="px-4 py-2 rounded button-success"
                 type="button"
             >
                 Confirmar

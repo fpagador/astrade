@@ -8,7 +8,7 @@
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-3xl font-semibold mb-6">Calendarios Laborales</h1>
                 <a href="{{ route('admin.calendars.create') }}"
-                   class="inline-block px-4 py-2 bg-indigo-900 text-white rounded hover:bg-indigo-800"> Nueva Plantilla
+                   class="inline-block px-4 py-2 button-success rounded"> Nueva Plantilla
                 </a>
         </div>
 
@@ -45,31 +45,39 @@
 
             <div class="flex gap-2">
                 <button type="submit"
-                        class="mt-1 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition shadow">
+                        class="mt-1 px-4 py-2 rounded button-success transition shadow">
                     Filtrar
                 </button>
                 <a href="{{ route('admin.calendars.index') }}"
-                   class="mt-1 inline-block px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition shadow">
+                   class="mt-1 inline-block px-4 py-2 rounded button-cancel transition shadow">
                     Limpiar
                 </a>
             </div>
         </form>
 
         {{-- TABLE HEADER --}}
-        <div class="grid grid-cols-[2fr_1fr_1fr_1fr_auto] bg-indigo-900 text-white font-medium text-sm rounded-t-md px-4 py-2">
+        <div class="grid grid-cols-[2fr_1fr_1fr_2fr_1fr_auto] table-header font-medium text-sm rounded-t-md px-4 py-2">
             <div><x-admin.sortable-column label="Nombre" field="name" default="true" /></div>
             <div><x-admin.sortable-column label="Año" field="year" /></div>
             <div><x-admin.sortable-column label="Estado" field="status" /></div>
+            <div>Calendario de Continuidad</div>
             <div>Días Festivos</div>
             <div>Acciones</div>
         </div>
 
         {{-- ROWS --}}
         @forelse($templates as $template)
-            <div class="grid grid-cols-[2fr_1fr_1fr_1fr_auto] items-center px-4 py-3 border-b hover:bg-indigo-50 text-sm bg-white">
+            <div class="grid grid-cols-[2fr_1fr_1fr_2fr_1fr_auto] items-center px-4 py-3 border-b hover:bg-indigo-50 text-sm bg-white">
                 <div>{{ $template->name }}</div>
                 <div>{{ $template->year }}</div>
                 <div>{{ \App\Enums\CalendarStatus::label(\App\Enums\CalendarStatus::from($template->status)) }}</div>
+                <div>
+                    @if($template->continuityTemplate)
+                        {{ $template->continuityTemplate->name }} ({{ $template->continuityTemplate->year }})
+                    @else
+                        <span class="text-gray-400 italic">—</span>
+                    @endif
+                </div>
                 <div>{{ $template->holidays_count }}</div>
                 <div class="flex gap-2">
                     {{-- EDIT --}}

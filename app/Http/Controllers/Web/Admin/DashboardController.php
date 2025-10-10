@@ -80,13 +80,15 @@ class DashboardController extends WebController
     }
 
     /**
+     * Returns users without tasks for a specific day.
      *
-
+     * @param string $day
      * @return JsonResponse
      */
-    public function usersWithoutTasks(): JsonResponse
+    public function usersWithoutTasks(string $day): JsonResponse
     {
-        $usersWithoutTasks = $this->dashboardService->getUsersWithoutTasks();
+        $date = Carbon::createFromFormat('Y-m-d', $day)->startOfDay();
+        $usersWithoutTasks = $this->dashboardService->getUsersWithoutTasksForDay($date);
         return response()->json($usersWithoutTasks);
     }
 }

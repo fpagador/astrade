@@ -42,7 +42,7 @@
                 @endforeach
             </div>
 
-            <button type="button" id="add-phone-button" class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500">
+            <button type="button" id="add-phone-button" class="mt-4 px-4 py-2 button-extra rounded ">
                 Añadir teléfono
             </button>
         </div>

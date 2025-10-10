@@ -6,7 +6,7 @@
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-3xl font-semibold mb-6">Empresas</h1>
             <a href="{{ route('admin.companies.create') }}"
-               class="inline-block mb-4 px-4 py-2 bg-indigo-900 text-white rounded hover:bg-indigo-800">
+               class="inline-block mb-4 px-4 py-2 button-success rounded ">
                 Nueva Empresa
             </a>
     </div>
@@ -30,18 +30,18 @@
 
         <div class="flex gap-2">
             <button type="submit"
-                    class="mt-1 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition shadow">
+                    class="mt-1 px-4 py-2 button-success rounded transition shadow">
                 Filtrar
             </button>
             <a href="{{ route('admin.companies.index') }}"
-               class="mt-1 inline-block px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition shadow">
+               class="mt-1 inline-block px-4 py-2 rounded button-cancel transition shadow">
                 Limpiar
             </a>
         </div>
     </form>
 
     {{-- TABLE HEADER --}}
-    <div class="grid grid-cols-[2fr_3fr_3fr_3fr_1fr] bg-indigo-900 text-white font-medium text-sm rounded-t-md px-4 py-2">
+    <div class="grid grid-cols-[2fr_3fr_3fr_3fr_1fr] table-header font-medium text-sm rounded-t-md px-4 py-2">
         <div><x-admin.sortable-column label="Nombre" field="name" default="true" /></div>
         <div><x-admin.sortable-column label="Dirección" field="address" /></div>
         <div><x-admin.sortable-column label="Descripción" field="description" /></div>

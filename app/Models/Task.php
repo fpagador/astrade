@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -29,7 +28,6 @@ use Illuminate\Database\Eloquent\Collection;
  * @property-read User $assignedBy
  * @property-read RecurrentTask|null $recurrentTask
  * @property-read Collection<Subtask> $subtasks
- * @property-read Collection<Notification> $notifications
  * @property-read Collection<Company> $companies
  */
 class Task extends Model
@@ -97,16 +95,6 @@ class Task extends Model
     public function recurrentTask(): BelongsTo
     {
         return $this->belongsTo(RecurrentTask::class, 'recurrent_task_id');
-    }
-
-    /**
-     * Get the notifications related to this task.
-     *
-     * @return HasMany
-     */
-    public function notifications(): HasMany
-    {
-        return $this->hasMany(Notification::class);
     }
 
     /**

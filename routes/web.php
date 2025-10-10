@@ -42,7 +42,7 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
         Route::get('/tasks-by-day/{day}', [DashboardController::class, 'tasksByDay'])->name('tasks-by-day');
         Route::get('/tasks-by-user/{userId?}', [DashboardController::class, 'tasksByUser'])->name('tasks-by-user');
         Route::get('/employees-by-company/{companyId?}', [DashboardController::class, 'employeesByCompany'])->name('employees-by-company');
-        Route::get('/users-without-tasks', [DashboardController::class, 'usersWithoutTasks'])->name('users-without-tasks');
+        Route::get('/users-without-tasks/{day}', [DashboardController::class, 'usersWithoutTasks'])->name('users-without-tasks');
     });
 
     /*

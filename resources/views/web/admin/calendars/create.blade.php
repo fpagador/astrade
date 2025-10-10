@@ -15,7 +15,7 @@
             <button
                 type="button"
                 @click="showClone = !showClone"
-                class="inline-block px-4 py-2 bg-indigo-900 text-white rounded hover:bg-indigo-800"
+                class="inline-block px-4 py-2 rounded button-success"
             >
                 Clonar plantilla existente
             </button>
@@ -128,10 +128,10 @@
 
             {{-- ACTIONS --}}
             <div class="flex justify-end gap-2 mt-4">
-                <button type="button" data-open-modal="confirmModal_calendarTemplateForm" class="bg-indigo-900 text-white px-4 py-2 rounded">
+                <button type="button" data-open-modal="confirmModal_calendarTemplateForm" class="button-success px-4 py-2 rounded">
                     Guardar
                 </button>
-                <a href="{{ route('admin.calendars.index') }}" class="bg-red-900 text-white px-4 py-2 rounded hover:bg-red-800 text-center">
+                <a href="{{ route('admin.calendars.index') }}" class="px-4 py-2 rounded button-cancel text-center">
                     Cancelar
                 </a>
             </div>

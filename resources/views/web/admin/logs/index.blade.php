@@ -57,7 +57,7 @@
 
     {{-- LOG TABLE --}}
     <table class="w-full text-sm">
-        <thead class="bg-indigo-900 text-white">
+        <thead class="table-header">
         <tr>
             <th class="px-4 py-2 text-left">Fecha Creación</th>
             <th class="px-4 py-2 text-left">Tipo</th>

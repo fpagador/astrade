@@ -6,11 +6,13 @@ use App\Enums\CalendarStatus;
 use App\Enums\TaskStatus;
 use App\Models\User;
 use App\Models\WorkCalendarTemplate;
+use Carbon\CarbonPeriod;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Enums\UserTypeEnum;
 use App\Enums\RoleEnum;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -296,6 +298,43 @@ class UserRepository
     public function getUsersWithoutTasks(): Collection
     {
         return User::doesntHave('tasks')->get(['id', 'name', 'surname']);
+    }
+
+    /**
+     * Get users without any tasks scheduled for a specific date.
+     *
+     * @param Carbon $date
+     * @return Collection
+     */
+    public function getUsersWithoutTasksForDay(Carbon $date): Collection
+    {
+        return User::whereDoesntHave('tasks', function ($query) use ($date) {
+            $query->whereDate('scheduled_date', $date);
+        })
+            ->get(['id', 'name', 'surname']);
+    }
+
+    /**
+     * Get users without any tasks.
+     *
+     * @return array
+     */
+    public function countUsersWithoutTasksByDay(Carbon $startDate, Carbon $endDate): array
+    {
+        $result = [];
+
+        $period = CarbonPeriod::create($startDate, $endDate);
+
+        foreach ($period as $date) {
+            $count = User::whereDoesntHave('tasks', function ($query) use ($date) {
+                $query->whereDate('scheduled_date', $date);
+            })
+                ->count();
+
+            $result[$date->format('Y-m-d')] = $count;
+        }
+
+        return $result;
     }
 
     /**

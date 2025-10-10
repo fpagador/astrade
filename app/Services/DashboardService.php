@@ -60,6 +60,7 @@ class DashboardService
         $month = $today->month;
         $nextMonthStart = $today->copy()->addMonthNoOverflow()->startOfMonth();
         $nextMonthEnd   = $today->copy()->addMonthNoOverflow()->endOfMonth();
+        $sevenDaysLater = $today->copy()->addDays(6);
 
         // --- USERS ---
         $totalUsers = $this->userRepository->countAll() ?? 0;
@@ -106,7 +107,7 @@ class DashboardService
 
         // --- GRAPH DATA ---
         $tasksByDay = $this->getTasksGroupedByDay();
-        $usersWithoutTasks = $this->userRepository->getUsersWithoutTasks();
+        $usersWithoutTasksByDay=  $this->userRepository->countUsersWithoutTasksByDay($today, $sevenDaysLater);
         $employeesByCompany = $this->userRepository->getUsersGroupedByCompany();
 
         return compact(
@@ -130,7 +131,7 @@ class DashboardService
             'userLegalAbsencesNextMonth',
             'usersWithPendingTasks',
             'tasksByDay',
-            'usersWithoutTasks',
+            'usersWithoutTasksByDay',
             'employeesByCompany'
         );
     }
@@ -159,9 +160,20 @@ class DashboardService
      *
      * @return Collection
      */
-    public function getUsersWithoutTasks()
+    public function getUsersWithoutTasks(): Collection
     {
         return $this->userRepository->getUsersWithoutTasks();
+    }
+
+    /**
+     * Get users without any tasks scheduled for a specific date.
+     *
+     * @param Carbon $date
+     * @return Collection
+     */
+    public function getUsersWithoutTasksForDay(Carbon $date): Collection
+    {
+        return $this->userRepository->getUsersWithoutTasksForDay($date);
     }
 
     /**

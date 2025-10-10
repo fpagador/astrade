@@ -9,7 +9,7 @@
 
             @can('create', \App\Models\User::class)
                 <a href="{{ route('admin.users.create', ['type' => request('type', \App\Enums\UserTypeEnum::MANAGEMENT->value)]) }}"
-                   class="inline-block mb-4 px-4 py-2 bg-indigo-900 text-white rounded hover:bg-indigo-800">
+                   class="inline-block mb-4 px-4 py-2 rounded button-success">
                     Nuevo Usuario
                 </a>
             @endcan
@@ -49,11 +49,11 @@
 
             <div class="flex gap-2">
                 <button type="submit"
-                        class="mt-1 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition shadow">
+                        class="mt-1 px-4 py-2 rounded transition shadow button-success">
                     Filtrar
                 </button>
                 <a href="{{ route('admin.users.index', ['type' => 'management']) }}"
-                   class="mt-1 inline-block px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition shadow">
+                   class="mt-1 inline-block px-4 py-2 rounded transition shadow button-cancel">
                     Limpiar
                 </a>
             </div>
@@ -62,14 +62,14 @@
         {{-- EXPORT EXCEL BUTTON --}}
         <div class="flex justify-end mb-6">
             <a href="{{ route('admin.users.export', request()->query()) }}"
-               class="mt-1 inline-block px-4 py-2 bg-indigo-900 text-white rounded hover:bg-indigo-800 transition shadow">
+               class="mt-1 inline-block px-4 py-2 rounded button-success transition shadow">
                 Exportar en Excel
             </a>
         </div>
 
         {{-- TABLE HEADER (Desktop) --}}
         <div class="hidden md:grid grid-cols-[1.2fr_1.2fr_1fr_2fr_1fr_1fr_8rem_7rem]
-                    bg-indigo-900 text-white font-medium text-sm rounded-t-md px-4 py-2 gap-x-2">
+                    table-header font-medium text-sm rounded-t-md px-4 py-2 gap-x-2">
             <div><x-admin.sortable-column label="Nombre" field="name" default="true" /></div>
             <div><x-admin.sortable-column label="Apellidos" field="surname" /></div>
             <div><x-admin.sortable-column label="DNI/NIE" field="dni" /></div>

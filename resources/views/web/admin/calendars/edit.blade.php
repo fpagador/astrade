@@ -65,12 +65,12 @@
 
         {{-- Buttons --}}
         <div class="flex justify-end gap-2 mt-4">
-            <button type="button" class="bg-indigo-900 text-white px-4 py-2 rounded"
+            <button type="button" class="button-success px-4 py-2 rounded"
                     @click="openConfirmDaysModal()">
                 Guardar
             </button>
             <a href="{{ route('admin.calendars.index') }}"
-               class="bg-red-900 text-white px-4 py-2 rounded hover:bg-red-800 text-center">
+               class="button-cancel px-4 py-2 rounded text-center">
                 Cancelar
             </a>
         </div>
@@ -107,7 +107,7 @@
 
                     <!-- Evalúa advertencia antes de submit -->
                     <button type="button" @click="confirmAndCheckWarning()"
-                            class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                            class="px-4 py-2 button-success rounded ">
                         Confirmar y guardar
                     </button>
                 </div>

@@ -31,7 +31,7 @@
 
             @if($formId)
                 <button type="button"
-                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 confirmBtn"
+                        class="px-4 py-2 button-success rounded confirmBtn"
                         data-form-id="{{ $formId }}">
                     Confirmar y guardar
                 </button>

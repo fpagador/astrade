@@ -476,9 +476,9 @@ export function actionTaskModal() {
                 this.title = 'Tarea recurrente';
                 this.message = 'Está intentando editar una tarea recurrente. ¿Desea modificar solo esta tarea o toda la serie?';
                 this.buttons = [
-                    { label: 'Modificar solo esta tarea', action: 'single', color: 'bg-color-button' },
-                    { label: 'Modificar la serie', action: 'series', color: 'bg-indigo-900 hover:bg-indigo-800' },
-                    { label: 'Cancelar', action: 'cancel', color: 'px-4 py-2 bg-gray-500 rounded hover:bg-gray-400' },
+                    { label: 'Modificar solo esta tarea', action: 'single', color: 'px-4 py-2 rounded button-success' },
+                    { label: 'Modificar la serie', action: 'series', color: 'px-4 py-2 rounded button-extra' },
+                    { label: 'Cancelar', action: 'cancel', color: 'px-4 py-2 rounded button-cancel' },
                 ];
                 this.callback = (action) => {
                     if (action !== 'cancel') {
@@ -495,9 +495,9 @@ export function actionTaskModal() {
                 if (this.isRecurrent) {
                     this.message = 'Está intentando eliminar una tarea recurrente. ¿Desea eliminar solo esta tarea o toda la serie?';
                     this.buttons = [
-                        { label: 'Eliminar solo esta tarea', action: 'single', color: 'bg-red-600 hover:bg-red-500' },
-                        { label: 'Eliminar toda la serie', action: 'series', color: 'bg-red-900 hover:bg-red-800' },
-                        { label: 'Cancelar', action: 'cancel', color: 'px-4 py-2 bg-gray-500 rounded hover:bg-gray-400' },
+                        { label: 'Eliminar solo esta tarea', action: 'single', color: 'bg-red-900 hover:bg-red-800' },
+                        { label: 'Eliminar toda la serie', action: 'series', color: 'px-4 py-2 rounded button-extra' },
+                        { label: 'Cancelar', action: 'cancel', color: 'px-4 py-2 rounded button-cancel' },
                     ];
                 } else {
                     this.message = '¿Está seguro que desea eliminar esta tarea del usuario?';

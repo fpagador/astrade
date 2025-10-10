@@ -381,7 +381,7 @@ class UserService
             }
 
             $user->has_warning = !empty($warnings);
-            $user->warning_title = $warnings ? implode(' and ', $warnings) : null;
+            $user->warning_title = $warnings ? implode(' y ', $warnings) : null;
 
             return $user;
         });

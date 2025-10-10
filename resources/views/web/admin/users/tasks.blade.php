@@ -16,7 +16,7 @@
                         :class="{'opacity-50 cursor-not-allowed': isVacationDay}"
                         :disabled="isVacationDay"
                         @click="if(isVacationDay) alert('No se pueden crear tareas en días de vacaciones.')"
-                        class="inline-block mb-4 px-4 py-2 bg-indigo-900 text-white rounded hover:bg-indigo-800"
+                        class="inline-block mb-4 px-4 py-2 rounded button-success"
                     >
                         Nueva tarea
                     </a>
@@ -144,9 +144,11 @@
 
                                         <div class="font-semibold truncate flex items-center gap-2" :title="task.title">
                                             <span x-text="task.title"></span>
+                                        </div>
+                                        <div class="text-sm text-gray-600 mt-1 flex items-center gap-1">
+                                            <span x-text="task.scheduled_time ?? 'No asignada'"></span>
                                             <i data-lucide="repeat" class="w-4 h-4 text-blue-600" x-show="task.recurrent_task_id"></i>
                                         </div>
-                                        <div class="text-sm text-gray-600 mt-1" x-text="task.scheduled_time ?? 'No asignada'"></div>
                                     </div>
                                 </template>
                             </div>

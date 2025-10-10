@@ -97,7 +97,7 @@
                 <button class="md:hidden text-black" @click="sidebarOpen = true">
                     <i data-lucide="menu" class="w-6 h-6"></i>
                 </button>
-                <div class="text-lg font-semibold">Panel de Administración</div>
+                <div class="text-lg font-semibold text-black">Panel de Administración</div>
             </div>
 
             <div class="flex items-center gap-4">
@@ -117,7 +117,7 @@
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit"
-                            class="text-sm header px-3 py-1.5 rounded transition">
+                            class="text-sm header px-3 py-1.5 rounded transition button-cancel">
                         Cerrar sesión
                     </button>
                 </form>

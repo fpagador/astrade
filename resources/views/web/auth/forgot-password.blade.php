@@ -18,7 +18,7 @@
 
         <div class="flex justify-between items-center mt-6 space-x-4">
             <a href="{{ route('login') }}"
-               class="inline-flex items-center px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-800 uppercase tracking-widest hover:bg-gray-300 focus:bg-gray-300 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+               class="button-extra px-4 py-2 border border-transparent rounded-md font-semibold">
                 {{ __('Volver a login') }}
             </a>
             <x-primary-button>

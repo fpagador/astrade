@@ -22,7 +22,7 @@
             <button
                 type="button"
                 @click="showClone = !showClone"
-                class="inline-block px-4 py-2 bg-indigo-900 text-white rounded hover:bg-indigo-800"
+                class="inline-block px-4 py-2 rounded button-success"
             >
                 Clonar tarea existente
             </button>
@@ -234,7 +234,7 @@
                         </div>
                     </template>
                 </div>
-                <button type="button" class="inline-flex items-center bg-green-600 text-white text-sm px-3 py-1.5 rounded hover:bg-green-500" @click="addSubtask()">
+                <button type="button" class="inline-flex items-center text-sm px-3 py-1.5 rounded button-extra" @click="addSubtask()">
                     + Añadir Subtarea
                 </button>
             </div>

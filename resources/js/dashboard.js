@@ -6,6 +6,16 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- ROUTES ---
     const { tasksByDay, usersWithoutTasks, employeesByCompanyRoute } = window.dashboardRoutes;
 
+    const customColors = [
+        '#3B82F6',
+        '#F05151',
+        '#F7E592',
+        '#B173E6',
+        '#A3F792',
+        '#CBC5D1',
+        '#E8A576'
+    ];
+
     // --- TASKS BY DAY ---
     const tasksByDayData = window.tasksByDayData;
     if (tasksByDayData && Object.keys(tasksByDayData).length > 0) {
@@ -13,15 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const rawData = Object.values(tasksByDayData);
 
         const data = rawData.map(v => v === 0 ? 0.1 : v);
-        const customColors = [
-            '#3B82F6',
-            '#F05151',
-            '#F7E592',
-            '#B173E6',
-            '#A3F792',
-            '#CBC5D1',
-            '#E8A576'
-        ];
+
 
         const colors = rawData.map((val, index) =>
             val === 0 ? '#F59E0B' : customColors[index % customColors.length]
@@ -102,40 +104,83 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- USERS WITHOUT TASKS ---
-    const usersWithoutTasksCount = window.usersWithoutTasksCount ?? 0;
-    const usersWithoutTasksOptions = {
-        chart: {
-            type: 'bar',
-            height: 350,
-            events: {
-                dataPointSelection: function () {
-                    fetch(usersWithoutTasks)
-                        .then(res => {
-                            if (!res.ok) throw new Error('Error al obtener usuarios');
-                            return res.json();
-                        })
-                        .then(data => {
-                            const list = data.length
-                                ? data.map(u => `<li>${u.name} ${u.surname}</li>`).join('')
-                                : '<li>No hay usuarios sin tareas</li>';
-                            Swal.fire({
-                                title: 'Usuarios sin tareas',
-                                html: `<ul>${list}</ul>`,
-                                width: 600
-                            });
-                        })
-                        .catch(() => Swal.fire('Error', 'No se pudieron cargar los usuarios sin tareas', 'error'));
+    const usersWithoutTasksByDay = window.usersWithoutTasksByDay ?? {};
+    const uwtCategories  = Object.keys(usersWithoutTasksByDay);
+    const uwtRawData   = Object.values(usersWithoutTasksByDay);
+
+    const uwtColors = uwtRawData.map((val, index) =>
+        val === 0 ? '#F59E0B' : customColors[index % customColors.length]
+    );
+    if (uwtCategories.length > 0) {
+        const usersWithoutTasksOptions = {
+            chart: {
+                type: 'bar',
+                height: 350,
+                events: {
+                    dataPointSelection: function (event, chartContext, config) {
+                        const selectedDate = uwtCategories [config.dataPointIndex];
+                        if (!selectedDate) return Swal.fire('Error', 'Día no definido', 'error');
+                        fetch(usersWithoutTasks.replace('__DAY__', selectedDate))
+                            .then(res => {
+                                if (!res.ok) throw new Error('Error al obtener usuarios');
+                                return res.json();
+                            })
+                            .then(data => {
+                                    const list = data.length
+                                        ? data.map(u => `<li>${u.name} ${u.surname}</li>`).join('')
+                                        : '<li>No hay usuarios sin tareas</li>';
+                                Swal.fire({
+                                    title: `Usuarios sin tareas (${selectedDate})`,
+                                    html: `<ul>${list}</ul>`,
+                                    width: 600
+                                });
+                            })
+                            .catch(() => Swal.fire('Error', 'No se pudieron cargar los usuarios sin tareas', 'error'));
+                    }
                 }
+            },
+            series: [{
+                name: 'Usuarios sin tareas',
+                data : uwtRawData
+            }],
+            xaxis: {
+                categories: uwtCategories,
+                labels: {
+                    rotate: -45,
+                    formatter: (value) => {
+                        const date = new Date(value);
+                        const day = String(date.getDate()).padStart(2, '0');
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const year = date.getFullYear();
+                        return `${day}-${month}-${year}`;
+                    }
+                }
+            },
+            colors: uwtColors,
+            plotOptions: {
+                bar: {
+                    columnWidth: '55%',
+                    distributed: true
+                }
+            },
+            dataLabels: {
+                enabled: true,
+                style: {
+                    colors: ['#fff'],
+                    fontWeight: 600
+                },
+                formatter: (val) => val
+            },
+            tooltip: {
+                y: { formatter: (val) => `${val} usuario(s)` }
+            },
+            yaxis: {
+                min: 0,
+                forceNiceScale: true
             }
-        },
-        series: [{
-            name: 'Usuarios sin tareas',
-            data: [usersWithoutTasksCount]
-        }],
-        xaxis: { categories: ['Sin tareas'] },
-        colors: ['#F59E0B']
-    };
-    new ApexCharts(document.querySelector("#usersWithoutTasksChart"), usersWithoutTasksOptions).render();
+        };
+        new ApexCharts(document.querySelector("#usersWithoutTasksChart"), usersWithoutTasksOptions).render();
+    }
 
     // --- EMPLOYEES BY COMPANY ---
     const employeesByCompany = window.employeesByCompany ?? [];

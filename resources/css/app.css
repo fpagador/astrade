@@ -38,6 +38,47 @@ input[type="password"]::-moz-password-suggest {
     padding-top: 30px;
 }
 
+.button-success {
+    background-color: #85C7F2;
+    color: #000000;
+}
+
+.button-success:hover {
+    background-color: #4A9ED9;
+}
+
+.button-cancel {
+    background-color: #F18605;
+    color: #000000;
+}
+
+.button-cancel:hover {
+    background-color: #F16F05;
+}
+
+.table-header {
+    background-color: #A06CD5;
+    color: #FFFFFF;
+}
+
+.button-extra {
+    background-color: #DBD9D2;
+    color: #000000;
+}
+
+.button-extra:hover  {
+    background-color: #C2C2C2;
+}
+
+.button-filter {
+    background-color: #A06CD5;
+    color: #FFFFFF;
+}
+
+.button-filter:hover {
+    background-color: #884FC2;
+}
+
 /* Sidebar link states DE AZUL A MORADO*/
 /*.sidebar {
     background: linear-gradient(to bottom, #A06CD5 0%, #85C7F2 100%);
@@ -396,18 +437,6 @@ header {
     background: linear-gradient(to right, #85C7F2 0%, #8F5FC2 100%);
     border-bottom: 1px solid #C8C5BE;
     color: #FFFFFF;
-}
-
-header button {
-    background-color: #85C7F2;
-    color: #000000;
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    transition: background 0.2s;
-}
-
-header button:hover {
-    background-color: #85C7F2;
 }
 
 .footer {

@@ -18,11 +18,11 @@
 
         <div class="flex justify-end space-x-2">
             <button type="button" @click="{{ $open }} = false"
-                    class="bg-gray-300 px-4 py-2 rounded">
+                    class="button-cancel px-4 py-2 rounded">
                 {{ $cancelLabel }}
             </button>
             <button type="button" @click="{{ $confirmAction }}"
-                    class="bg-red-600 text-white px-4 py-2 rounded">
+                    class="button-success px-4 py-2 rounded">
                 {{ $confirmLabel }}
             </button>
         </div>

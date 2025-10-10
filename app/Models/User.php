@@ -2,17 +2,14 @@
 
 namespace App\Models;
 
-use App\Enums\RoleEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Collection;
-use MongoDB\Driver\Query;
 
 /**
  * @property int $id
@@ -36,8 +33,6 @@ use MongoDB\Driver\Query;
  * @property-read Role|null $role
  * @property-read Company|null $company
  * @property-read WorkCalendarTemplate|null $workCalendarTemplate
- * @property-read NotificationPreference|null $notificationPreferences
- * @property-read Collection<Notification> $notifications
  * @property-read Collection<Task> $tasks
  * @property-read Collection<TaskCompletionLog> $logs
  * @property-read Collection<Task> $assignedTasks
@@ -74,16 +69,6 @@ class User extends Authenticatable
     public function assignedTasks(): HasMany
     {
         return $this->hasMany(Task::class, 'assigned_by');
-    }
-
-    /**
-     * Get the notification preferences for the user.
-     *
-     * @return HasOne
-     */
-    public function notificationPreferences(): HasOne
-    {
-        return $this->hasOne(NotificationPreference::class, 'user_id', 'id');
     }
 
     /**

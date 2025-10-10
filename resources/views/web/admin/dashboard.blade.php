@@ -223,12 +223,12 @@
 
     <script>
         window.tasksByDayData = @json($tasksByDay);
-        window.usersWithoutTasksCount = {{ $usersWithoutTasks->count() }};
+        window.usersWithoutTasksByDay = @json($usersWithoutTasksByDay);
         window.employeesByCompany = @json($employeesByCompany);
 
         window.dashboardRoutes = {
             tasksByDay: "{{ route('admin.dashboard.tasks-by-day', ['day' => '__DAY__']) }}",
-            usersWithoutTasks: "{{ route('admin.dashboard.users-without-tasks') }}",
+            usersWithoutTasks: "{{ route('admin.dashboard.users-without-tasks', ['day' => '__DAY__']) }}",
             employeesByCompanyRoute: "{{ route('admin.dashboard.employees-by-company', ['companyId' => '__ID__']) }}"
         };
     </script>

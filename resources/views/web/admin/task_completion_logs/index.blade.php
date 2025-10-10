@@ -3,7 +3,7 @@
 @section('title', 'Logs de Finalización de Tareas')
 
 @section('content')
-    <h1 class="text-3xl font-semibold mb-6">Logs de Finalización de Tareas</h1>
+    <h1 class="text-3xl font-semibold mb-6">Registro de Finalización de Tareas</h1>
 
     <hr class="border-gray-300 mb-6">
     {{-- ALERTS --}}
@@ -30,7 +30,7 @@
     </form>
 
     {{-- TABLE HEADER --}}
-    <div class="grid grid-cols-4 bg-indigo-900 text-white font-medium text-sm rounded-t-md px-4 py-2">
+    <div class="grid grid-cols-4 table-header font-medium text-sm rounded-t-md px-4 py-2">
         <div><x-admin.sortable-column label="Usuario" field="name" default="true" /></div>
         <div><x-admin.sortable-column label="Tarea" field="task" /></div>
         <div><x-admin.sortable-column label="Subtarea" field="subtask" /></div>
