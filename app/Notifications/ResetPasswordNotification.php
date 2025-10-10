@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Mail\ResetPasswordMail;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -44,15 +45,20 @@ class ResetPasswordNotification extends Notification
      * Get the mail representation of the notification.
      *
      * @param  mixed  $notifiable
-     * @return ResetPasswordMail
+     * @return MailMessage
      */
-    public function toMail(object $notifiable) :ResetPasswordMail
+    public function toMail(object $notifiable) :MailMessage
     {
         $url = url(route('password.reset', [
             'token' => $this->token,
             'email' => $notifiable->getEmailForPasswordReset(),
         ], false));
 
-        return (new ResetPasswordMail($url));
+
+        Mail::to($notifiable->email)->send(new ResetPasswordMail($url));
+
+        return (new MailMessage)
+            ->subject('Restablecer contraseña')
+            ->line('Se ha enviado un correo con instrucciones para restablecer tu contraseña.');
     }
 }
