@@ -54,9 +54,6 @@ class ResetPasswordNotification extends Notification
 
         return (new MailMessage)
             ->subject('Restablecer contraseña')
-            ->greeting('¡Hola!')
-            ->line('Recibiste este correo porque solicitaste restablecer tu contraseña.')
-            ->view('emails.password-reset', ['url' => $url])
-            ->line('Si no solicitaste este cambio, ignora este correo.');
+            ->view('emails.password-reset', ['url' => $url]);
     }
 }
