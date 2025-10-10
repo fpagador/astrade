@@ -70,7 +70,7 @@ class StoreOrUpdateUserRequest extends FormRequest
             'company_id' => $isUser ? 'required|exists:companies,id' : 'nullable',
             'work_calendar_template_id' => $isUser ? 'required|exists:work_calendar_templates,id' : 'nullable',
             'work_schedule' => $isUser ? 'required|string|max:255' : 'nullable',
-            'contract_type' => $isUser ? 'required|in:temporary,permanent' : 'nullable',
+            'contract_type' => $isUser ? 'required|in:temporary,permanent,fixed_discontinuous' : 'nullable',
             'contract_start_date' => $isUser ? 'required|date' : 'nullable',
             'notification_type' => $isUser ? 'required|in:none,visual,visual_audio' : 'nullable'
         ];
