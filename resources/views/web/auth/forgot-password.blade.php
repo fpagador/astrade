@@ -18,7 +18,7 @@
 
         <div class="flex justify-between items-center mt-6 space-x-4">
             <a href="{{ route('login') }}"
-               class="button-extra px-4 py-2 border border-transparent rounded-md font-semibold">
+               class="button-cancel px-4 py-2 border border-transparent rounded-md font-semibold">
                 {{ __('Volver a login') }}
             </a>
             <x-primary-button>

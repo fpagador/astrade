@@ -9,15 +9,15 @@
 <!-- Wrapper principal -->
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
     <tr>
-        <td align="center" bgcolor="#85C7F2" style="padding:30px;
+        <td align="center" bgcolor="#A06CD5" style="padding:30px;
         background: linear-gradient(to top right, #85C7F2, #A06CD5);">
 
-            <!-- Contenedor central -->
+            <!-- Central container -->
             <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" align="center">
                 <tr>
                     <td align="center">
 
-                        <!-- Caja blanca -->
+                        <!-- blank body -->
                         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#ffffff; border-radius:8px; padding:30px;">
                             <tr>
                                 <td align="center">
@@ -25,15 +25,15 @@
                                     <!-- Logo -->
                                     <img src="{{ asset('images/logo.png') }}" alt="Logo" width="150" style="display:block; margin-bottom:20px;">
 
-                                    <!-- Título -->
+                                    <!-- Títle -->
                                     <h2 style="color:#333333; margin-bottom:20px;">Hola {{ $user->name ?? '' }}!</h2>
 
-                                    <!-- Texto -->
+                                    <!-- Text -->
                                     <p style="color:#555555; font-size:15px; line-height:1.5; margin-bottom:25px;">
                                         Recibiste este correo porque solicitaste restablecer tu contraseña.
                                     </p>
 
-                                    <!-- Botón seguro con padding real -->
+                                    <!-- Button  -->
                                     <table role="presentation" border="0" cellspacing="0" cellpadding="0" align="center" style="margin-bottom:25px;">
                                         <tr>
                                             <td bgcolor="#85C7F2" align="center" style="padding:12px 24px; border-radius:6px;">
@@ -52,7 +52,7 @@
                                         </tr>
                                     </table>
 
-                                    <!-- Nota -->
+                                    <!-- Note -->
                                     <p style="color:#555555; font-size:14px; line-height:1.5; margin-top:25px;">
                                         Si no solicitaste este cambio, ignora este correo.
                                     </p>
@@ -60,12 +60,12 @@
                                         Si el botón no funciona, copia este enlace en tu navegador:
                                     </p>
 
-                                    <!-- Enlace plano -->
+                                    <!-- Flat link -->
                                     <p style="word-break:break-all; margin-top:10px;">
-                                        <a href="{{ $url }}" style="color:#0066cc;">{{ $url }}</a>
+                                        <a href="{{ $url }}" style="color:#0066cc; font-size:12px;">{{ $url }}</a>
                                     </p>
 
-                                    <!-- Firma -->
+                                    <!-- Signature -->
                                     <p style="margin-top:30px; color:#333333;">
                                         Saludos,<br><strong>Talentismo</strong>
                                     </p>
