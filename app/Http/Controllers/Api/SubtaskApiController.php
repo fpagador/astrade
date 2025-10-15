@@ -54,7 +54,6 @@ class SubtaskApiController extends ApiController
     }
 
     /**
-    /**
      * Update the status of a subtask (completed or pending).
      *
      * Rules:

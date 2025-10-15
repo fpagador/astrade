@@ -354,7 +354,7 @@
                     "Subtasks"
                 ],
                 "summary": "Update subtask status",
-                "description": "/**\nUpdate the status of a subtask (completed or pending).\n\nRules:\n- Only the owner of the parent task can update the subtask.\n- If all subtasks are completed → parent task becomes completed.\n- If any subtask is pending → parent task becomes pending.",
+                "description": "Update the status of a subtask (completed or pending).\n\nRules:\n- Only the owner of the parent task can update the subtask.\n- If all subtasks are completed → parent task becomes completed.\n- If any subtask is pending → parent task becomes pending.",
                 "operationId": "02f47140fe0263e43b89178ae342050e",
                 "parameters": [
                     {
