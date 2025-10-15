@@ -1,13 +1,19 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
+
 import { createIcons, icons } from 'lucide';
+
 import { initCalendars, confirmDelete, calendarForm, initCloneSelect, checkTaskConflicts } from './calendar';
 import { cloneTaskForm, editTaskForm, imageModal, calendarView, actionTaskModal, dailyControls, enhancedLoadTasks} from './task';
 import { initCompaniesPhones } from './company';
 import { imageSelector } from './imageSelector';
 import { userSelector } from './users';
 import './dashboard';
-import { customConfirm } from './confirm.js';
+import { customConfirm, customAlert } from './confirm.js';
+
+import flatpickr from "flatpickr";
+import "flatpickr/dist/flatpickr.min.css";
+import { Spanish } from "flatpickr/dist/l10n/es.js";
 
 window.Alpine = Alpine;
 window.createIcons = createIcons;
@@ -28,6 +34,7 @@ window.confirmDelete = confirmDelete;
 window.userSelector = userSelector;
 
 window.customConfirm = customConfirm;
+window.customAlert = customAlert;
 
 Alpine.start();
 
@@ -53,6 +60,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    document.querySelectorAll('input[required], select[required], textarea[required]').forEach(field => {
+        // crear contenedor
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('relative', 'group');
+
+        // envolver el input
+        field.parentNode.insertBefore(wrapper, field);
+        wrapper.appendChild(field);
+
+        // crear tooltip
+        const tooltip = document.createElement('div');
+        tooltip.className = 'absolute left-0 -top-6 bg-red-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none';
+        tooltip.textContent = 'Por favor completa este campo';
+
+        wrapper.appendChild(tooltip);
+    });
+
     const confirmForms = document.querySelectorAll('form[data-confirm-delete], form.delete-form');
     confirmForms.forEach(form => {
         form.addEventListener('submit', async (e) => {
@@ -70,6 +94,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 form.submit();
             }
         });
+    });
+
+    flatpickr("input[data-flatpickr]", {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d/m/Y",
+        locale: Spanish,
+        firstDayOfWeek: 1
     });
 
 });

@@ -81,7 +81,7 @@
         </div>
 
         {{-- TABLE ROWS --}}
-        @foreach($users as $user)
+        @forelse($users as $user)
             {{-- Desktop version --}}
             <div class="hidden md:grid grid-cols-[1.2fr_1.2fr_1fr_2fr_1fr_1fr_8rem_7rem]
                         items-center px-4 py-3 border-b hover:bg-indigo-50 text-sm bg-white gap-x-2">
@@ -199,7 +199,11 @@
                     @endcan
                 </div>
             </div>
-        @endforeach
+        @empty
+            <div class="col-span-6 text-center text-sm py-6 bg-white border border-t-0 rounded-b-md">
+                No hay usuarios de gestión registrados.
+            </div>
+        @endforelse
 
         {{-- PAGINATION --}}
         <div class="mt-6">

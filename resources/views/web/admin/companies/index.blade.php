@@ -50,7 +50,7 @@
     </div>
 
     {{-- ROWS --}}
-    @foreach($companies as $company)
+    @forelse($companies as $company)
         <div class="grid grid-cols-[2fr_3fr_3fr_3fr_1fr] items-center px-4 py-3 border-b hover:bg-indigo-50 text-sm bg-white">
             <div class="px-2">{{ $company->name }}</div>
             <div class="px-2">{{ $company->address ?? '-' }}</div>
@@ -82,7 +82,11 @@
                     </form>
             </div>
         </div>
-    @endforeach
+    @empty
+        <div class="col-span-6 text-center text-sm py-6 bg-white border border-t-0 rounded-b-md">
+            No hay empresas creadas.
+        </div>
+    @endforelse
 
     {{-- PAGINATION --}}
     <div class="mt-6">

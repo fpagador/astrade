@@ -37,12 +37,14 @@
             {{-- PLANNING DETAILS --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <x-form.input
-                    type="date"
+                    type="text"
                     name="scheduled_date"
                     label="Fecha"
                     value="{{ old('scheduled_date', optional($task->scheduled_date)->format('Y-m-d')) }}"
                     required
                     :disabled="$disableFields"
+                    placeholder="dd/mm/yy"
+                    data-flatpickr
                 />
 
                 <x-form.input
@@ -213,20 +215,24 @@
                     {{-- DATES --}}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <x-form.input
-                            type="date"
+                            type="text"
                             name="recurrent_start_date"
                             label="Fecha de inicio"
                             value="{{ old('recurrent_start_date', optional($task->recurrentTask?->start_date)->format('Y-m-d')) }}"
                             :disabled="$disableFields"
                             required
+                            placeholder="dd/mm/yy"
+                            data-flatpickrdata-flatpickr
                         />
                         <x-form.input
-                            type="date"
+                            type="text"
                             name="recurrent_end_date"
                             label="Fecha de fin"
                             required
                             value="{{ old('recurrent_end_date', optional($task->recurrentTask?->end_date)->format('Y-m-d')) }}"
                             :disabled="$disableFields"
+                            placeholder="dd/mm/yy"
+                            data-flatpickr
                         />
                     </div>
                 </div>

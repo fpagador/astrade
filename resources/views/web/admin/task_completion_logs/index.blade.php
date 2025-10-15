@@ -3,7 +3,9 @@
 @section('title', 'Logs de Finalización de Tareas')
 
 @section('content')
-    <h1 class="text-3xl font-semibold mb-6">Registro de Finalización de Tareas</h1>
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-3xl font-semibold mb-6">Registro de Finalización de Tareas</h1>
+    </div>
 
     <hr class="border-gray-300 mb-6">
     {{-- ALERTS --}}

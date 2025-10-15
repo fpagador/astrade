@@ -17,12 +17,12 @@
           class="bg-white p-4 rounded shadow mb-6 flex flex-wrap gap-4 items-end">
         <div>
             <label for="date_from" class="block text-sm font-medium text-gray-700">Fecha desde</label>
-            <input type="date" name="date_from" id="date_from" value="{{ request('date_from') }}" class="form-input w-full">
+            <input type="text" name="date_from" id="date_from" value="{{ request('date_from') }}" class="form-input w-full" placeholder="dd/mm/yy" data-flatpickr>
         </div>
 
         <div>
             <label for="date_to" class="block text-sm font-medium text-gray-700">Fecha hasta</label>
-            <input type="date" name="date_to" id="date_to" value="{{ request('date_to') }}" class="form-input w-full">
+            <input type="text" name="date_to" id="date_to" value="{{ request('date_to') }}" class="form-input w-full" placeholder="dd/mm/yy" data-flatpickr>
         </div>
 
         <div>
@@ -66,7 +66,7 @@
         </tr>
         </thead>
         <tbody>
-        @foreach ($logs as $log)
+        @forelse ($logs as $log)
             <tr class="bg-white border-b">
                 <td class="px-4 py-2">{{ $log->created_at?->format('d/m/Y H:i:s') }}</td>
                 <td class="px-4 py-2">{{ $log->level }}</td>
@@ -85,7 +85,11 @@
                     </pre>
                 </td>
             </tr>
-        @endforeach
+        @empty
+            <div class="col-span-6 text-center text-sm py-6 bg-white border border-t-0 rounded-b-md">
+                No hay registros de logs.
+            </div>
+        @endforelse
         </tbody>
     </table>
 

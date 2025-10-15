@@ -8,7 +8,7 @@
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-3xl font-semibold mb-6">Calendarios Laborales</h1>
                 <a href="{{ route('admin.calendars.create') }}"
-                   class="inline-block px-4 py-2 button-success rounded"> Nueva Plantilla
+                   class="inline-block mb-4 px-4 py-2 rounded button-success"> Nueva Plantilla
                 </a>
         </div>
 
@@ -96,10 +96,9 @@
                     </form>
                 </div>
             </div>
-
         @empty
-            <div class="px-4 py-3 bg-white text-gray-500 border-b">
-                No hay plantillas de calendario creadas.
+            <div class="col-span-6 text-center text-sm py-6 bg-white border border-t-0 rounded-b-md">
+                No hay plantillas de calendarios laborales creadas.
             </div>
         @endforelse
 

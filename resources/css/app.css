@@ -22,6 +22,14 @@ input[type="password"]::-moz-password-suggest {
     display: none !important;
 }
 
+.input-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+.realtime-error {
+    margin-top: 0.25rem;
+}
+
 .bg-login-gradient {
     background: linear-gradient(to top right, #85C7F2, #A06CD5);
 }
@@ -423,13 +431,13 @@ header button:hover {
 }
 
 .sidebar-link:not(.active):hover {
-    background-color: #AC83D6;
+    background-color: #884FC2;
     color: #FFFFFF;
 }
 
 
 .sidebar-link.active {
-    background-color: #884FC2;
+    background-color: #AC83D6;
     color: #FFFFFF;
 }
 

@@ -1,9 +1,12 @@
 @extends('layouts.app')
 @section('title', 'Dashboard')
 @section('content')
-<div class="w-full p-4 space-y-6">
+
         {{-- Page header --}}
-        <h1 class="text-3xl font-semibold mb-6">Panel de Control</h1>
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-3xl font-semibold mb-6">Panel de Control</h1>
+        </div>
+
         <hr class="border-gray-300 mb-6">
 
         {{-- USERS INFO BLOCK --}}
@@ -107,7 +110,7 @@
                     <ul class="divide-y divide-gray-200">
                         @forelse($userLegalAbsencesThisMonth as $absenceData)
                             <li class="px-2 py-1 text-sm">
-                                <strong>{{ $absenceData['user']->name }} {{ $absenceData['user']->surname }}</strong>
+                                <strong>{{ $absenceData['user']?->name }} {{ $absenceData['user']?->surname }}</strong>
                                 <ul class="ml-4 list-disc">
                                     @foreach($absenceData['periods'] as [$start, $end])
                                         <li>
@@ -219,7 +222,7 @@
                 </div>
             </div>
         </section>
-    </div>
+
 
     <script>
         window.tasksByDayData = @json($tasksByDay);

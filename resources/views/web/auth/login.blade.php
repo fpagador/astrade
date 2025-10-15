@@ -8,7 +8,16 @@
         <!-- DNI/NIE -->
         <div>
             <x-input-label for="dni" :value="__('DNI/NIE')" />
-            <x-text-input id="dni" class="block mt-1 w-full" type="text" name="dni" :value="old('dni')" required autofocus autocomplete="username" />
+            <x-text-input
+                id="dni"
+                class="block mt-1 w-full"
+                type="text"
+                name="dni"
+                :value="old('dni', request()->cookie('remembered_dni'))"
+                required
+                autofocus
+                autocomplete="username"
+            />
             <x-input-error :messages="$errors->get('dni')" class="mt-2" />
         </div>
 
@@ -16,10 +25,14 @@
         <div class="mt-4">
             <x-input-label for="password" :value="__('Contraseña')" />
 
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
+            <x-text-input
+                id="password"
+                class="block mt-1 w-full"
+                type="password"
+                name="password"
+                required
+                autocomplete="current-password"
+            />
 
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>

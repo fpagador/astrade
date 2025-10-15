@@ -67,12 +67,12 @@ class StoreOrUpdateUserRequest extends FormRequest
             'role_id' => 'required|exists:roles,id',
 
             //Conditional fields:
-            'company_id' => $isUser ? 'required|exists:companies,id' : 'nullable',
-            'work_calendar_template_id' => $isUser ? 'required|exists:work_calendar_templates,id' : 'nullable',
-            'work_schedule' => $isUser ? 'required|string|max:255' : 'nullable',
-            'contract_type' => $isUser ? 'required|in:temporary,permanent,fixed_discontinuous' : 'nullable',
-            'contract_start_date' => $isUser ? 'required|date' : 'nullable',
-            'notification_type' => $isUser ? 'required|in:none,visual,visual_audio' : 'nullable'
+            'company_id' => 'nullable|exists:companies,id',
+            'work_calendar_template_id' => 'nullable|exists:work_calendar_templates,id',
+            'work_schedule' => 'nullable|string|max:255',
+            'contract_type' => 'nullable|in:temporary,permanent,fixed_discontinuous',
+            'contract_start_date' => 'nullable|date',
+            'notification_type' => 'nullable|in:none,visual,visual_audio',
         ];
     }
 

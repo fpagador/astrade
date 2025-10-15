@@ -151,7 +151,10 @@
             <x-form.input
                 name="contract_start_date"
                 label="Fecha de inicio de contrato"
-                type="date" value="{{ old('contract_start_date', optional($user->contract_start_date)->format('Y-m-d')) }}"
+                type="text"
+                value="{{ old('contract_start_date', optional($user->contract_start_date)->format('Y-m-d')) }}"
+                placeholder="dd/mm/yy"
+                data-flatpickr
             />
             <!-- Notification type -->
             <x-form.select

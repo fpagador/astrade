@@ -82,7 +82,7 @@
     </div>
 
     {{-- ROWS --}}
-    @foreach($users as $user)
+    @forelse($users as $user)
         <div class="grid {{ $gridCols }} items-center px-4 py-3 border-b hover:bg-indigo-50 text-sm bg-white">
             <div class="truncate whitespace-nowrap overflow-hidden max-w-xs">{{ $user->name }}</div>
             <div class="truncate whitespace-nowrap overflow-hidden max-w-xs">{{ $user->surname }}</div>
@@ -171,7 +171,11 @@
                 </form>
             </div>
         </div>
-    @endforeach
+    @empty
+        <div class="col-span-6 text-center text-sm py-6 bg-white border border-t-0 rounded-b-md">
+            No hay usuarios móviles registrados.
+        </div>
+    @endforelse
 
     {{-- PAGINATION --}}
     <div class="mt-6">

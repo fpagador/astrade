@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Models\Task;
+use Illuminate\Http\Request;
 
 class StoreOrUpdateTaskRequest extends FormRequest
 {
@@ -20,7 +21,7 @@ class StoreOrUpdateTaskRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules(): array
+    public function rules(Request $request): array
     {
         $isCreate = $this->isMethod('post');
         $isUpdate = $this->isMethod('put') || $this->isMethod('patch');
@@ -36,7 +37,7 @@ class StoreOrUpdateTaskRequest extends FormRequest
         $rules = [
             'title' => 'required|string',
             'description' => 'nullable|string',
-            'scheduled_date' => 'required|date',
+            'scheduled_date' => $request->boolean('is_recurrent') ? 'nullable|date' : 'required|date',
             'scheduled_time' => 'required',
             'estimated_duration_minutes' => 'nullable|integer|min:1',
             'color' => 'nullable|string',

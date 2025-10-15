@@ -19,7 +19,7 @@
         <div class="flex justify-between items-center mt-6 space-x-4">
             <a href="{{ route('login') }}"
                class="button-cancel px-4 py-2 border border-transparent rounded-md font-semibold">
-                {{ __('Volver a login') }}
+                {{ __('Cancelar') }}
             </a>
             <x-primary-button>
                 {{ __('Restablecer contraseña') }}

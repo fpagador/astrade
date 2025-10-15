@@ -50,20 +50,6 @@
             {{-- Show only if it is a "user" user --}}
             @if(optional($user->role)->role_name === 'user')
 
-                {{-- Datos laborales --}}
-                <div class="mb-16">
-                    <h3 class="text-2xl font-bold text-indigo-800 mb-8 border-b border-indigo-200 pb-2">
-                        💼 Datos laborales
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        @include('web.admin.users.partials.readonly-field', ['label' => 'Horario de trabajo', 'value' => $user->work_schedule ?? '—'])
-                        @include('web.admin.users.partials.readonly-field', ['label' => 'Tipo de contrato', 'value' => $user->contract_type ? \App\Enums\ContractType::label(\App\Enums\ContractType::from($user->contract_type)) : '—'])
-                        @include('web.admin.users.partials.readonly-field', ['label' => 'Inicio de contrato', 'value' => $user->contract_start_date ?? '—'])
-                        @include('web.admin.users.partials.readonly-field', ['label' => 'Tipo de notificación', 'value' => $user->notification_type ? \App\Enums\NotificationType::label(\App\Enums\NotificationType::from($user->notification_type)) : '—'])
-                        @include('web.admin.users.partials.readonly-field', ['label' => 'Calendario laboral', 'value' => optional($user->workCalendarTemplate)->name ?? '—'])
-                    </div>
-                </div>
-
                 {{-- Company --}}
                 <div class="mb-4">
                     <h3 class="text-2xl font-bold text-indigo-800 mb-8 border-b border-indigo-200 pb-2">
@@ -87,6 +73,20 @@
                             @endforeach
                         </div>
                     @endif
+                </div>
+
+                {{-- Datos laborales --}}
+                <div class="mb-16">
+                    <h3 class="text-2xl font-bold text-indigo-800 mb-8 border-b border-indigo-200 pb-2">
+                        💼 Datos laborales
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        @include('web.admin.users.partials.readonly-field', ['label' => 'Horario de trabajo', 'value' => $user->work_schedule ?? '—'])
+                        @include('web.admin.users.partials.readonly-field', ['label' => 'Tipo de contrato', 'value' => $user->contract_type ? \App\Enums\ContractType::label(\App\Enums\ContractType::from($user->contract_type)) : '—'])
+                        @include('web.admin.users.partials.readonly-field', ['label' => 'Inicio de contrato', 'value' => $user->contract_start_date ?? '—'])
+                        @include('web.admin.users.partials.readonly-field', ['label' => 'Tipo de notificación', 'value' => $user->notification_type ? \App\Enums\NotificationType::label(\App\Enums\NotificationType::from($user->notification_type)) : '—'])
+                        @include('web.admin.users.partials.readonly-field', ['label' => 'Calendario laboral', 'value' => optional($user->workCalendarTemplate)->name ?? '—'])
+                    </div>
                 </div>
             @endif
         </div>

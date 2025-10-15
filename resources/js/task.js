@@ -117,20 +117,9 @@ export function cloneTaskForm(oldSubtasks = []) {
                     const nonWorkingData = await nonWorkingResponse.json();
 
                     if (nonWorkingData.nonWorking) {
-                        const proceed = await customConfirm('La fecha seleccionada corresponde a un día no laboral (festivo o ausencia legal). ¿Desea continuar?');
-                        if (!proceed) {
-                            checkingConflict = false;
-                            return;
-                        }
-
-                        let flagInput = form.querySelector('input[name="is_non_working_day"]');
-                        if (!flagInput) {
-                            flagInput = document.createElement('input');
-                            flagInput.type = 'hidden';
-                            flagInput.name = 'is_non_working_day';
-                            flagInput.value = '1';
-                            form.appendChild(flagInput);
-                        }
+                        await customAlert('La fecha seleccionada corresponde a un día de vacaciones o de ausencia legal y, por lo tanto, no se pueden agregar tareas este día.');
+                        checkingConflict = false;
+                        return;
                     }
 
                     // === 2. Check for time conflict ===
@@ -300,10 +289,15 @@ export function cloneTaskForm(oldSubtasks = []) {
                                 const inputs = form.querySelectorAll(`[name="${inputName}"]`);
                                 if(inputs.length > 0){
                                     inputs.forEach(input => {
+                                        const wrapper = input.closest('.flatpickr-wrapper') || input.parentNode;
+
+                                        const existing = input.parentNode.querySelector('.realtime-error');
+                                        if (existing) existing.remove();
+
                                         const p = document.createElement('p');
                                         p.className = 'text-red-600 text-sm mt-1 realtime-error';
                                         p.textContent = data.errors[fieldName][0];
-                                        input.insertAdjacentElement('afterend', p);
+                                        wrapper.appendChild(p);
                                     });
                                 } else {
                                     // fallback al contenedor general
@@ -313,6 +307,8 @@ export function cloneTaskForm(oldSubtasks = []) {
                                         container.id = 'general-errors';
                                         container.className = 'text-red-600 text-sm mb-2';
                                         form.prepend(container);
+                                    } else {
+                                        container.textContent = '';
                                     }
                                     container.textContent = data.errors[fieldName][0];
                                 }
@@ -606,6 +602,8 @@ export function handleAjaxError(error, container) {
 /* ----------------- CALENDAR VIEW ----------------- */
 export function calendarView() {
     const today = new Date();
+    const minMonth = today.getMonth();
+    const minYear = today.getFullYear();
 
     function formatDateLocal(date) {
         return date.getFullYear() + '-' +
@@ -625,6 +623,9 @@ export function calendarView() {
         yearsRange: Array.from({length:6},(_,i)=>today.getFullYear() + i),
         get currentCalendarDate() {
             return this.currentDate;
+        },
+        get canGoPrevMonth() {
+            return this.currentYear > minYear || (this.currentYear === minYear && this.currentMonth > 0);
         },
         getNewTaskUrl() {
             const date = this.formatDateLocal(this.currentDate);
@@ -689,8 +690,24 @@ export function calendarView() {
                 }
             });
         },
-        prevMonth(){ this.currentMonth--; if(this.currentMonth<0){this.currentMonth=11; this.currentYear--;} this.onMonthYearChange(); },
-        nextMonth(){ this.currentMonth++; if(this.currentMonth>11){this.currentMonth=0; this.currentYear++;} this.onMonthYearChange(); },
+        prevMonth() {
+            if (!this.canGoPrevMonth) return;
+            this.currentMonth--;
+            if (this.currentMonth < 0) {
+                this.currentMonth = 11;
+                this.currentYear--;
+            }
+            this.onMonthYearChange();
+        },
+
+        nextMonth() {
+            this.currentMonth++;
+            if (this.currentMonth > 11) {
+                this.currentMonth = 0;
+                this.currentYear++;
+            }
+            this.onMonthYearChange();
+        },
         renderMiniCalendar(){
             const mini=document.getElementById('miniCalendar');
             if(!mini) return;
@@ -701,6 +718,21 @@ export function calendarView() {
                 header.className='text-center font-semibold text-gray-700 bg-gray-300 py-1 rounded';
                 mini.appendChild(header);
             });
+
+            // previous and next month buttons
+            const btnPrev = document.createElement('button');
+            btnPrev.textContent = '<';
+            btnPrev.className = 'px-2 py-1 bg-gray-200 rounded hover:bg-gray-300';
+            btnPrev.disabled = !this.canGoPrevMonth;
+            btnPrev.addEventListener('click', () => this.prevMonth());
+            mini.appendChild(btnPrev);
+
+            const btnNext = document.createElement('button');
+            btnNext.textContent = '>';
+            btnNext.className = 'px-2 py-1 bg-gray-200 rounded hover:bg-gray-300';
+            btnNext.addEventListener('click', () => this.nextMonth());
+            mini.appendChild(btnNext);
+
             const firstDay=new Date(this.currentYear,this.currentMonth,1);
             const lastDay=new Date(this.currentYear,this.currentMonth+1,0);
             const startWeekday=(firstDay.getDay()+6)%7;
@@ -780,12 +812,24 @@ export function calendarView() {
         goPrevWeek() {
             this.currentDate.setDate(this.currentDate.getDate() - 7);
             this.updateDisplayedDays(7);
+
+            // Sincronizar mini calendario
+            const firstDayOfWeek = new Date(this.displayedDays[0].date);
+            this.currentMonth = firstDayOfWeek.getMonth();
+            this.currentYear = firstDayOfWeek.getFullYear();
+
             this.renderMiniCalendar();
         },
 
         goNextWeek() {
             this.currentDate.setDate(this.currentDate.getDate() + 7);
             this.updateDisplayedDays(7);
+
+            // Sincronizar mini calendario
+            const firstDayOfWeek = new Date(this.displayedDays[0].date);
+            this.currentMonth = firstDayOfWeek.getMonth();
+            this.currentYear = firstDayOfWeek.getFullYear();
+
             this.renderMiniCalendar();
         },
     }

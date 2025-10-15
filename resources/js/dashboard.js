@@ -8,12 +8,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const customColors = [
         '#3B82F6',
-        '#F05151',
-        '#F7E592',
-        '#B173E6',
-        '#A3F792',
-        '#CBC5D1',
-        '#E8A576'
+        '#3B82F6',
+        '#3B82F6',
+        '#3B82F6',
+        '#3B82F6',
+        '#3B82F6',
+        '#3B82F6'
     ];
 
     // --- TASKS BY DAY ---

@@ -612,13 +612,10 @@ export function calendarForm() {
 
         openConfirmDaysModal() {
             const selectedInput = document.getElementById('selectedDates');
-            const fromInput = selectedInput ? JSON.parse(selectedInput.value || '[]') : [];
-            const fromServer = window.calendarData.selectedDates || [];
+            const updatedDates = selectedInput ? JSON.parse(selectedInput.value || '[]') : [];
 
-            const combined = Array.from(new Set([...fromServer, ...fromInput]));
-
-            if (combined.length > 0) {
-                this.dateList = combined;
+            if (updatedDates.length > 0) {
+                this.dateList = updatedDates;
                 this.confirmDaysModalOpen = true;
             } else {
                 this.confirmAndCheckWarning();
@@ -628,9 +625,9 @@ export function calendarForm() {
         confirmAndCheckWarning() {
             this.confirmDaysModalOpen = false;
 
-            // Evaluar cambio de estado
+            // Evaluate change of status
             if (this.status !== window.calendarData.oldStatus) {
-                // Caso: activar calendario (desde borrador o inactivo)
+                // Case: Activate calendar (from draft or inactive)
                 if (this.status === 'active' &&
                     (window.calendarData.oldStatus === 'draft' || window.calendarData.oldStatus === 'inactive')) {
                     this.confirmMessage = "Está a punto de activar este calendario laboral. De confirmarse, quedará disponible para que los usuarios de gestión lo asignen a usuarios móviles.";
@@ -638,7 +635,7 @@ export function calendarForm() {
                     return;
                 }
 
-                // Caso: inactivar calendario
+                // Case: deactivate calendar
                 if (this.status === 'inactive') {
                     this.confirmMessage = "Está a punto de inactivar este calendario laboral. No podrá ser utilizado nuevamente.";
                     if (window.calendarData.userCount > 0) {

@@ -92,7 +92,7 @@
              x-transition>
             <div class="bg-white rounded-lg shadow-lg w-full max-w-xl p-6">
                 <h3 class="text-xl font-semibold mb-4">Confirmar festivos</h3>
-                <p class="text-sm text-gray-600 mb-3">Has marcado los siguientes días como festivos:</p>
+                <p class="text-gray-600 mb-3">Has marcado los siguientes días como festivos:</p>
                 <ul class="list-disc list-inside text-sm max-h-60 overflow-auto mb-6">
                     <template x-for="d in dateList" :key="d">
                         <li x-text="d"></li>

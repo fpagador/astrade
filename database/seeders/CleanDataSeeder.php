@@ -2,6 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\Log;
+use App\Models\RecurrentTask;
+use App\Models\UserAbsence;
+use App\Models\WorkCalendarDay;
+use App\Models\WorkCalendarTemplate;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
@@ -20,11 +25,19 @@ class CleanDataSeeder extends Seeder
     {
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         Company::truncate();
+        CompanyPhone::truncate();
+        Log::truncate();
+        RecurrentTask::truncate();
         TaskCompletionLog::truncate();
         Subtask::truncate();
         Task::truncate();
-        CompanyPhone::truncate();
+        TaskCompletionLog::truncate();
         User::truncate();
+        UserAbsence::truncate();
+        WorkCalendarDay::truncate();
+        WorkCalendarTemplate::truncate();
+
+
 
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     }

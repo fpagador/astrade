@@ -48,6 +48,12 @@ class AuthenticatedSessionController extends WebController
             ])->onlyInput('dni');
         }
 
+        if ($request->filled('remember')) {
+            cookie()->queue('remembered_dni', $request->dni, 60*24*30);
+        } else {
+            cookie()->queue(cookie()->forget('remembered_dni'));
+        }
+
         $request->session()->regenerate();
 
         return redirect()->intended('/admin/dashboard');

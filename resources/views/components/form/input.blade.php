@@ -1,6 +1,6 @@
 @props(['label' => '', 'name', 'type' => 'text', 'value' => '', 'required' => false, 'disabled' => false])
 
-<div class="mb-4">
+<div class="input-wrapper mb-4">
     @if ($label)
         <label for="{{ $name }}" class="block font-medium mb-1 flex items-center gap-1">
             {{ $label }}{{ $required ? ' *' : '' }}

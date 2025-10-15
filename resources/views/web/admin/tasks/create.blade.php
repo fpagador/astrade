@@ -55,7 +55,7 @@
 
             {{-- PLANNING --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <x-form.input name="scheduled_date" label="Fecha" type="date" value="{{ old('scheduled_date', $date) }}" required/>
+                <x-form.input name="scheduled_date" label="Fecha" type="text" placeholder="dd/mm/yy" data-flatpickr :flatpickr="true" value="{{ old('scheduled_date', $date) }}"/>
                 <x-form.input name="scheduled_time" label="Hora" type="time" value="{{ old('scheduled_time') }}" required/>
                 <x-form.input name="estimated_duration_minutes" label="Duración estimada (min)" type="number" min="1" value="{{ old('estimated_duration_minutes') }}"/>
             </div>
@@ -132,7 +132,34 @@
                         let checkboxes = $el.querySelectorAll('input[name=\'days_of_week[]\']');
                         this.allSelected = Array.from(checkboxes).every(cb => cb.checked);
                     },
+                    toggleScheduledDate() {
+                        const form = $el.closest('form');
+                        const dateInput = form?.querySelector('input[name=scheduled_date]');
+                        if (!dateInput) return;
+
+                        const fp = dateInput._flatpickr;
+
+                        if (this.recurrent) {
+                            if (fp) {
+                                fp.clear();
+                                fp.set('clickOpens', false);
+                                fp.input.setAttribute('tabindex', '-1');
+                            }
+                            dateInput.disabled = true;
+                            dateInput.removeAttribute('required');
+                            dateInput.classList.add('opacity-50', 'cursor-not-allowed');
+                        } else {
+                            if (fp) {
+                                fp.set('clickOpens', true);
+                                fp.input.removeAttribute('tabindex');
+                            }
+                            dateInput.disabled = false;
+                            dateInput.setAttribute('required', 'required');
+                            dateInput.classList.remove('opacity-50', 'cursor-not-allowed');
+                        }
+                    },
                     init() {
+                        this.toggleScheduledDate();
                         document.addEventListener('task-loaded', e => {
                             this.recurrent = e.detail.recurrent;
                             this.weekDaysSelected = e.detail.days;
@@ -140,8 +167,10 @@
                         });
                     }
                 }"
+                 x-init="init()"
+                 @change="toggleScheduledDate()"
             >
-                <x-form.checkbox name="is_recurrent" label="¿Tarea recurrente?" x-model="recurrent" />
+                <x-form.checkbox name="is_recurrent" label="¿Tarea recurrente?" x-model="recurrent" @change="toggleScheduledDate()" />
 
                 <div x-show="recurrent" x-cloak class="space-y-4 bg-gray-50 p-4 rounded border border-gray-200">
                     {{-- Title and select all --}}
@@ -180,16 +209,20 @@
                         <x-form.input
                             name="recurrent_start_date"
                             label="Fecha de inicio *"
-                            type="date"
+                            type="text"
                             x-bind:required="recurrent"
                             value="{{ old('recurrent_start_date') }}"
+                            placeholder="dd/mm/yy"
+                            data-flatpickr
                         />
                         <x-form.input
                             name="recurrent_end_date"
                             label="Fecha de fin *"
-                            type="date"
+                            type="text"
                             x-bind:required="recurrent"
                             value="{{ old('recurrent_end_date') }}"
+                            placeholder="dd/mm/yy"
+                            data-flatpickr
                         />
                     </div>
                 </div>
