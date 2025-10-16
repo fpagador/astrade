@@ -3,12 +3,14 @@
 @section('title', 'Editar Ubicación')
 
 @section('content')
-    <h1 class="text-2xl font-semibold mb-6">Editar Empresa</h1>
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-semibold mb-6">Editar Empresa {{ $company->name }}</h1>
+    </div>
+
+    <hr class="border-gray-300 mb-6">
 
     {{-- ALERTS --}}
     <x-admin.alert-messages />
-
-    <hr class="border-gray-300 mb-6">
 
     {{-- FORM --}}
     <x-form.form-wrapper action="{{ route('admin.companies.update', $company) }}" method="POST" class="max-w-lg mx-auto bg-white p-6 rounded shadow">

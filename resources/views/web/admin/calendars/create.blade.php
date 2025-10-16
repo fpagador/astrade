@@ -11,7 +11,7 @@
         data-clone-url="{{ url('admin/calendars/__ID__/clone-data') }}"
     >
         <div class="flex items-center justify-between mb-6">
-            <h1 class="text-2xl font-semibold">Nueva Plantilla</h1>
+            <h1 class="text-2xl font-semibold mb-6">Nueva Plantilla</h1>
             <button
                 type="button"
                 @click="showClone = !showClone"

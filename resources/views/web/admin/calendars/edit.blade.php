@@ -3,8 +3,6 @@
 @section('title', 'Editar Plantilla de Calendario')
 
 @section('content')
-    <h1 class="text-2xl font-semibold mb-6">Editar Plantilla</h1>
-
     {{-- ALERTS --}}
     <x-admin.alert-messages />
 
@@ -18,6 +16,11 @@
         @csrf
         @method('PUT')
 
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-semibold mb-6">Editar {{ $template->name }}</h1>
+        </div>
+
+        <hr class="border-gray-300 mb-6">
         {{-- Template name --}}
         <x-form.input
             label="Nombre de la plantilla"

@@ -3,7 +3,11 @@
 @section('title', 'Edit User')
 
 @section('content')
-    <h1 class="text-2xl font-semibold mb-6">Editar Usuario</h1>
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-semibold mb-6">Editar Usuario {{ $user->name }} {{ $user->surname }}</h1>
+    </div>
+
+    <hr class="border-gray-300 mb-6">
 
     {{-- ALERTS --}}
     <x-admin.alert-messages />

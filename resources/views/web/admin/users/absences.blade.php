@@ -4,10 +4,11 @@
 
 @section('content')
     <div class="mb-6 flex items-center justify-between">
-        <h1 class="text-3xl font-semibold">Vacaciones y ausencias legales de {{ $user->name }} {{ $user->surname }}</h1>
+        <h1 class="text-3xl font-semibold mb-6">Vacaciones y ausencias legales de {{ $user->name }} {{ $user->surname }}</h1>
     </div>
 
     <hr class="border-gray-300 mb-6">
+
     <x-admin.alert-messages />
 
     <x-form.form-wrapper
@@ -55,5 +56,7 @@
     </x-form.form-wrapper>
 
     {{-- BACK BUTTON --}}
-    <x-admin.back-to-users-button :type="\App\Enums\UserTypeEnum::MOBILE->value" :back_url="$backUrl" />
+    <div class="max-w-5xl mx-auto flex">
+        <x-admin.back-to-users-button :type="\App\Enums\UserTypeEnum::MOBILE->value" :back_url="$backUrl" />
+    </div>
 @endsection
