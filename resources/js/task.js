@@ -719,20 +719,6 @@ export function calendarView() {
                 mini.appendChild(header);
             });
 
-            // previous and next month buttons
-            const btnPrev = document.createElement('button');
-            btnPrev.textContent = '<';
-            btnPrev.className = 'px-2 py-1 bg-gray-200 rounded hover:bg-gray-300';
-            btnPrev.disabled = !this.canGoPrevMonth;
-            btnPrev.addEventListener('click', () => this.prevMonth());
-            mini.appendChild(btnPrev);
-
-            const btnNext = document.createElement('button');
-            btnNext.textContent = '>';
-            btnNext.className = 'px-2 py-1 bg-gray-200 rounded hover:bg-gray-300';
-            btnNext.addEventListener('click', () => this.nextMonth());
-            mini.appendChild(btnNext);
-
             const firstDay=new Date(this.currentYear,this.currentMonth,1);
             const lastDay=new Date(this.currentYear,this.currentMonth+1,0);
             const startWeekday=(firstDay.getDay()+6)%7;

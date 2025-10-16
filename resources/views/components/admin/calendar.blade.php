@@ -33,7 +33,6 @@
             class="border rounded px-2 py-1 w-20"
             min="2000" max="2100"
             value="{{ $year }}"
-            required
             name="year"
             {{ $yearEditable ? '' : 'readonly' }}
         >
@@ -66,7 +65,7 @@
      data-legal-input="#selectedLegalAbsences">
 </div>
 
-{{-- Leyenda --}}
+{{-- Leyend --}}
 <div class="flex flex-wrap gap-4 mb-4 text-sm">
     @if($mode === 'vacation')
         <div class="flex items-center gap-2">
