@@ -97,21 +97,37 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">Pictograma</label>
 
                 @if ($task->pictogram_path)
-                    <div class="relative group h-20 aspect-square inline-block">
+                    {{-- Imagen actual --}}
+                    <div class="relative group h-20 aspect-square mb-2">
                         <img
                             src="{{ asset('storage/' . $task->pictogram_path) }}"
                             @click="$dispatch('open-image', '{{ asset('storage/' . $task->pictogram_path) }}')"
-                            title="Ver Pictograma actual"
-                            class="h-full max-w-full object-contain rounded cursor-pointer transition group-hover:brightness-110"
+                            title="Ver pictograma actual"
+                            class="h-full w-full object-contain rounded cursor-pointer transition group-hover:brightness-110"
                         />
-
-                        {{-- Icono de lupa al hacer hover --}}
                         <div class="absolute inset-0 flex items-center justify-center bg-black/30 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none">
                             <i data-lucide="search" class="w-5 h-5 text-white"></i>
                         </div>
                     </div>
                 @endif
-                <input @if($disableFields) disabled @endif type="file" name="pictogram_path" accept="image/*" class="form-input w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+
+                {{-- Botón y texto de archivo --}}
+                <div class="flex items-center gap-2">
+                    <label class="cursor-pointer button-success px-4 py-2 rounded transition inline-block">
+                        <span>{{ $task->pictogram_path ? 'Cambiar pictograma' : 'Seleccionar pictograma' }}</span>
+                        <input
+                            @if($disableFields) disabled @endif
+                        type="file"
+                            name="pictogram_path"
+                            accept="image/*"
+                            class="hidden"
+                        />
+                    </label>
+
+                    @unless($task->pictogram_path)
+                        <span class="text-gray-500 text-sm">Ningún archivo seleccionado</span>
+                    @endunless
+                </div>
             </div>
 
             {{-- COLOR AND STATE --}}
@@ -153,7 +169,35 @@
             </div>
 
             {{-- RECURRENT --}}
-            <div x-data="{ recurrent: {{ old('is_recurrent', $task->recurrentTask ? 'true' : 'false') }} }" class="border-t pt-6 mt-6">
+            <div
+                x-data="{
+                    recurrent: {{ old('is_recurrent', $task->recurrentTask ? 'true' : 'false') }},
+                    toggleScheduledDate() {
+                        const form = $el.closest('form');
+                        const dateInput = form?.querySelector('input[name=scheduled_date]');
+                        if (!dateInput) return;
+                        const fp = dateInput._flatpickr;
+
+                        if (this.recurrent) {
+                            // Desactivar edición pero mantener valor visible
+                            if (fp) fp.set('clickOpens', false);
+                            dateInput.disabled = true;
+                            dateInput.classList.add('opacity-50', 'cursor-not-allowed');
+                        } else {
+                            // Reactivar si deja de ser recurrente
+                            if (fp) fp.set('clickOpens', true);
+                            dateInput.disabled = false;
+                            dateInput.classList.remove('opacity-50', 'cursor-not-allowed');
+                        }
+                    },
+                    init() {
+                        this.toggleScheduledDate();
+                    }
+                }"
+                x-init="init()"
+                @change="toggleScheduledDate()"
+                class="border-t pt-6 mt-6"
+            >
                 <x-form.checkbox
                     name="is_recurrent"
                     x-model="recurrent"
@@ -222,7 +266,7 @@
                             :disabled="$disableFields"
                             required
                             placeholder="dd/mm/yy"
-                            data-flatpickrdata-flatpickr
+                            data-flatpickr
                         />
                         <x-form.input
                             type="text"
@@ -303,8 +347,9 @@
                                 </div>
 
                                 <div x-data="{ storageBaseUrl: '{{ asset('storage') }}' }">
-                                    <label class="block text-sm font-medium text-gray-700">Pictograma actual:</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Pictograma:</label>
 
+                                    {{-- Imagen actual --}}
                                     <template x-if="subtask.pictogram_path">
                                         <div class="mb-2 relative group w-20 aspect-square">
                                             <img
@@ -313,7 +358,6 @@
                                                 @click="window.dispatchEvent(new CustomEvent('open-image', { detail: `${storageBaseUrl}/${subtask.pictogram_path}` }))"
                                                 title="Ver Pictograma actual"
                                             />
-
                                             <!-- Overlay lupa -->
                                             <div class="absolute inset-0 flex items-center justify-center bg-black/30 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none">
                                                 <i data-lucide="search" class="w-5 h-5 text-white"></i>
@@ -321,13 +365,22 @@
                                         </div>
                                     </template>
 
-                                    <input
-                                        type="file"
-                                        :name="`subtask_pictograms[${subtask.id ?? 'new_' + index}]`"
-                                        class="form-input w-full"
-                                        accept="image/*"
-                                        @if($disableFields) disabled @endif
-                                    >
+                                    {{-- Botón y texto de archivo --}}
+                                    <div class="flex items-center gap-2">
+                                        <label class="cursor-pointer button-success px-4 py-2 rounded transition inline-block">
+                                            <span x-text="subtask.pictogram_path ? 'Cambiar pictograma' : 'Seleccionar pictograma'"></span>
+                                            <input
+                                                type="file"
+                                                :name="`subtask_pictograms[${subtask.id ?? 'new_' + index}]`"
+                                                accept="image/*"
+                                                class="hidden"
+                                                @change="subtask.pictogram_path = $event.target.files[0] ? URL.createObjectURL($event.target.files[0]) : null"
+                                                @if($disableFields) disabled @endif
+                                            />
+                                        </label>
+
+                                        <span class="text-gray-500 text-sm" x-show="!subtask.pictogram_path">Ningún archivo seleccionado</span>
+                                    </div>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
@@ -347,7 +400,7 @@
 
                 <button
                     type="button"
-                    class="inline-flex items-center bg-green-600 text-white text-sm px-3 py-1.5 rounded hover:bg-green-500"
+                    class="inline-flex items-center button-extra text-sm px-3 py-1.5 rounded "
                     @click="addSubtask()"
                     @if($disableFields) disabled @endif
                 >

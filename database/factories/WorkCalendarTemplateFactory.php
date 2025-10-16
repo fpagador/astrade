@@ -13,6 +13,7 @@ class WorkCalendarTemplateFactory  extends Factory
 
     public function definition(): array
     {
+        $currentYear = Carbon::today()->year;
         $year = $this->faker->numberBetween($currentYear - 1, $currentYear + 1);
 
         return [

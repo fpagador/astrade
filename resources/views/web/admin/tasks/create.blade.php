@@ -260,8 +260,13 @@
                                     <textarea :name="'subtasks['+index+'][note]'" class="form-textarea w-full" rows="2" x-model="subtask.note"></textarea>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700">Pictograma</label>
-                                    <input type="file" :name="'subtask_pictograms['+index+']'" class="form-input w-full" accept="image/*">
+                                    <x-form.file
+                                        label="Pictograma"
+                                        accept="image/*"
+                                        preview
+                                        x-bind:name="'subtask_pictograms[' + index + ']'"
+                                        x-bind:id="'subtask_pictograms_' + index"
+                                    />
                                 </div>
                             </div>
                         </div>

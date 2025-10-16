@@ -300,8 +300,8 @@ class UserTaskService
      */
     protected function handleRecurrentTask(Task $firstTask, array $data): void
     {
-        $scheduledDate = Carbon::parse($data['scheduled_date']);
-        $scheduledDay  = strtolower($scheduledDate->format('l'));
+        $recurrentStartDate = Carbon::parse($data['recurrent_start_date']);
+        $scheduledDay  = strtolower($recurrentStartDate->format('l'));
         $daysOfWeek    = array_map('strtolower', $data['days_of_week'] ?? []);
 
         if (in_array($scheduledDay, $daysOfWeek)) {
