@@ -90,7 +90,6 @@
                     <x-form.file
                         name="pictogram_path"
                         label="Pictograma"
-                        class="  py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
                         preview
                     />
                 </div>
@@ -265,7 +264,6 @@
                                         accept="image/*"
                                         preview
                                         x-bind:name="'subtask_pictograms[' + index + ']'"
-                                        x-bind:id="'subtask_pictograms_' + index"
                                     />
                                 </div>
                             </div>
