@@ -98,6 +98,18 @@ class WorkCalendarTemplateController extends WebController
     }
 
     /**
+     * Show the details of a single work calendar template.
+     *
+     * @param WorkCalendarTemplate $template
+     * @return View
+     */
+    public function show(WorkCalendarTemplate $template): View
+    {
+        $editData = $this->calendarService->getTemplateForEdit($template);
+        return view('web.admin.calendars.show', $editData);
+    }
+
+    /**
      * Show the form for editing a calendar template.
      *
      * @param  WorkCalendarTemplate  $template

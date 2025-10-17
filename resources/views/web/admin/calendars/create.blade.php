@@ -128,9 +128,13 @@
 
             {{-- ACTIONS --}}
             <div class="flex justify-end gap-2 mt-4">
-                <button type="button" data-open-modal="confirmModal_calendarTemplateForm" class="button-success px-4 py-2 rounded">
+                <button
+                    type="button"
+                    class="button-success px-4 py-2 rounded"
+                    @click="validateCalendarTemplateForm()">
                     Guardar
                 </button>
+                <button type="button" id="openConfirmModalBtn" data-open-modal="confirmModal_calendarTemplateForm" class="hidden"></button>
                 <a href="{{ route('admin.calendars.index') }}" class="px-4 py-2 rounded button-cancel text-center">
                     Cancelar
                 </a>

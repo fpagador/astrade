@@ -12,10 +12,9 @@
             <div class="flex items-center gap-4">
                 @can('create',\App\Models\User::class)
                     <a
-                        :href="!isVacationDay ? getNewTaskUrl() : '#'"
+                        :href="getNewTaskUrl()"
                         :class="{'opacity-50 cursor-not-allowed': isVacationDay}"
-                        :disabled="isVacationDay"
-                        @click="if(isVacationDay) alert('No se pueden crear tareas en días de vacaciones.')"
+                        @click="if(isVacationDay){ customAlert('No se pueden crear tareas en días de vacaciones.'); $event.preventDefault(); }"
                         class="inline-block mb-4 px-4 py-2 rounded button-success"
                     >
                         Nueva tarea

@@ -3,7 +3,7 @@ import Alpine from 'alpinejs';
 
 import { createIcons, icons } from 'lucide';
 
-import { initCalendars, confirmDelete, calendarForm, initCloneSelect, checkTaskConflicts } from './calendar';
+import { initCalendars, confirmDelete, calendarForm, initCloneSelect, validateCalendarTemplateForm } from './calendar';
 import { cloneTaskForm, editTaskForm, imageModal, calendarView, actionTaskModal, dailyControls, enhancedLoadTasks} from './task';
 import { initCompaniesPhones } from './company';
 import { imageSelector } from './imageSelector';
@@ -30,6 +30,7 @@ window.actionTaskModal = actionTaskModal;
 window.imageSelector = imageSelector;
 window.initCalendars = initCalendars;
 window.calendarForm = calendarForm;
+window.validateCalendarTemplateForm = validateCalendarTemplateForm;
 window.confirmDelete = confirmDelete;
 window.userSelector = userSelector;
 

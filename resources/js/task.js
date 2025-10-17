@@ -35,6 +35,7 @@ function formatTimeToInput(timeString) {
 export function cloneTaskForm(oldSubtasks = []) {
     return {
         showClone: false,
+        taskPictogramPath: '',
         subtasks: oldSubtasks.length
             ? oldSubtasks.map(s => ({
                 id: crypto.randomUUID(),
@@ -86,6 +87,7 @@ export function cloneTaskForm(oldSubtasks = []) {
             const container = document.querySelector('#task-form-container');
             const conflictUrl = container?.dataset?.conflictCheckUrl || '';
             const nonWorkingUrl = container?.dataset?.nonWorkingCheckUrl || '';
+            const nonWorkingRangeUrl = container?.dataset?.nonWorkingRangeCheckUrl || '';
             let checkingConflict = false;
             let conflictChecked = false;
 
@@ -103,44 +105,56 @@ export function cloneTaskForm(oldSubtasks = []) {
                 const userId = form.querySelector('input[name="user_id"]').value;
                 const scheduledDate = form.querySelector('input[name="scheduled_date"]').value;
                 const scheduledTime = form.querySelector('input[name="scheduled_time"]').value;
-                if (!scheduledDate || !scheduledTime) {
-                    conflictChecked = true;
-                    checkingConflict = false;
-                    form.submit();
-                    return;
-                }
+                const isRecurrent = form.querySelector('input[name="is_recurrent"]').checked;
+                const recurrentStart = form.querySelector('input[name="recurrent_start_date"]').value;
+                const recurrentEnd = form.querySelector('input[name="recurrent_end_date"]').value;
+
                 try {
-                    // === 1. Check if it is a non-working day ===
-                    const nonWorkingResponse = await fetch(
-                        nonWorkingUrl.replace('{userId}', userId) + `?scheduled_date=${scheduledDate}`
-                    );
-                    const nonWorkingData = await nonWorkingResponse.json();
+                    // 1️⃣ Check non-working days
+                    if (isRecurrent && recurrentStart && recurrentEnd) {
+                        const response = await fetch(
+                            nonWorkingRangeUrl.replace('{userId}', userId) + `?start_date=${recurrentStart}&end_date=${recurrentEnd}`
+                        );
+                        const data = await response.json();
 
-                    if (nonWorkingData.nonWorking) {
-                        await customAlert('La fecha seleccionada corresponde a un día de vacaciones o de ausencia legal y, por lo tanto, no se pueden agregar tareas este día.');
-                        checkingConflict = false;
-                        return;
-                    }
-
-                    // === 2. Check for time conflict ===
-                    const url = conflictUrl.replace('{userId}', userId) + `?scheduled_date=${scheduledDate}&scheduled_time=${scheduledTime}`;
-                    const response = await fetch(url);
-                    const data = await response.json();
-                    if (data.conflict) {
-                        const proceed = await customConfirm('Ya existe una tarea para este usuario a la misma hora. ¿Desea continuar?');
-                        if (proceed) {
-                            conflictChecked = true;
-                            HTMLFormElement.prototype.submit.call(form);
-                        } else {
-                            checkingConflict = false;
+                        if (data.nonWorkingDates && data.nonWorkingDates.length > 0) {
+                            const proceed = await customConfirm(
+                                'Algunas de las fechas en el rango recurrente seleccionado corresponden a días de vacaciones o ausencias legales. No se crearán tareas para estos días. ¿Desea continuar?'
+                            );
+                            if (!proceed) {
+                                checkingConflict = false;
+                                return;
+                            }
                         }
                     } else {
-                        conflictChecked = true;
-                        HTMLFormElement.prototype.submit.call(form);
+                        const nonWorkingResponse = await fetch(
+                            nonWorkingUrl.replace('{userId}', userId) + `?scheduled_date=${scheduledDate}`
+                        );
+                        const nonWorkingData = await nonWorkingResponse.json();
+                        if (nonWorkingData.nonWorking) {
+                            await customAlert('La fecha seleccionada corresponde a un día de vacaciones o de ausencia legal y, por lo tanto, no se pueden agregar tareas este día.');
+                            checkingConflict = false;
+                            return;
+                        }
                     }
+
+                    // 2️⃣ Check time conflict
+                    const url = conflictUrl.replace('{userId}', userId) + `?scheduled_date=${scheduledDate}&scheduled_time=${scheduledTime}`;
+                    const conflictResponse = await fetch(url);
+                    const conflictData = await conflictResponse.json();
+                    if (conflictData.conflict) {
+                        const proceedConflict = await customConfirm('Ya existe una tarea para este usuario a la misma hora. ¿Desea continuar?');
+                        if (!proceedConflict) {
+                            checkingConflict = false;
+                            return;
+                        }
+                    }
+
+                    // 3️⃣ Submit
+                    HTMLFormElement.prototype.submit.call(form);
+
                 } catch (error) {
-                    console.error('Error comprobando conflicto:', error);
-                    conflictChecked = true;
+                    console.error('Error comprobando conflictos:', error);
                     HTMLFormElement.prototype.submit.call(form);
                 }
             });
@@ -199,20 +213,49 @@ export function cloneTaskForm(oldSubtasks = []) {
                     title: sub.title ?? '',
                     description: sub.description ?? '',
                     note: sub.note ?? '',
-                    pictogram_path: sub.pictogram_path ?? ''
+                    pictogram_path: sub.pictogram_path ?? '',
+                    id: sub.id || crypto.randomUUID()
                 }))
             ));
+
+            this.$nextTick(() => {
+                const container = this.$refs.subtasksContainer;
+                this.subtasks.forEach((subtask, index) => {
+                    const subEl = container.querySelectorAll('.subtask')[index];
+                    if (!subEl) return;
+
+                    // Asigna valor al input hidden
+                    const hiddenInput = subEl.querySelector(`input[name="subtasks[${index}][pictogram_path]"]`);
+                    if (hiddenInput) hiddenInput.value = subtask.pictogram_path || '';
+
+                    // Genera preview solo si hay pictograma
+                    if (subtask.pictogram_path) {
+                        let img = subEl.querySelector('img[data-preview]');
+                        if (!img) {
+                            img = document.createElement('img');
+                            img.setAttribute('data-preview', 'true');
+                            img.classList.add('mt-2', 'w-16', 'h-16', 'object-cover', 'rounded', 'cursor-pointer');
+                            const fileInput = subEl.querySelector('input[type="file"]');
+                            if (fileInput) fileInput.after(img);
+                        }
+                        const assetBase = document.querySelector('#task-form-container')?.dataset.asset || '';
+                        img.src = `${assetBase}/${subtask.pictogram_path}`;
+                        img.classList.remove('hidden');
+
+                        img.addEventListener('click', () => {
+                            window.dispatchEvent(new CustomEvent('open-image', { detail: img.src }));
+                        });
+
+                        const fileSpan = subEl.querySelector('span[x-text]');
+                        if (fileSpan) fileSpan.textContent = '';
+                    }
+                });
+            });
+
             if (this.subtasks.length === 0) {
                 this.addSubtask();
             }
-            this.recurrent = !!task.is_recurrent;
-            document.querySelector('[name="title"]').value = task.title || '';
-            document.querySelector('[name="description"]').value = task.description || '';
-            document.querySelector('[name="scheduled_date"]').value = formatDateToInput(task.scheduled_date) || '';
-            document.querySelector('[name="scheduled_time"]').value = formatTimeToInput(task.scheduled_time) || '';
-            document.querySelector('[name="estimated_duration_minutes"]').value = task.estimated_duration_minutes || '';
-            document.querySelector('[name="is_recurrent"]').checked = task.is_recurrent;
-            document.querySelectorAll('input[name="days_of_week[]"]').forEach(el => el.checked = false);
+
             let days = task.days_of_week || [];
             if (typeof days === 'string') {
                 try { days = JSON.parse(days); } catch (e) {}
@@ -221,22 +264,83 @@ export function cloneTaskForm(oldSubtasks = []) {
                 const el = document.querySelector(`input[name="days_of_week[]"][value="${day}"]`);
                 if (el) el.checked = true;
             });
-            document.querySelector('[name="recurrent_start_date"]').value = formatDateToInput(task.recurrent_start_date) || '';
-            document.querySelector('[name="recurrent_end_date"]').value = formatDateToInput(task.recurrent_end_date) || '';
-            if (task.pictogram_path) {
-                const container = document.querySelector('#task-form-container');
-                const assetBase = container?.dataset?.asset || '';
-                const preview = document.querySelector('#pictogram-preview');
-                if (preview) {
-                    preview.src = `${assetBase}/${task.pictogram_path}`.replace(/\/+$/, '');
-                    preview.classList.remove('hidden');
-                    preview.addEventListener('click', () => {
-                        window.dispatchEvent(new CustomEvent('open-image', { detail: preview.src }));
-                    });
+
+            this.recurrent = !!task.is_recurrent;
+
+            document.dispatchEvent(new CustomEvent('task-loaded', {
+                detail: { recurrent: this.recurrent, days: days }
+            }));
+
+            const recurrentSection = document.querySelector('[x-data*="recurrent"]');
+            if (recurrentSection && recurrentSection.__x) {
+                recurrentSection.__x.$data.toggleScheduledDate();
+            }
+
+            const scheduledInput = document.querySelector('[name="scheduled_date"]');
+            if (scheduledInput) {
+                if (scheduledInput._flatpickr) {
+                    scheduledInput._flatpickr.clear();
+                    scheduledInput.disabled = this.recurrent;
+                    scheduledInput.required = !this.recurrent;
+                    scheduledInput.classList.toggle('opacity-50', this.recurrent);
+                    scheduledInput.classList.toggle('cursor-not-allowed', this.recurrent);
+                    if (scheduledInput._flatpickr) scheduledInput._flatpickr.set('clickOpens', !this.recurrent);
+                } else {
+                    scheduledInput.value = '';
                 }
             }
 
-            document.dispatchEvent(new CustomEvent('task-loaded', { detail: { recurrent: !!task.is_recurrent, days: days } }));
+            document.querySelector('[name="title"]').value = task.title || '';
+            document.querySelector('[name="description"]').value = task.description || '';
+            document.querySelector('[name="scheduled_date"]').value = task.is_recurrent ? '' : formatDateToInput(task.scheduled_date) || '';
+            document.querySelector('[name="scheduled_time"]').value = formatTimeToInput(task.scheduled_time) || '';
+            document.querySelector('[name="estimated_duration_minutes"]').value = task.estimated_duration_minutes || '';
+            document.querySelector('[name="is_recurrent"]').checked = task.is_recurrent;
+            document.querySelectorAll('input[name="days_of_week[]"]').forEach(el => el.checked = false);
+            document.dispatchEvent(new CustomEvent('task-loaded', {
+                detail: { recurrent: this.recurrent, days: days }
+            }));
+            if (this.recurrent) {
+                const start = document.querySelector('[name="recurrent_start_date"]');
+                const end = document.querySelector('[name="recurrent_end_date"]');
+                if (start?._flatpickr) start._flatpickr.setDate(task.recurrent_start_date || null);
+                if (end?._flatpickr) end._flatpickr.setDate(task.recurrent_end_date || null);
+            }
+
+            if (task.pictogram_path) {
+                this.taskPictogramPath = task.pictogram_path;
+                const container = document.querySelector('#task-form-container');
+                const assetBase = container?.dataset.asset || '';
+                let preview = container.querySelector('img[data-preview]');
+
+                if (!preview) {
+                    preview = document.createElement('img');
+                    preview.setAttribute('data-preview', 'true');
+                    preview.classList.add('mt-2', 'w-20', 'h-20', 'object-cover', 'rounded', 'cursor-pointer');
+                    container.querySelector('input[name="pictogram_path"]').after(preview);
+                }
+
+                preview.src = `${assetBase}/${task.pictogram_path}`;
+                preview.classList.remove('hidden');
+
+                const fileSpan = container.querySelector('span[x-text]');
+                if (fileSpan) fileSpan.textContent = '';
+
+                preview.addEventListener('click', () => {
+                    window.dispatchEvent(new CustomEvent('open-image', { detail: preview.src }));
+                });
+
+                const inputHidden = container.querySelector('input[name="pictogram_path_hidden"]');
+                if (!inputHidden) {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'pictogram_path';
+                    hidden.value = task.pictogram_path;
+                    container.querySelector('input[name="pictogram_path"]').after(hidden);
+                } else {
+                    inputHidden.value = task.pictogram_path;
+                }
+            }
         },
 
         async fetchTask(taskId) {
@@ -781,19 +885,26 @@ export function calendarView() {
             this.updateDisplayedDays(7);
             this.renderMiniCalendar();
         },
-        openTask(taskId, taskDate = null){
+        async openTask(taskId, taskDate = null) {
             const dateParam = taskDate ?? (this.displayedDays.length ? this.displayedDays[0].date : formatDateLocal(new Date()));
             const url = window.taskDetailBaseUrl.replace('__ID__', taskId) + `?date=${dateParam}`;
-            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                .then(r => r.text())
-                .then(html => {
-                    document.getElementById('task-detail-container').innerHTML = html;
-                    if (window.createIcons && window.lucideIcons) {
-                        window.createIcons({ icons: window.lucideIcons });
-                    }
-                    document.getElementById('task-detail-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
-                })
-                .catch(()=>alert('No se pudo cargar la tarea'));
+
+            try {
+                const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                document.getElementById('task-detail-container').innerHTML = await response.text();
+
+                if (window.createIcons && window.lucideIcons) {
+                    window.createIcons({ icons: window.lucideIcons });
+                }
+
+                document
+                    .getElementById('task-detail-container')
+                    .scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            } catch (err) {
+                console.error(err);
+                await customAlert('No se pudo cargar la tarea.');
+            }
         },
         goPrevWeek() {
             this.currentDate.setDate(this.currentDate.getDate() - 7);

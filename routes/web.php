@@ -98,6 +98,7 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
 
         Route::get('/{userId}/tasks/check-conflict', [UserTaskController::class, 'checkConflict']);
         Route::get('/{userId}/tasks/check-nonworking', [UserTaskController::class, 'checkNonWorking']);
+        Route::get('/{userId}/tasks/check-nonworking-range', [UserTaskController::class, 'checkNonWorkingRange']);
 
         //USER TASKS CALENDAR
         Route::get('/tasks/{task}/detail', [UserTaskController::class, 'taskDetail'])->name('tasks.detail');
@@ -118,6 +119,7 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
         Route::get('/', [WorkCalendarTemplateController::class, 'index'])->name('index');
         Route::get('/create', [WorkCalendarTemplateController::class, 'create'])->name('create');
         Route::post('/', [WorkCalendarTemplateController::class, 'store'])->name('store');
+        Route::get('/{template}/show', [WorkCalendarTemplateController::class, 'show'])->name('show');
         Route::get('/{template}/edit', [WorkCalendarTemplateController::class, 'edit'])->name('edit');
         Route::put('/{template}', [WorkCalendarTemplateController::class, 'update'])->name('update');
         Route::delete('/{template}', [WorkCalendarTemplateController::class, 'destroy'])->name('destroy');

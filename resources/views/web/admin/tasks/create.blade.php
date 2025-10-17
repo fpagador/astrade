@@ -12,6 +12,7 @@
         data-asset="{{ asset('storage') }}"
         data-conflict-check-url="{{ url('/admin/users/{userId}/tasks/check-conflict') }}"
         data-non-working-check-url="{{ url('/admin/users/{userId}/tasks/check-nonworking') }}"
+        data-non-working-range-check-url="{{ url('/admin/users/{userId}/tasks/check-nonworking-range') }}"
         data-validate-task-form="{{ url('/admin/users/tasks/validate') }}"
     >
         <div class="flex items-center justify-between mb-6">
@@ -92,6 +93,7 @@
                         label="Pictograma"
                         preview
                     />
+                    <input type="hidden" name="pictogram_path" :value="taskPictogramPath">
                 </div>
                 <div>
                     <label class="block font-medium mb-1 flex items-center gap-1">Color</label>
@@ -264,7 +266,9 @@
                                         accept="image/*"
                                         preview
                                         x-bind:name="'subtask_pictograms[' + index + ']'"
+                                        @change="subtask.pictogram_path = $event.target.files[0] ? $event.target.files[0].name : ''"
                                     />
+                                    <input type="hidden" :name="'subtasks['+index+'][pictogram_path]'" :value="subtask.pictogram_path">
                                 </div>
                             </div>
                         </div>

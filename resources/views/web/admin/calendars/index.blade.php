@@ -75,15 +75,22 @@
                     @if($template->continuityTemplate)
                         {{ $template->continuityTemplate->name }} ({{ $template->continuityTemplate->year }})
                     @else
-                        <span class="text-gray-400 italic">—</span>
+                        <span class="text-gray-400 italic">N/A</span>
                     @endif
                 </div>
                 <div>{{ $template->holidays_count }}</div>
                 <div class="flex gap-2">
+                    {{-- VIEW --}}
+                    <a href="{{ route('admin.calendars.show', $template) }}"
+                       title="Ver plantilla de calendario" class="flex items-center justify-center">
+                        <i data-lucide="eye" class="w-5 h-5 text-blue-600 hover:text-blue-700 transition"></i>
+                    </a>
+
                     {{-- EDIT --}}
                     <a href="{{ route('admin.calendars.edit', $template) }}" title="Editar">
                         <i data-lucide="pencil" class="w-5 h-5 text-indigo-800 hover:text-indigo-900 transition"></i>
                     </a>
+
                     {{-- DELETE --}}
                     <form action="{{ route('admin.calendars.destroy', $template) }}" method="POST"
                           data-users="{{ $template->users()->count() }}"

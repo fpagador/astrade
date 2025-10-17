@@ -115,14 +115,20 @@ class UserTaskController extends WebController
             // attach uploaded main pictogram if present
             if ($request->hasFile('pictogram_path')) {
                 $data['pictogram_path'] = $request->file('pictogram_path');
+            } elseif ($request->input('pictogram_path')) {
+                $data['pictogram_path'] = $request->input('pictogram_path');
+            } else {
+                $data['pictogram_path'] = null;
             }
 
             // Normalize and attach subtask files (support both subtask_pictograms and subtask_files)
             $subtasks = $data['subtasks'] ?? [];
             foreach ($subtasks as $i => &$st) {
+                $pictogramPath = $request->input("subtasks.$i.pictogram_path") ?? null;
+
                 $file = $request->file("subtask_pictograms.$i") ?: $request->file("subtask_files.$i");
-                if ($file) {
-                    $st['pictogram_path'] = $this->userTaskService->normalizePictogram($file);
+                if ($file || $pictogramPath) {
+                    $st['pictogram_path'] = $this->userTaskService->normalizePictogram($file, $pictogramPath);
                 }
             }
             $data['subtasks'] = $subtasks;
@@ -360,6 +366,36 @@ class UserTaskController extends WebController
         $nonWorking = $this->userTaskService->isNonWorkingDay($userId, $date);
 
         return response()->json(['nonWorking' => $nonWorking]);
+    }
+
+    /**
+     * Checks if a date range of recurring tasks has absence days
+     *
+     * @param int $userId
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function checkNonWorkingRange(int $userId, Request $request): JsonResponse
+    {
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+
+        $dates = [];
+        $current = Carbon::parse($startDate);
+        $end = Carbon::parse($endDate);
+        while ($current->lte($end)) {
+            $dates[] = $current->toDateString();
+            $current->addDay();
+        }
+
+        $nonWorkingDates = [];
+        foreach ($dates as $date) {
+            if ($this->userTaskService->isNonWorkingDay($userId, $date)) {
+                $nonWorkingDates[] = $date;
+            }
+        }
+
+        return response()->json(['nonWorkingDates' => $nonWorkingDates]);
     }
 
 }

@@ -38,7 +38,7 @@ export function initCalendars() {
 
     // Confirmation modal
     document.querySelectorAll('[data-open-modal]').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async() => {
             const modalId = btn.dataset.openModal;
             const modal = document.getElementById(modalId);
             if (!modal) return;
@@ -88,7 +88,7 @@ export function initCalendars() {
 
             // If no day is selected
             if (vacationDates.length === 0 && legalDates.length === 0) {
-                alert("No has seleccionado ningún día. Debes seleccionar al menos uno antes de guardar.");
+                await customAlert('No has seleccionado ningún día. Debes seleccionar al menos uno antes de guardar.');
                 return;
             }
 
@@ -217,7 +217,7 @@ export function initCalendars() {
                     try { vacationDates = JSON.parse(hiddenInput?.value || '[]'); } catch(e){}
                     try { legalDates = JSON.parse(legalInput?.value || '[]'); } catch(e){}
                     if (vacationDates.length === 0 && legalDates.length === 0) {
-                        alert("No has seleccionado ningún día. Debes seleccionar al menos uno antes de guardar.");
+                        await customAlert('No has seleccionado ningún día. Debes seleccionar al menos uno antes de guardar.');
                         return;
                     } else {
                         const modal = document.getElementById('confirmModal_vacationForm');
@@ -261,7 +261,7 @@ export function initCalendars() {
 
             } catch(err) {
                 console.error(err);
-                alert('Error al guardar las ausencias.');
+                await customAlert('Error al guardar las ausencias.');
             }
         });
     }
@@ -663,4 +663,24 @@ export function calendarForm() {
             document.getElementById('calendarTemplateForm').submit();
         }
     };
+}
+
+export async function validateCalendarTemplateForm() {
+    const form = document.getElementById('calendarTemplateForm');
+    const requiredInputs = form.querySelectorAll('[required]');
+    let valid = true;
+
+    requiredInputs.forEach(input => {
+        if (!input.value.trim()) {
+            valid = false;
+            input.classList.add('border-red-500', 'bg-red-50');
+        } else {
+            input.classList.remove('border-red-500', 'bg-red-50');
+        }
+    });
+
+    if (!valid) {
+        return customAlert('Por favor completa los campos requeridos antes de continuar.');
+    }
+    document.querySelector('[data-open-modal="confirmModal_calendarTemplateForm"]').click();
 }
