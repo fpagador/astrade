@@ -86,9 +86,11 @@
                 </td>
             </tr>
         @empty
-            <div class="col-span-6 text-center text-sm py-6 bg-white border border-t-0 rounded-b-md">
-                No hay registros de logs.
-            </div>
+            <tr>
+                <td colspan="4" class="text-center text-sm py-6 bg-white border border-t-0 rounded-b-md">
+                    No hay registros de logs.
+                </td>
+            </tr>
         @endforelse
         </tbody>
     </table>
