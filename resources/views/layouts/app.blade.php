@@ -82,6 +82,7 @@
             <x-admin.nav-link route="admin.calendars.index" icon="calendar-days" label="Calendarios laborales" />
             <x-admin.nav-link route="admin.companies.index" icon="map-pin" label="Empresas" />
             <x-admin.nav-link route="admin.task_completion_logs.index" icon="check-circle" label="Registro de Finalización de Tareas" />
+            <x-admin.nav-link route="admin.task_logs.index" icon="check-circle" label="Registro de Tareas" />
             @can('viewLogs', \App\Models\Log::class)
                 <x-admin.nav-link route="admin.logs.index" icon="file-text" label="Logs" />
             @endcan

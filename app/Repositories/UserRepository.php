@@ -260,13 +260,17 @@ class UserRepository
     }
 
     /**
-     * Count users without assigned work calendar.
+     * Count users without assigned work calendar and role "User".
      *
      * @return int
      */
     public function countWithoutCalendar(): int
     {
-        return User::whereNull('work_calendar_template_id')->count();
+        return User::whereNull('work_calendar_template_id')
+            ->whereHas('role', function ($query) {
+                $query->where('role_name', 'User');
+            })
+            ->count();
     }
 
     /**

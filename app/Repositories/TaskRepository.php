@@ -4,6 +4,8 @@ namespace App\Repositories;
 
 use App\Enums\TaskStatus;
 use App\Models\Task;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -276,20 +278,17 @@ class TaskRepository
     }
 
     /**
-     * Get task count grouped by day for a date range.
+     * Count tasks for a given date and status.
      *
-     * @param Carbon $start
-     * @param Carbon $end
-     * @return array<string,int>
+     * @param Carbon $date
+     * @param string $status
+     * @return int
      */
-    public function getTasksCountGroupedByDay(Carbon $start, Carbon $end): array
+    public function countByDateAndStatus(Carbon $date, string $status): int
     {
-        return Task::selectRaw('DATE(scheduled_date) as day, COUNT(*) as total')
-            ->whereBetween('scheduled_date', [$start, $end])
-            ->groupBy('day')
-            ->orderBy('day')
-            ->pluck('total', 'day')
-            ->toArray();
+        return Task::whereDate('scheduled_date', $date->format('Y-m-d'))
+            ->where('status', $status)
+            ->count();
     }
 
     /**
@@ -413,5 +412,82 @@ class TaskRepository
         Task::where('user_id', $userId)
             ->whereIn('scheduled_date', $dates)
             ->delete();
+    }
+
+    /**
+     * Gets all tasks grouped by user and date within a given range.
+     *
+     * @param Carbon $from
+     * @param Carbon $to
+     * @return Collection
+     */
+    public function getTasksPerformanceRaw(Carbon $from, Carbon $to): Collection
+    {
+        return Task::whereBetween('scheduled_date', [$from->startOfDay(), $to->endOfDay()])
+            ->selectRaw('
+                user_id,
+                scheduled_date,
+                SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) as completed,
+                COUNT(*) as total
+            ')
+            ->groupBy('user_id', 'scheduled_date')
+            ->get();
+    }
+
+    /**
+     * Gets a paginated list of users with their filtered tasks and subtasks.
+     *
+     * @param string|null $userName
+     * @param string|null $taskTitle
+     * @param string|null $status
+     * @param string|null $date
+     * @param int         $perPage
+     *
+     * @return LengthAwarePaginator
+     */
+    public function getFilteredUsersWithTasks(
+        ?string $userName,
+        ?string $taskTitle,
+        ?string $status,
+        ?string $date,
+        int $perPage = 10
+    ): LengthAwarePaginator {
+        // Base filter
+        $usersQuery = User::whereHas('tasks', function (Builder $q) use ($taskTitle, $status, $date) {
+            if ($taskTitle) {
+                $q->where('title', 'like', "%{$taskTitle}%");
+            }
+            if ($status) {
+                $q->where('status', $status);
+            }
+            if ($date) {
+                $q->whereDate('scheduled_date', $date);
+            }
+        });
+
+        // User filter
+        if ($userName) {
+            $usersQuery->where(function (Builder $uq) use ($userName) {
+                $uq->where('name', 'like', "%{$userName}%")
+                    ->orWhere('surname', 'like', "%{$userName}%");
+            });
+        }
+
+        //Loading relationships and pagination
+        return $usersQuery
+            ->with(['tasks' => function ($q) use ($taskTitle, $status, $date) {
+                if ($taskTitle) {
+                    $q->where('title', 'like', "%{$taskTitle}%");
+                }
+                if ($status) {
+                    $q->where('status', $status);
+                }
+                if ($date) {
+                    $q->whereDate('scheduled_date', $date);
+                }
+                $q->orderByDesc('scheduled_date')->orderBy('scheduled_time');
+            }, 'tasks.subtasks'])
+            ->orderBy('name')
+            ->paginate($perPage);
     }
 }

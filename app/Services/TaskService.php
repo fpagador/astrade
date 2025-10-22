@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\Enums\TaskStatus;
 use App\Errors\ErrorCodes;
 use App\Exceptions\BusinessRuleException;
 use App\Repositories\TaskRepository;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use App\Models\Task;
 use Illuminate\Support\Carbon;
@@ -169,5 +171,52 @@ class TaskService
                 'tasks' => $dayTasks->map(fn($task) => $task->toArray())->values(),
             ];
         })->values();
+    }
+
+    /**
+     * Returns users with their processed tasks (adding labels, colors, etc.)
+     *
+     * @param string|null $userName
+     * @param string|null $taskTitle
+     * @param string|null $status
+     * @param string|null $date
+     *
+     * @return LengthAwarePaginator
+     */
+    public function getProcessedUsersWithTasks(
+        ?string $userName,
+        ?string $taskTitle,
+        ?string $status,
+        ?string $date
+    ): LengthAwarePaginator {
+        $users = $this->taskRepository->getFilteredUsersWithTasks($userName, $taskTitle, $status, $date);
+
+        $users->getCollection()->transform(function ($user) {
+            $user->tasks->transform(function ($task) {
+                $isCompleted = $task->status === TaskStatus::COMPLETED->value;
+
+                $task->is_completed = $isCompleted;
+                $task->status_label = TaskStatus::label(TaskStatus::from($task->status));
+                $task->status_color = $isCompleted ? '#85C7F2' : '#F18605';
+                $task->final_color  = $task->color ?? $task->status_color;
+                $task->is_recurrent = !is_null($task->recurrent_task_id);
+
+                $task->subtasks->transform(function ($subtask) {
+                    $isCompleted = $subtask->status === TaskStatus::COMPLETED->value;
+
+                    $subtask->is_completed = $isCompleted;
+                    $subtask->status_label = TaskStatus::label(TaskStatus::from($subtask->status));
+                    $subtask->status_color = $isCompleted ? '#85C7F2' : '#F18605';
+
+                    return $subtask;
+                });
+
+                return $task;
+            });
+
+            return $user;
+        });
+
+        return $users;
     }
 }
