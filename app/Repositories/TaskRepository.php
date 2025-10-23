@@ -424,13 +424,16 @@ class TaskRepository
     public function getTasksPerformanceRaw(Carbon $from, Carbon $to): Collection
     {
         return Task::whereBetween('scheduled_date', [$from->startOfDay(), $to->endOfDay()])
+            ->join('users', 'tasks.user_id', '=', 'users.id')
             ->selectRaw('
-                user_id,
-                scheduled_date,
-                SUM(CASE WHEN status = "completed" THEN 1 ELSE 0 END) as completed,
+                tasks.user_id,
+                users.name,
+                users.surname,
+                tasks.scheduled_date,
+                SUM(CASE WHEN tasks.status = "completed" THEN 1 ELSE 0 END) as completed,
                 COUNT(*) as total
             ')
-            ->groupBy('user_id', 'scheduled_date')
+            ->groupBy('tasks.user_id', 'tasks.scheduled_date', 'users.name', 'users.surname')
             ->get();
     }
 

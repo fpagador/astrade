@@ -1,6 +1,7 @@
 import Swal from 'sweetalert2';
 import ApexCharts from 'apexcharts';
 
+// Proportion of people with assigned tasks
 export function initUsersTasksChart() {
     if (!window.dashboardRoutes) return;
 
@@ -53,6 +54,11 @@ export function initUsersTasksChart() {
                     const selectedDate = config.w.config.xaxis.categories[config.dataPointIndex];
                     if (!selectedDate) return Swal.fire('Error', 'Día no definido', 'error');
 
+                    const date = new Date(selectedDate);
+                    const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1)
+                        .toString()
+                        .padStart(2, '0')}/${date.getFullYear()}`;
+
                     fetch(usersWithoutTasks.replace('__DAY__', selectedDate))
                         .then(res => res.json())
                         .then(data => {
@@ -60,7 +66,7 @@ export function initUsersTasksChart() {
                                 ? data.map(u => `<li>${u.name} ${u.surname}</li>`).join('')
                                 : '<li>No hay usuarios sin tareas</li>';
                             Swal.fire({
-                                title: `Usuarios sin tareas (${selectedDate})`,
+                                title: `Usuarios sin tareas (${formattedDate})`,
                                 html: `<ul>${list}</ul>`,
                                 width: 600
                             });
@@ -79,16 +85,38 @@ export function initUsersTasksChart() {
                 rotate: -45,
                 formatter: value => {
                     const date = new Date(value);
-                    return `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1)
+                    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1)
                         .toString()
-                        .padStart(2, '0')}-${date.getFullYear()}`;
+                        .padStart(2, '0')}/${date.getFullYear()}`;
                 }
             }
         },
         colors: ['#85C7F2', '#F18605'],
-        legend: { show: false },
-        yaxis: { title: { text: 'Número de usuarios' } },
-        tooltip: { shared: true, intersect: false }
+        legend: { show: true },
+        yaxis: { title: { text: '% de usuarios' } },
+        tooltip: {
+            shared: true,
+            intersect: false,
+            x: {
+                formatter: value => {
+                    const date = new Date(value);
+                    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1)
+                        .toString()
+                        .padStart(2, '0')}/${date.getFullYear()}`;
+                }
+            }
+        },
+        dataLabels: {
+            enabled: true,
+            formatter: function (val, opts) {
+                const seriesIndex = opts.seriesIndex;
+                const total = opts.w.config.series.reduce((acc, s) => acc + s.data[opts.dataPointIndex], 0);
+                return total ? `${Math.round((val / total) * 100)}%` : '';
+            },
+            style: {
+                colors: ['#000']
+            }
+        }
     };
 
     const chart = new ApexCharts(chartContainer, chartOptions);
@@ -107,6 +135,7 @@ export function initUsersTasksChart() {
     });
 }
 
+// Proportion of tasks completed
 export function initTasksProportionChart() {
     const tasksByDay = window.tasksByDayData ?? {};
     const chartContainer = document.querySelector("#tasksProportionChart");
@@ -145,10 +174,27 @@ export function initTasksProportionChart() {
             { name: 'Pendientes', data: filteredPending },
             { name: 'Sin tareas', data: filteredNoTasks }
         ],
-        colors: ['#85C7F2', '#F18605', '#DBD9D2'],
-        xaxis: { categories: filteredDays },
+        colors: ['#00B050', '#FFC000', '#DBD9D2'],
+        xaxis: {
+            categories: filteredDays,
+            labels: {
+                rotate: -45,
+                formatter: value => {
+                    const date = new Date(value);
+                    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1)
+                        .toString()
+                        .padStart(2, '0')}/${date.getFullYear()}`;
+                }
+            }
+        },
         legend: { position: 'bottom' },
-        yaxis: { title: { text: '% de tareas' } }
+        yaxis: { title: { text: '% de tareas' } },
+        dataLabels: {
+            enabled: true,
+            style: {
+                colors: ['#000']
+            }
+        },
     };
 
     const chart = new ApexCharts(chartContainer, options);
@@ -168,6 +214,7 @@ export function initTasksProportionChart() {
     });
 }
 
+// Historical performance of completed tasks
 export function initTaskPerformanceHistoryChart() {
     if (!window.dashboardRoutes) return;
 
@@ -193,26 +240,40 @@ export function initTaskPerformanceHistoryChart() {
 
     function getFilteredData(weeksBack) {
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
+        today.setHours(0,0,0,0);
         const end = new Date(today);
         end.setDate(today.getDate() - 1);
         const start = new Date(today);
-        start.setDate(today.getDate() - (weeksBack * 7) );
+        start.setDate(today.getDate() - (weeksBack * 7));
 
         const filteredDays = [];
-        const ranges = ['100%', '75-99.9%', '50-74.9%', '<50%'];
+        const ranges = ['100%', '75-99.9%', '50-74.9%', '<50%', 'Sin tareas'];
         const series = ranges.map(r => ({ name: r, data: [] }));
 
-        allDays.forEach(day => {
-            const date = parseLocalDate(day);
-            if (date >= start && date <= end) {
-                filteredDays.push(formatDateDMY(day));
-                ranges.forEach(r => {
-                    series.find(s => s.name === r).data.push(data[day]?.[r] ?? 0);
-                });
+        for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)) {
+            const dayISO = d.toISOString().slice(0,10);
+            filteredDays.push(formatDateDMY(dayISO));
+            const dayData = data[dayISO] || {};
+
+            let totalUsers = dayData.totalUsers ?? 0;
+            if(totalUsers === 0){
+                totalUsers = Object.values(dayData).reduce((acc,v)=>typeof v==='number'? acc+v : acc, 0);
             }
-        });
+
+            if(totalUsers === 0){
+                ['100%','75-99.9%','50-74.9%','<50%'].forEach(r=>series.find(s=>s.name===r).data.push(0));
+                series.find(s=>s.name==='Sin tareas').data.push(1); // barra inventada
+            } else {
+                let sumRanges = 0;
+                ['100%','75-99.9%','50-74.9%','<50%'].forEach(r=>{
+                    const val = dayData[r] ?? 0;
+                    sumRanges += val;
+                    series.find(s=>s.name===r).data.push(val);
+                });
+                const noTasks = Math.max(totalUsers - sumRanges, 0);
+                series.find(s=>s.name==='Sin tareas').data.push(noTasks);
+            }
+        }
 
         return { filteredDays, series };
     }
@@ -228,46 +289,63 @@ export function initTaskPerformanceHistoryChart() {
             toolbar: { show: false },
             zoom: { enabled: false },
             events: {
-                dataPointSelection: (event, chartContext, config) => {
+                dataPointSelection: async (event, chartContext, config) => {
                     const dayFormatted = config.w.config.xaxis.categories[config.dataPointIndex];
                     const dayISO = allDays.find(d => formatDateDMY(d) === dayFormatted);
-                    const range = config.w.config.series[config.seriesIndex].name;
-                    const users = data[dayISO]?.users?.[range] ?? [];
+                    const total = config.w.globals.stackedSeriesTotals[config.dataPointIndex];
 
-                    if (users.length === 0)
-                        return Swal.fire('Sin datos', 'No hay usuarios en este segmento', 'info');
+                    const htmlParts = await Promise.all(config.w.config.series.map(async serie => {
+                        const val = serie.data[config.dataPointIndex];
+                        if (val === 0) return '';
 
-                    fetch(window.dashboardRoutes.usersByPerformance
-                        .replace('__DAY__', dayISO)
-                        .replace('__RANGE__', encodeURIComponent(range))
-                    )
-                        .then(res => res.json())
-                        .then(userList => {
-                            const html = userList.length
-                                ? `<ul>${userList.map(u => `<li>${u.name} ${u.surname}</li>`).join('')}</ul>`
-                                : '<p>No hay usuarios en este rango</p>';
-                            Swal.fire({
-                                title: `${range} - ${dayFormatted}`,
-                                html,
-                                width: 600
-                            });
-                        })
-                        .catch(() => Swal.fire('Error', 'No se pudieron cargar los usuarios', 'error'));
+                        const percentage = total ? ((val / total) * 100).toFixed(1) : 0;
+
+                        // Fetch usuarios del backend para este rango y día
+                        const users = await fetch(window.dashboardRoutes.usersByPerformance
+                            .replace('__DAY__', dayISO)
+                            .replace('__RANGE__', encodeURIComponent(serie.name))
+                        )
+                            .then(res => res.json())
+                            .then(userList => userList.length
+                                ? userList.map(u => `<li>${u.name} ${u.surname}</li>`).join('')
+                                : '<li>No hay usuarios</li>'
+                            )
+                            .catch(() => '<li>Error cargando usuarios</li>');
+
+                        return `
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px;">
+              <div style="width:100px; text-align:center;"><strong>${percentage}%</strong></div>
+              <ul style="margin:0; padding-left:0; list-style:none;">${users}</ul>
+            </div>
+            <hr/>
+        `;
+                    }));
+
+                    Swal.fire({
+                        title: `<div style="text-align:center;">${dayFormatted}</div>`,
+                        html: htmlParts.join(''),
+                        width: 700,
+                        customClass: { popup: 'p-3' },
+                    });
                 }
             }
         },
         series,
         xaxis: { categories: filteredDays },
-        colors: ['#00B050', '#92D050', '#FFC000', '#C00000'],
+        colors: ['#00B050', '#92D050', '#FFC000', '#C00000', '#DBD9D2'],
         legend: { position: 'bottom' },
         yaxis: { title: { text: '% de usuarios' } },
-        tooltip: {
-            shared: true,
-            intersect: false,
-            x: { formatter: val => val }
+        tooltip: { shared: true, intersect: false, x: { formatter: val => val } },
+        dataLabels: {
+            enabled: true,
+            formatter: function(val, opts){
+                const total = opts.w.globals.stackedSeriesTotals[opts.dataPointIndex];
+                if(total===1 && opts.seriesIndex===4) return '100%';
+                return total ? `${Math.round((val/total)*100)}%` : '';
+            },
+            style: { colors: ['#000'] }
         },
-        dataLabels: { enabled: false },
-        stroke: { curve: 'smooth' },
+        stroke: { curve: 'smooth' }
     };
 
     const chart = new ApexCharts(chartContainer, options);
@@ -276,30 +354,35 @@ export function initTaskPerformanceHistoryChart() {
     weeksSelect?.addEventListener('change', e => {
         const weeks = parseInt(e.target.value);
         const { filteredDays, series } = getFilteredData(weeks);
-        chart.updateOptions({
-            xaxis: { categories: filteredDays },
-            series
-        });
+        chart.updateOptions({ xaxis: { categories: filteredDays }, series });
     });
 }
 
+// Employees by company
 export function initEmployeesByCompanyChart() {
     const employeesByCompany = window.employeesByCompany ?? [];
     if (employeesByCompany.length === 0) return;
+
     const { employeesByCompanyRoute } = window.dashboardRoutes ?? {};
 
     const companyNames = employeesByCompany.map(e => e.company ? e.company.name : 'Sin empresa');
     const companyIds = employeesByCompany.map(e => e.company ? e.company.id : null);
     const totals = employeesByCompany.map(e => e.total);
 
+    // Creamos dos series: con empresa y sin empresa
+    const seriesWithCompany = totals.map((total, i) => companyNames[i] !== 'Sin empresa' ? total : 0);
+    const seriesWithoutCompany = totals.map((total, i) => companyNames[i] === 'Sin empresa' ? total : 0);
+
     const options = {
         chart: {
             type: 'bar',
             height: 350,
+            stacked: true,
             events: {
                 dataPointSelection: (event, chartContext, config) => {
                     const companyId = companyIds[config.dataPointIndex];
                     const companyName = companyNames[config.dataPointIndex];
+
                     fetch(employeesByCompanyRoute.replace('__ID__', companyId ?? ''))
                         .then(res => res.json())
                         .then(data => {
@@ -316,9 +399,12 @@ export function initEmployeesByCompanyChart() {
                 }
             }
         },
-        series: [{ name: 'Empleados', data: totals }],
+        series: [
+            { name: 'Con empresa', data: seriesWithCompany },
+            { name: 'Sin empresa', data: seriesWithoutCompany }
+        ],
         xaxis: { categories: companyNames },
-        colors: ['#4F46E5']
+        colors: ['#4F46E5', '#DBD9D2']
     };
 
     new ApexCharts(document.querySelector("#employeesByCompanyChart"), options).render();

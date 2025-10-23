@@ -92,7 +92,14 @@ class DashboardController extends WebController
         return response()->json($usersWithoutTasks);
     }
 
-    public function getUsersByPerformance(string $day, string $range)
+    /**
+     * Gets the users with the percentage of historical performance with completed tasks
+     *
+     * @param string $day
+     * @param string $range
+     * @return JsonResponse
+     */
+    public function getUsersByPerformance(string $day, string $range): JsonResponse
     {
         $range = urldecode($range);
 

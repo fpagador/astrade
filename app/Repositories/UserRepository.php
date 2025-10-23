@@ -326,13 +326,15 @@ class UserRepository
     public function countUsersWithoutTasksByDay(Carbon $startDate, Carbon $endDate): array
     {
         $result = [];
-
         $period = CarbonPeriod::create($startDate, $endDate);
 
         foreach ($period as $date) {
-            $count = User::whereDoesntHave('tasks', function ($query) use ($date) {
-                $query->whereDate('scheduled_date', $date);
+            $count = User::whereHas('role', function ($query) {
+                $query->where('role_name', RoleEnum::USER->value);
             })
+                ->whereDoesntHave('tasks', function ($query) use ($date) {
+                    $query->whereDate('scheduled_date', $date);
+                })
                 ->count();
 
             $result[$date->format('Y-m-d')] = $count;
@@ -349,6 +351,8 @@ class UserRepository
     public function getUsersGroupedByCompany(): Collection
     {
         return User::selectRaw('company_id, COUNT(*) as total')
+            ->join('roles', 'roles.id', '=', 'users.role_id')
+            ->where('roles.role_name', RoleEnum::USER->value)
             ->groupBy('company_id')
             ->with('company:id,name')
             ->get();
