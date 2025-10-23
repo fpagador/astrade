@@ -38,7 +38,12 @@ class TaskController extends WebController
 
         return view('web.admin.tasks.index', [
             'users' => $users,
-            'filters' => compact('userName', 'taskTitle', 'status', 'date'),
+            'filters' => [
+                'user_name' => $userName,
+                'task_title' => $taskTitle,
+                'status' => $status,
+                'date' => $date,
+            ],
         ]);
     }
 
