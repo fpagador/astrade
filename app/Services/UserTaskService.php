@@ -304,14 +304,16 @@ class UserTaskService
         $scheduledDay  = strtolower($recurrentStartDate->format('l'));
         $daysOfWeek    = array_map('strtolower', $data['days_of_week'] ?? []);
 
-        if (in_array($scheduledDay, $daysOfWeek)) {
+        $firstTaskExists = $firstTask && $firstTask->exists;
+
+        if ($firstTaskExists && in_array($scheduledDay, $daysOfWeek)) {
             $firstTask->save();
             $this->createSubtasksForTask($firstTask, $data['subtasks']);
         }
 
         $recurrentId = $this->createRecurrentFromData($firstTask, $data);
 
-        if ($firstTask->exists) {
+        if ($firstTaskExists) {
             $firstTask->update(['recurrent_task_id' => $recurrentId]);
         }
     }
