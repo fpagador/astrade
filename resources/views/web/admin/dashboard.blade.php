@@ -51,17 +51,66 @@
             </div>
         </section>
 
-        {{-- Tasks by Day --}}
-        <section class="mt-6 bg-white rounded-lg shadow p-4">
-            <h2 class="font-semibold mb-2">Tareas por día</h2>
-            <div id="tasksByDayChart"></div>
-        </section>
+        {{-- Users with/without tasks --}}
+        <div class="card mt-4 bg-white rounded-lg shadow p-4">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="font-semibold text-lg">Proporción de personas con tareas asignadas</h2>
 
-        {{-- Users without tasks --}}
-        <section class="mt-6 bg-white rounded-lg shadow p-4">
-            <h2 class="font-semibold mb-2">Usuarios sin tareas</h2>
-            <div id="usersWithoutTasksChart"></div>
-        </section>
+                <div class="relative inline-block">
+                    <select id="weeksFilter"
+                            class="border rounded-lg px-3 py-2 text-base appearance-none pr-8">
+                        <option value="1" selected>1 semana</option>
+                        <option value="2">2 semanas</option>
+                        <option value="3">3 semanas</option>
+                        <option value="4">4 semanas</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div id="usersTasksProportionChart"></div>
+            </div>
+        </div>
+
+        {{-- Tasks Completed --}}
+        <div class="card mt-4 bg-white rounded-lg shadow p-4">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="font-semibold text-lg">Proporción de tareas completadas</h2>
+
+                <div class="relative inline-block">
+                    <select id="weeksBackFilter"
+                            class="border rounded-lg px-3 py-2 text-base appearance-none pr-8">
+                        <option value="1" selected>1 semana</option>
+                        <option value="2">2 semanas</option>
+                        <option value="3">3 semanas</option>
+                        <option value="4">4 semanas</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div id="tasksProportionChart"></div>
+            </div>
+        </div>
+
+        {{-- Historical Task Performance --}}
+        <div class="card mt-4 bg-white rounded-lg shadow p-4">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="font-semibold text-lg">Desempeño histórico de tareas completadas</h2>
+                <div class="relative inline-block">
+                    <select id="weeksBackPerformanceFilter"
+                            class="border rounded-lg px-3 py-2 text-base appearance-none pr-8">
+                        <option value="1" selected>1 semana</option>
+                        <option value="2">2 semanas</option>
+                        <option value="3">3 semanas</option>
+                        <option value="4">4 semanas</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="taskPerformanceHistoryChart"></div>
+            </div>
+        </div>
 
         {{-- Employees by company --}}
         <section class="mt-6 bg-white rounded-lg shadow p-4">
@@ -225,14 +274,16 @@
 
 
     <script>
-        window.tasksByDayData = @json($tasksByDay);
         window.usersWithoutTasksByDay = @json($usersWithoutTasksByDay);
+        window.usersWithTasksByDay = @json($usersWithTasksByDay);
+        window.tasksByDayData = @json($tasksByDay);
+        window.taskPerformanceHistory = @json($taskPerformanceHistory);
         window.employeesByCompany = @json($employeesByCompany);
 
         window.dashboardRoutes = {
-            tasksByDay: "{{ route('admin.dashboard.tasks-by-day', ['day' => '__DAY__']) }}",
             usersWithoutTasks: "{{ route('admin.dashboard.users-without-tasks', ['day' => '__DAY__']) }}",
-            employeesByCompanyRoute: "{{ route('admin.dashboard.employees-by-company', ['companyId' => '__ID__']) }}"
+            employeesByCompanyRoute: "{{ route('admin.dashboard.employees-by-company', ['companyId' => '__ID__']) }}",
+            usersByPerformance: "{{ route('admin.dashboard.users-by-performance', ['day' => '__DAY__', 'range' => '__RANGE__']) }}"
         };
     </script>
 @endsection

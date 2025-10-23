@@ -73,16 +73,6 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the notifications sent to the user.
-     *
-     * @return HasMany
-     */
-    public function notifications(): HasMany
-    {
-        return $this->hasMany(Notification::class);
-    }
-
-    /**
      * Get the logs related to the user's completed tasks or subtasks.
      *
      * @return HasMany

@@ -21,7 +21,7 @@ enum CalendarStatus: string
     /**
      * Get the translated label of a status.
      *
-     * @param TaskStatus $status
+     * @param CalendarStatus $status
      * @return string
      */
     public static function label(self $status): string

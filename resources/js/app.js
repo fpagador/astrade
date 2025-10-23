@@ -8,7 +8,7 @@ import { cloneTaskForm, editTaskForm, imageModal, calendarView, actionTaskModal,
 import { initCompaniesPhones } from './company';
 import { imageSelector } from './imageSelector';
 import { userSelector } from './users';
-import './dashboard';
+import { initUsersTasksChart, initTasksProportionChart, initTaskPerformanceHistoryChart, initEmployeesByCompanyChart } from './dashboard';
 import { customConfirm, customAlert } from './confirm.js';
 
 import flatpickr from "flatpickr";
@@ -37,6 +37,10 @@ window.userSelector = userSelector;
 window.customConfirm = customConfirm;
 window.customAlert = customAlert;
 
+window.initUsersTasksChart = initUsersTasksChart;
+window.initTasksProportionChart = initTasksProportionChart;
+window.initEmployeesByCompanyChart = initEmployeesByCompanyChart;
+
 Alpine.start();
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -49,6 +53,10 @@ document.addEventListener('DOMContentLoaded', () => {
     createIcons({ icons });
 
     initCloneSelect();
+    initUsersTasksChart();
+    initTasksProportionChart();
+    initEmployeesByCompanyChart();
+    initTaskPerformanceHistoryChart();
 
     // === Translation of required fields tooltips ===
     const requiredFields = document.querySelectorAll('input[required], select[required], textarea[required]');
@@ -62,15 +70,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.querySelectorAll('input[required], select[required], textarea[required]').forEach(field => {
-        // crear contenedor
         const wrapper = document.createElement('div');
         wrapper.classList.add('relative', 'group');
 
-        // envolver el input
         field.parentNode.insertBefore(wrapper, field);
         wrapper.appendChild(field);
 
-        // crear tooltip
         const tooltip = document.createElement('div');
         tooltip.className = 'absolute left-0 -top-6 bg-red-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none';
         tooltip.textContent = 'Por favor completa este campo';

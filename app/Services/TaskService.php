@@ -194,25 +194,26 @@ class TaskService
         $users->getCollection()->transform(function ($user) {
             $user->tasks->transform(function ($task) {
                 $isCompleted = $task->status === TaskStatus::COMPLETED->value;
-
                 $task->is_completed = $isCompleted;
                 $task->status_label = TaskStatus::label(TaskStatus::from($task->status));
-                $task->status_color = $isCompleted ? '#85C7F2' : '#F18605';
-                $task->final_color  = $task->color ?? $task->status_color;
                 $task->is_recurrent = !is_null($task->recurrent_task_id);
 
                 $task->subtasks->transform(function ($subtask) {
                     $isCompleted = $subtask->status === TaskStatus::COMPLETED->value;
-
                     $subtask->is_completed = $isCompleted;
                     $subtask->status_label = TaskStatus::label(TaskStatus::from($subtask->status));
-                    $subtask->status_color = $isCompleted ? '#85C7F2' : '#F18605';
-
                     return $subtask;
                 });
 
                 return $task;
             });
+
+            $user->tasks_by_date = $user->tasks
+                ->groupBy(function ($task) {
+                    return $task->scheduled_date
+                        ? Carbon::parse($task->scheduled_date)->format('d-m-Y')
+                        : 'sin_fecha';
+                });
 
             return $user;
         });

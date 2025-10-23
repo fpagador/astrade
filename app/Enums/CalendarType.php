@@ -21,12 +21,12 @@ enum CalendarType: string
     /**
      * Get the translated label of a status.
      *
-     * @param TaskStatus $status
+     * @param CalendarType $type
      * @return string
      */
-    public static function label(self $status): string
+    public static function label(self $type): string
     {
-        return match ($status) {
+        return match ($type) {
             self::VACATION => 'Vacaciones',
             self::LEGAL_ABSENCE => 'Ausencias legales',
             self::HOLIDAY => 'Festivos',

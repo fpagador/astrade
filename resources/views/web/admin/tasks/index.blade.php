@@ -56,10 +56,12 @@
     {{-- LISTADO --}}
     <div class="space-y-6">
         @forelse ($users as $user)
-            <div x-data="{ open: false }" class="bg-white shadow rounded-md border border-gray-200 overflow-hidden">
+            <div x-data="{ showDates: false, openDates: {}, openTasks: {} }"
+                 class="bg-white shadow rounded-md border border-gray-200 overflow-hidden">
+
                 {{-- HEADER DE USUARIO --}}
                 <div class="flex justify-between items-center px-4 py-3 bg-gray-50 cursor-pointer hover:bg-gray-100"
-                     @click="open = !open">
+                     @click="showDates = !showDates">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 flex items-center justify-center bg-indigo-100 text-indigo-700 font-semibold rounded-full">
                             {{ strtoupper(substr($user->name, 0, 1)) }}
@@ -68,86 +70,104 @@
                             {{ $user->name }} {{ $user->surname }}
                         </h2>
                     </div>
+
                     <span class="text-sm text-gray-500">
-                        {{ $user->tasks->count() }} tareas
-                    </span>
+                    {{ $user->tasks->count() }} tareas
+                </span>
                 </div>
 
-                {{-- TAREAS --}}
-                <div x-show="open" x-collapse>
-                    @foreach ($user->tasks as $task)
-                        <div x-data="{ openTask: false }"
-                             class="border-t border-gray-100 flex hover:bg-gray-50 cursor-pointer transition"
-                             @click="openTask = !openTask">
+                {{-- FECHAS (nivel 1) --}}
+                <div x-show="showDates" x-collapse>
+                    @if (!empty($user->tasks_by_date) && $user->tasks_by_date->count())
+                        @foreach ($user->tasks_by_date as $dateKey => $tasks)
+                            @php
+                                $isNoDate = $dateKey === 'sin_fecha';
+                                $displayDate = $isNoDate ? 'Sin fecha' : \Carbon\Carbon::parse($dateKey)->format('d/m/Y');
+                            @endphp
 
-                            {{-- Barra lateral de color --}}
-                            <div class="w-2" style="background-color: {{ $task->final_color }}"></div>
-
-                            {{-- Contenido --}}
-                            <div class="flex-1 px-4 py-3">
-                                <div class="flex justify-between items-center">
-                                    <div class="flex items-center gap-2">
-                                        {{-- Título --}}
-                                        <p class="font-medium text-gray-800 flex items-center gap-2">
-                                            {{ $task->title }}
-                                            @if ($task->is_recurrent)
-                                                <i data-lucide="repeat" class="w-4 h-4 text-blue-600"></i>
-                                            @endif
-                                        </p>
-
-                                        {{-- Fecha y hora --}}
-                                        <p class="text-sm text-gray-500">
-                                            @if ($task->scheduled_date)
-                                                {{ \Carbon\Carbon::parse($task->scheduled_date)->format('d/m/Y') }}
-                                                @if ($task->scheduled_time)
-                                                    — {{ \Carbon\Carbon::parse($task->scheduled_time)->format('H:i') }}
-                                                @endif
-                                            @else
-                                                Sin fecha
-                                            @endif
-                                        </p>
+                            <div class="border-t border-gray-100">
+                                <div class="flex items-center justify-between px-4 py-2 bg-gray-100 cursor-pointer hover:bg-gray-200"
+                                     @click="openDates['{{ $dateKey }}'] = ! openDates['{{ $dateKey }}']">
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="calendar" class="w-4 h-4 text-gray-500"></i>
+                                        <span class="font-bold text-gray-800">{{ $displayDate }}</span>
                                     </div>
-
-                                    {{-- Estado --}}
-                                    <span class="text-xs px-2 py-1 rounded-full uppercase tracking-wide font-medium
-                                        {{ $task->status === 'completed'
-                                            ? 'button-success'
-                                            : 'button-cancel' }}">
-                                        {{ $task->status_label }}
-                                    </span>
-
+                                    <div class="text-sm text-gray-500">
+                                        {{ $tasks->count() }} tarea{{ $tasks->count() > 1 ? 's' : '' }}
+                                    </div>
                                 </div>
 
-                                {{-- Subtareas --}}
-                                <div x-show="openTask" x-collapse>
-                                    @if ($task->subtasks->count())
-                                        <ul class="divide-y divide-gray-100 bg-gray-50 mt-2 ml-6 rounded-md border border-gray-100">
-                                            @foreach ($task->subtasks as $subtask)
-                                                <li class="flex justify-between items-center px-4 py-2 text-sm">
-                                                    <div class="flex items-center space-x-2">
-                                                        <span class="w-2 h-2 rounded-full
-                                                            {{ $subtask->status === 'completed'
-                                                                ? 'bg-blue-500'
-                                                                : 'bg-orange-500' }}">
-                                                        </span>
-                                                        <span class="text-gray-700 flex items-center gap-1">
-                                                            <i data-lucide="chevron-right" class="w-3 h-3 text-gray-400"></i>
-                                                            {{ $subtask->title }}
-                                                        </span>
+                                {{-- TAREAS (nivel 2) --}}
+                                <div x-show="openDates['{{ $dateKey }}']" x-collapse>
+                                    @foreach ($tasks as $task)
+                                        <div x-data class="border-t border-gray-50 flex hover:bg-gray-50 cursor-pointer transition"
+                                             {{-- Toggle por id de task dentro del objeto openTasks --}}
+                                             @click="$event.stopPropagation(); openTasks[{{ $task->id }}] = ! openTasks[{{ $task->id }}]">
+
+                                            {{-- Barra lateral: verde si completed, amarillo si pending --}}
+                                            <div class="w-2"
+                                                 style="background-color: {{ $task->status === 'completed' ? '#00B050' : '#FFC000' }}"></div>
+
+                                            {{-- CONTENIDO DE LA TAREA --}}
+                                            <div class="flex-1 px-4 py-3">
+                                                <div class="flex justify-between items-center">
+                                                    <div class="flex items-center gap-3">
+                                                        <p class="font-medium text-gray-800 flex items-center gap-2">
+                                                            {{ $task->title }}
+                                                            @if ($task->is_recurrent)
+                                                                <i data-lucide="repeat" class="w-4 h-4 text-blue-600"></i>
+                                                            @endif
+                                                        </p>
+
+                                                        <p class="text-sm text-gray-500">
+                                                            @if ($task->scheduled_time)
+                                                                {{ \Carbon\Carbon::parse($task->scheduled_time)->format('H:i') }}
+                                                            @else
+                                                                Sin hora
+                                                            @endif
+                                                        </p>
                                                     </div>
-                                                    <span class="text-xs text-gray-500">
-                                                        {{ ucfirst($subtask->status_label ) }}
-                                                    </span>
-                                                </li>
-                                            @endforeach
-                                        </ul>
-                                    @else
-                                        <p class="px-6 py-2 text-sm text-gray-500 ml-6">Sin subtareas.</p>
-                                    @endif
+
+                                                    <span class="text-xs px-2 py-1 rounded-full uppercase tracking-wide font-medium"
+                                                          style="background-color: {{ $task->status === 'completed' ? '#00B050' : '#FFC000' }};">
+                                                    {{ $task->status_label }}
+                                                </span>
+                                                </div>
+
+                                                {{-- SUBTAREAS (nivel 3) --}}
+                                                <div x-show="openTasks[{{ $task->id }}]" x-collapse>
+                                                    @if ($task->subtasks->count())
+                                                        <ul class="divide-y divide-gray-100 bg-gray-50 mt-2 ml-6 rounded-md border border-gray-100">
+                                                            @foreach ($task->subtasks as $subtask)
+                                                                <li class="flex justify-between items-center px-4 py-2 text-sm">
+                                                                    <div class="flex items-center space-x-2">
+                                                                    <span class="w-2 h-2 rounded-full"
+                                                                          style="background-color: {{ $subtask->status === 'completed' ? '#00B050' : '#FFC000' }};">
+                                                                    </span>
+                                                                        <span class="text-gray-700 flex items-center gap-1">
+                                                                        <i data-lucide="chevron-right" class="w-3 h-3 text-gray-400"></i>
+                                                                        {{ $subtask->title }}
+                                                                    </span>
+                                                                    </div>
+                                                                    <span class="text-xs text-gray-500">
+                                                                    {{ ucfirst($subtask->status_label) }}
+                                                                </span>
+                                                                </li>
+                                                            @endforeach
+                                                        </ul>
+                                                    @else
+                                                        <p class="px-6 py-2 text-sm text-gray-500 ml-6">Sin subtareas.</p>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </div>
                             </div>
-                        </div>
-                    @endforeach
+                        @endforeach
+                    @else
+                        <div class="px-4 py-3 text-sm text-gray-500">No hay tareas para este usuario.</div>
+                    @endif
                 </div>
             </div>
         @empty

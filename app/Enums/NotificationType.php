@@ -21,12 +21,12 @@ enum NotificationType: string
     /**
      * Get the translated label of a status.
      *
-     * @param TaskStatus $status
+     * @param NotificationType $notificationType
      * @return string
      */
-    public static function label(self $status): string
+    public static function label(self $notificationType): string
     {
-        return match ($status) {
+        return match ($notificationType) {
             self::NONE => 'Ninguna',
             self::VISUAL => 'Visual',
             self::VISUAL_AUDIO => 'Visual y audio'

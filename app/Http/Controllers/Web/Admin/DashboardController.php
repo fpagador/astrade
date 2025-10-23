@@ -91,4 +91,32 @@ class DashboardController extends WebController
         $usersWithoutTasks = $this->dashboardService->getUsersWithoutTasksForDay($date);
         return response()->json($usersWithoutTasks);
     }
+
+    public function getUsersByPerformance(string $day, string $range)
+    {
+        $range = urldecode($range);
+
+        $rows = $this->taskRepository->getTasksPerformanceRaw(Carbon::parse($day), Carbon::parse($day));
+
+        $users = collect($rows)->filter(function ($r) use ($range) {
+            $completed = (int)$r->completed;
+            $total = (int)$r->total;
+            $percentage = $total > 0 ? ($completed / $total) * 100 : 0;
+
+            $currentRange = match (true) {
+                $percentage === 100.0 => '100%',
+                $percentage >= 75.0 => '75-99.9%',
+                $percentage >= 50.0 => '50-74.9%',
+                default => '<50%',
+            };
+
+            return $currentRange === $range;
+        })->map(fn($r) => [
+            'id' => $r->user_id,
+            'name' => $r->name ?? '',
+            'surname' => $r->surname ?? '',
+        ])->values();
+
+        return response()->json($users);
+    }
 }

@@ -21,12 +21,12 @@ enum ContractType: string
     /**
      * Get the translated label of a status.
      *
-     * @param TaskStatus $status
+     * @param ContractType $contractType
      * @return string
      */
-    public static function label(self $status): string
+    public static function label(self $contractType): string
     {
-        return match ($status) {
+        return match ($contractType) {
             self::TEMPORARY => 'Temporal',
             self::PERMANENT => 'Indefinido',
             self::FIXED_DISCONTINUOUS => 'Fijo discontinuo'
