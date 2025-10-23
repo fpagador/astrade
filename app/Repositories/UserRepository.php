@@ -379,11 +379,15 @@ class UserRepository
      */
     public function getUsersByCompany(?int $companyId): Collection
     {
+        $query = User::whereHas('role', function ($q) {
+            $q->where('role_name', RoleEnum::USER->value);
+        });
+
         if (is_null($companyId)) {
-            return User::whereNull('company_id')
+            return $query->whereNull('company_id')
                 ->get(['name', 'surname']);
         } else {
-            return User::where('company_id', $companyId)
+            return $query->where('company_id', $companyId)
                 ->get(['name', 'surname']);
         }
     }
