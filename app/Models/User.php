@@ -35,7 +35,6 @@ use App\Notifications\ResetPasswordNotification;
  * @property-read Company|null $company
  * @property-read WorkCalendarTemplate|null $workCalendarTemplate
  * @property-read Collection<Task> $tasks
- * @property-read Collection<TaskCompletionLog> $logs
  * @property-read Collection<Task> $assignedTasks
  * @property-read Collection<UserAbsence> $vacations
  */
@@ -70,16 +69,6 @@ class User extends Authenticatable
     public function assignedTasks(): HasMany
     {
         return $this->hasMany(Task::class, 'assigned_by');
-    }
-
-    /**
-     * Get the logs related to the user's completed tasks or subtasks.
-     *
-     * @return HasMany
-     */
-    public function logs(): HasMany
-    {
-        return $this->hasMany(TaskCompletionLog::class);
     }
 
     /**

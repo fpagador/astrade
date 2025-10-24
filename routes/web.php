@@ -8,7 +8,6 @@ use App\Http\Controllers\Web\Admin\UserTaskController;
 use App\Http\Controllers\Web\Admin\UserAbsenceController;
 use App\Http\Controllers\Web\Admin\LogController;
 use App\Http\Controllers\Web\Admin\CompanyController;
-use App\Http\Controllers\Web\Admin\TaskCompletionLogController;
 use App\Http\Controllers\Web\Admin\WorkCalendarTemplateController;
 use App\Http\Requests\Admin\StoreOrUpdateTaskRequest;
 use App\Http\Controllers\Web\Admin\TaskController;
@@ -150,13 +149,6 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
         Route::put('/{company}', [CompanyController::class, 'update'])->name('update');
         Route::delete('/{company}', [CompanyController::class, 'destroy'])->name('destroy');
     });
-
-    /*
-    |--------------------------------------------------------------------------
-    | Task Completion Logs
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/tasks-completion-log', [TaskCompletionLogController::class, 'index'])->name('task_completion_logs.index');
 
     /*
     |--------------------------------------------------------------------------

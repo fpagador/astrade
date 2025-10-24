@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Repositories\SubtaskRepository;
 use App\Models\Subtask;
-use App\Models\TaskCompletionLog;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\BusinessRuleException;
 use Illuminate\Support\Collection;
@@ -95,14 +94,6 @@ class SubtaskService
             // Update the subtask status
             $subtask->status = $status;
             $subtask->save();
-
-            // Log the subtask completion/pending
-            TaskCompletionLog::create([
-                'user_id' => $userId,
-                'task_id' => $subtask->task_id,
-                'subtask_id' => $subtask->id,
-                'completed_at' => now(),
-            ]);
 
             // Update parent task status
             $task = $subtask->task;

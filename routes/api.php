@@ -3,7 +3,6 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CalendarApiController;
 use App\Http\Controllers\Api\SubtaskApiController;
-use App\Http\Controllers\Api\TaskCompletionLogApiController;
 use App\Http\Controllers\Api\TaskApiController;
 use App\Http\Controllers\Api\UserApiController;
 use Illuminate\Support\Facades\Route;
@@ -48,13 +47,6 @@ Route::middleware(['auth:sanctum', 'role:admin|manager|user|'])->group(function 
     */
     Route::get('/calendar/colors', [CalendarApiController::class, 'getColors']);
     Route::get('/calendar/{type}', [CalendarApiController::class, 'getCalendarByType']);
-
-    /*
-   |--------------------------------------------------------------------------
-   | Logs and Audit
-   |--------------------------------------------------------------------------
-   */
-    Route::get('/logs/completions', [TaskCompletionLogApiController::class, 'taskCompletions']);
 
     /*
    |--------------------------------------------------------------------------

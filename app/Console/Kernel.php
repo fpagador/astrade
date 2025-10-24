@@ -13,10 +13,6 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         // Runs on the last day of the month at 23:59
-        $schedule->command('logs:clear-task-completions')
-            ->when(fn () => now()->isSameDay(now()->copy()->endOfMonth()))
-            ->dailyAt('23:59');
-
         $schedule->command('logs:clear-general')
             ->when(fn () => now()->isSameDay(now()->copy()->endOfMonth()))
             ->dailyAt('23:59');

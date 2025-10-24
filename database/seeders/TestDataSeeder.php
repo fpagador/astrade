@@ -9,7 +9,6 @@ use App\Models\Task;
 use App\Models\Subtask;
 use App\Models\Company;
 use App\Models\CompanyPhone;
-use App\Models\TaskCompletionLog;
 use App\Models\WorkCalendarTemplate;
 
 class TestDataSeeder extends Seeder
@@ -93,14 +92,6 @@ class TestDataSeeder extends Seeder
                         'task_id' => $task->id,
                         'status' => $subtaskStatus,
                     ]);
-                    if ($task->status === 'completed' && $subtaskStatus === 'completed') {
-                        TaskCompletionLog::create([
-                            'user_id' => $user->id,
-                            'task_id' => $task->id,
-                            'subtask_id' => $subtask->id,
-                            'completed_at' => now(),
-                        ]);
-                    }
                 }
             }
         }

@@ -14,7 +14,6 @@ use App\Models\Task;
 use App\Models\Subtask;
 use App\Models\Company;
 use App\Models\CompanyPhone;
-use App\Models\TaskCompletionLog;
 use Illuminate\Support\Facades\File;
 
 class CleanDataSeeder extends Seeder
@@ -32,10 +31,8 @@ class CleanDataSeeder extends Seeder
         CompanyPhone::truncate();
         Log::truncate();
         RecurrentTask::truncate();
-        TaskCompletionLog::truncate();
         Subtask::truncate();
         Task::truncate();
-        TaskCompletionLog::truncate();
         User::truncate();
         UserAbsence::truncate();
         WorkCalendarDay::truncate();
