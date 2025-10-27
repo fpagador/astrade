@@ -1,3 +1,5 @@
+import {customAlert} from "./confirm.js";
+
 export function imageSelector() {
     return {
         filename: document.getElementById('photo_name')?.value || 'Ningún archivo seleccionado',
@@ -5,10 +7,24 @@ export function imageSelector() {
         confirmedImageUrl: document.getElementById('photo_base64')?.value || '',
         showConfirmModal: false,
 
-        previewImage(event) {
+        async previewImage(event) {
             const input = event.target;
             if (input.files && input.files[0]) {
                 const file = input.files[0];
+
+                const maxSize = 2 * 1024 * 1024;
+                if (file.size > maxSize) {
+                    await customAlert('La imagen no puede pesar más de 2 MB.');
+                    input.value = '';
+                    this.filename = 'Ningún archivo seleccionado';
+                    this.tempImageUrl = '';
+                    this.confirmedImageUrl = '';
+                    this.showConfirmModal = false;
+                    document.getElementById('photo_base64').value = '';
+                    document.getElementById('photo_name').value = '';
+                    return;
+                }
+                
                 this.filename = file.name;
 
                 const reader = new FileReader();
