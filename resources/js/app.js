@@ -4,7 +4,7 @@ import Alpine from 'alpinejs';
 import { createIcons, icons } from 'lucide';
 
 import { initCalendars, confirmDelete, calendarForm, initCloneSelect, validateCalendarTemplateForm } from './calendar';
-import { cloneTaskForm, editTaskForm, imageModal, calendarView, actionTaskModal, dailyControls, enhancedLoadTasks} from './task';
+import { cloneTaskForm, editTaskForm, imageModal, calendarView, actionTaskModal, dailyControls, enhancedLoadTasks, cloneModal} from './task';
 import { initCompaniesPhones } from './company';
 import { imageSelector } from './imageSelector';
 import { userSelector } from './users';
@@ -19,6 +19,7 @@ window.Alpine = Alpine;
 window.createIcons = createIcons;
 window.lucideIcons = icons;
 window.cloneTaskForm = cloneTaskForm;
+window.cloneModal = cloneModal;
 window.editTaskForm = editTaskForm;
 window.imageModal = imageModal;
 

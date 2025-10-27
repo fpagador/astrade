@@ -10,7 +10,6 @@ use App\Repositories\WorkCalendarDayRepository;
 use App\Models\Task;
 use App\Models\RecurrentTask;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -19,6 +18,7 @@ use App\Enums\CalendarColor;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Collection as SupportCollection;
 
 /**
  * Service class responsible for handling User Task logic.
@@ -807,5 +807,38 @@ class UserTaskService
     public function getColors(): array
     {
         return Task::getColors();
+    }
+
+    /**
+     * Formats a collection of tasks to display in a cloned selector.
+     *
+     * Each resulting option will have the format:
+     *    "Username - Task Title - dd/mm/YYYY"
+     *
+     * @return SupportCollection
+     */
+    public function formatExistingTasks(): SupportCollection
+    {
+        $tasks = $this->taskRepository->getAllWithRelations();
+
+        return $tasks->mapWithKeys(function ($task) {
+            $formattedDate = $task->scheduled_date
+                ? Carbon::parse($task->scheduled_date)->format('d/m/Y')
+                : 'Sin fecha';
+
+            $label = "{$task->user->name} - {$task->title} - {$formattedDate}";
+
+            return [$task->id => $label];
+        })->prepend('Selecciona una tarea para clonar', '');
+    }
+
+    /**
+     * Gets all users that can be assigned to tasks (role 'user').
+     *
+     * @return SupportCollection
+     */
+    public function getAssignableUsers(): SupportCollection
+    {
+        return $this->userRepository->getAllUsersWithRoleUser();
     }
 }

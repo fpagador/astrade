@@ -109,13 +109,12 @@
                      class="bg-white p-2 rounded shadow"
                 >
                     <div class="relative mb-2">
-                        <!-- Flecha izquierda -->
+                        <!-- Left arrow -->
                         <button @click="goPrevWeek()"
                                 class="absolute left-0 top-0 bottom-0 flex items-center justify-center px-2 hover:bg-gray-200 rounded">
                             <i data-lucide="chevron-left" class="w-6 h-6"></i>
                         </button>
 
-                        <!-- Encabezado de días como grid de 7 columnas -->
                         <div class="grid grid-cols-7 text-center border-b border-gray-300">
                             <template x-for="day in displayedDays" :key="day.date">
                                 <div class="py-2 font-semibold"
@@ -126,7 +125,7 @@
                             </template>
                         </div>
 
-                        <!-- Flecha derecha -->
+                        <!-- Right arrow -->
                         <button @click="goNextWeek()"
                                 class="absolute right-0 top-0 bottom-0 flex items-center justify-center px-2 hover:bg-gray-200 rounded">
                             <i data-lucide="chevron-right" class="w-6 h-6"></i>
@@ -168,7 +167,7 @@
                     </div>
 
                     <div id="daily-tasks-container">
-                        {{-- Aquí se cargará el partial daily-tasks via AJAX --}}
+                        {{-- Here the partial daily-tasks is loaded via AJAX --}}
                     </div>
                 </div>
             </div>
@@ -185,10 +184,17 @@
         window.newTaskBaseUrl = "{{ route('admin.users.tasks.create', ['user' => $user]) }}";
         window.dailyTasksBaseUrl = "{{ route('admin.users.tasks.daily', ['user' => $user]) }}";
         window.taskDetailBaseUrl = "{{ route('admin.users.tasks.detail', ['task' => '__ID__']) }}";
+        window.cloneTaskBaseUrl = "{{ route('admin.users.tasks.create', ['user' => '__USER__']) }}";
+
     </script>
 
     @push('modals')
         <x-admin.image-modal />
         <x-admin.recurrent-task-modal />
+        <x-admin.modal-task-clone
+            :user="$user"
+            :all-users="$allUsers ?? []"
+        />
+
     @endpush
 @endsection

@@ -303,8 +303,10 @@ export function cloneTaskForm(oldSubtasks = []) {
             if (this.recurrent) {
                 const start = document.querySelector('[name="recurrent_start_date"]');
                 const end = document.querySelector('[name="recurrent_end_date"]');
-                if (start?._flatpickr) start._flatpickr.setDate(task.recurrent_start_date || null);
-                if (end?._flatpickr) end._flatpickr.setDate(task.recurrent_end_date || null);
+                if (start?._flatpickr) start._flatpickr.clear();
+                else start.value = '';
+                if (end?._flatpickr) end._flatpickr.clear();
+                else end.value = '';
             }
 
             if (task.pictogram_path) {
@@ -463,6 +465,36 @@ export function cloneTaskForm(oldSubtasks = []) {
                 clearTimeout(timeout);
                 timeout = setTimeout(() => fn(...args), delay);
             };
+        }
+    };
+}
+
+export function cloneModal(allUsers = []) {
+    return {
+        showCloneModal: false,
+        taskToClone: {},
+        selectedUserId: null,
+        users: allUsers,
+        init() {
+            this.$watch('showCloneModal', (value) => {
+                if (value) {
+                    this.$nextTick(() => this.initCloneUserSelect());
+                }
+            });
+        },
+        initCloneUserSelect() {
+            const select = this.$refs.cloneUserSelect;
+            if (select && !select.classList.contains('tomselected')) {
+                new TomSelect(select, {
+                    placeholder: 'Buscar usuario...',
+                    allowEmptyOption: true,
+                    create: false,
+                    maxOptions: 500,
+                    searchField: ['text', 'value']
+                });
+            } else {
+                console.warn('No se encontró el select o ya estaba inicializado');
+            }
         }
     };
 }
@@ -745,6 +777,16 @@ export function calendarView() {
             const dateKey = this.formatDateLocal(this.currentDate);
             return this.specialDays[dateKey] === 'vacation';
         },
+        openCloneTask(task) {
+            window.dispatchEvent(new CustomEvent('open-clone-modal', { detail: task }));
+        },
+        getCloneTaskUrl(taskId, userId) {
+            console.log(taskId);
+            console.log(userId);
+            const date = this.formatDateLocal(this.currentDate);
+            const viewMode = this.viewMode;
+            return window.cloneTaskBaseUrl.replace('__USER__', userId) + `?date=${date}&viewMode=${viewMode}&clone=${taskId}`;
+        },
         init() {
             const urlParams = new URLSearchParams(window.location.search);
             const dateParam = urlParams.get('date');
@@ -765,6 +807,11 @@ export function calendarView() {
                     const formatted = this.formatDateLocal(this.currentDate);
                     document.dispatchEvent(new CustomEvent('date-changed', { detail: { date: formatted } }));
                 }
+            });
+
+            document.addEventListener('clone-task', (e) => {
+                const { taskId, userId } = e.detail;
+                window.location = this.getCloneTaskUrl(taskId, userId);
             });
         },
         updateDisplayedDays(count) {

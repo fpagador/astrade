@@ -62,6 +62,8 @@ class UserTaskController extends WebController
             $specialDays    = $calendarData['specialDays'];
             $calendarColors = $calendarData['calendarColors'];
 
+            $allUsers = $this->userTaskService->getAssignableUsers();
+
             return view('web.admin.users.tasks', compact(
                 'user',
                 'date',
@@ -72,7 +74,9 @@ class UserTaskController extends WebController
                 'backUrl',
                 'specialDays',
                 'viewMode',
-                'calendarColors'
+                'calendarColors',
+                'allUsers',
+                'calendarData'
             ));
         }, route('admin.users.index', ['type' => UserTypeEnum::MOBILE->value]));
     }
@@ -86,7 +90,10 @@ class UserTaskController extends WebController
     public function create(Request $request, User $user): View|RedirectResponse
     {
         return $this->tryCatch(function () use ($request, $user) {
-            $existingTasks = $this->taskRepository->getAllWithRelations();
+            $existingTasks = $this->userTaskService->formatExistingTasks();
+
+            $taskToClone = null;
+            $cloneId = $request->query('clone');
 
             return view('web.admin.tasks.create', [
                 'user' => $user,
@@ -95,7 +102,9 @@ class UserTaskController extends WebController
                 'date' => $request->query('date', now()->toDateString()),
                 'viewMode' => $request->get('viewMode', 'weekly'),
                 'weekDays' => $this->userTaskService->weekDays,
-                'oldSubtasks' => old('subtasks', [])
+                'oldSubtasks' => old('subtasks', []),
+                'taskToClone' => $taskToClone,
+                'cloneId' => $cloneId
             ]);
         }, route('admin.users.index', ['type' => UserTypeEnum::MOBILE->value]));
     }

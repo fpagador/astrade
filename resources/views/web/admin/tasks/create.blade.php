@@ -7,7 +7,9 @@
         id="task-form-container"
         class="max-w-3xl mx-auto bg-white p-8 rounded shadow"
         x-data="cloneTaskForm(@js($oldSubtasks))"
-        x-init="init()"
+        x-init="init(); $nextTick(() => {
+            @if($cloneId) fetchTask('{{ $cloneId }}');@endif
+        })"
         data-fetch-url="{{ url('/admin/users/task') }}"
         data-asset="{{ asset('storage') }}"
         data-conflict-check-url="{{ url('/admin/users/{userId}/tasks/check-conflict') }}"
@@ -17,7 +19,7 @@
     >
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-2xl font-semibold text-gray-800">
-                Crear Tarea para {{ $user->name }}
+                Crear Tarea para {{ $user->name . ' ' . $user->surname }}
             </h1>
 
             <button
@@ -33,7 +35,7 @@
         <x-admin.alert-messages />
 
         <div x-show="showClone" x-cloak class="mb-6">
-            <x-form.select name="task-cloner" label="Buscar tarea para clonar" :options="$existingTasks->pluck('title', 'id')->toArray()" placeholder="Seleccionar tarea" />
+            <x-form.select name="task-cloner" label="Buscar tarea para clonar" :options="$existingTasks->toArray()" placeholder="Seleccionar tarea" />
         </div>
 
         <hr class="border-gray-300 mb-6">

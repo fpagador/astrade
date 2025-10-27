@@ -147,6 +147,10 @@
                                 </a>
                             @endif
 
+                            <button x-on:click="openCloneTask(task)" title="Clonar tarea">
+                                <i data-lucide="copy" class="w-5 h-5 text-gray-600 hover:text-green-600"></i>
+                            </button>
+
                             {{-- Delete --}}
                             <button type="button"
                                     @click="$dispatch('open-action-modal', {

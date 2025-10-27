@@ -391,4 +391,19 @@ class UserRepository
                 ->get(['name', 'surname']);
         }
     }
+
+    /**
+     * Gets all users with the role 'user' (based on the `role_name` field in the `roles` table).
+     *
+     * @return Collection
+     */
+    public function getAllUsersWithRoleUser(): Collection
+    {
+        return User::query()
+            ->select('users.id', 'users.name', 'users.surname')
+            ->join('roles', 'roles.id', '=', 'users.role_id')
+            ->where('roles.role_name', '=', RoleEnum::USER->value)
+            ->orderBy('users.name')
+            ->get();
+    }
 }

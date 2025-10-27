@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="max-w-3xl mx-auto bg-white p-8 rounded shadow">
-        <h1 class="text-2xl font-semibold mb-6 text-gray-800">Editar Tarea para {{ $task->user->name }}</h1>
+        <h1 class="text-2xl font-semibold mb-6 text-gray-800">Editar Tarea para {{ $task->user->name . " ". $task->user->surname}}</h1>
 
         <hr class="border-gray-300 mb-6">
 
