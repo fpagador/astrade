@@ -113,19 +113,6 @@
                         <i data-lucide="pencil" class="w-5 h-5 text-indigo-800 hover:text-indigo-900 transition"></i>
                     </a>
 
-                    {{-- ASSIGN CALL --}}
-                    <form action="{{ route('admin.users.toggleCall', $user) }}" method="POST" class="flex items-center">
-                        @csrf
-                        <button type="submit"
-                                class="flex items-center justify-center hover:opacity-90 transition"
-                                title="{{ $user->can_be_called ? 'Eliminar recepción de llamadas' : 'Asignar recepción de llamadas' }}">
-                    <span class="w-6 h-6 flex items-center justify-center rounded-full
-                                 {{ $user->can_be_called ? 'bg-red-600' : 'bg-green-600' }}">
-                        <i data-lucide="{{ $user->can_be_called ? 'x' : 'phone' }}" class="w-4 h-4 text-white"></i>
-                    </span>
-                        </button>
-                    </form>
-
                     {{-- DELETE --}}
                     @can('delete', $user)
                         <form action="{{ route('admin.users.destroy', $user->id) }}"
@@ -170,19 +157,6 @@
                        title="Editar" class="flex items-center justify-center">
                         <i data-lucide="pencil" class="w-6 h-6 text-indigo-800 hover:text-indigo-900 transition"></i>
                     </a>
-
-                    {{-- ASSIGN CALL --}}
-                    <form action="{{ route('admin.users.toggleCall', $user) }}" method="POST" class="flex items-center">
-                        @csrf
-                        <button type="submit"
-                                class="flex items-center justify-center hover:opacity-90 transition"
-                                title="{{ $user->can_be_called ? 'Eliminar recepción de llamadas' : 'Asignar recepción de llamadas' }}">
-                    <span class="w-7 h-7 flex items-center justify-center rounded-full
-                                 {{ $user->can_be_called ? 'bg-red-600' : 'bg-green-600' }}">
-                        <i data-lucide="{{ $user->can_be_called ? 'x' : 'phone' }}" class="w-4 h-4 text-white"></i>
-                    </span>
-                        </button>
-                    </form>
 
                     {{-- DELETE --}}
                     @can('delete', $user)

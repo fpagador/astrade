@@ -52,16 +52,6 @@ class UserService
     }
 
     /**
-     * Extract and sanitize the phone number for the given user.
-     *
-     * @return array
-     */
-    public function getPhones(): array
-    {
-        return $this->userRepository->getActivePhones();
-    }
-
-    /**
      * Update the FCM token for the authenticated user.
      *
      * @param User $user
@@ -260,40 +250,6 @@ class UserService
             'notificationTypeOptions',
             'type'
         );
-    }
-
-    /**
-     * Toggle the can_be_called status for a user.
-     *
-     * @param User $user
-     * @return array
-     */
-    public function toggleCall(User $user): array
-    {
-        try {
-            // Count already selected users with Admin or Manager roles
-            $count = $this->userRepository->countCallableManagers();
-
-            // Prevent activating if there are already 2 selected users
-            if (!$user->can_be_called && $count >= 2) {
-                return ['error' => 'Ya hay 2 usuarios seleccionados.'];
-            }
-
-            // Toggle status
-            $user->can_be_called = !$user->can_be_called;
-            $user->save();
-
-            return ['success' => 'El estado de recepción de llamada se actualizó correctamente.',
-                'status' => $user->can_be_called];
-
-        } catch (\Exception $e) {
-            Log::record('error', 'Error toggling can_be_called status', [
-                'exception' => $e->getMessage(),
-                'stack_trace' => $e->getTraceAsString(),
-            ]);
-
-            return ['error' => 'Se produjo un error al actualizar el estado.', 'details' => $e->getMessage()];
-        }
     }
 
     /**

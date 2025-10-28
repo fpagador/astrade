@@ -82,45 +82,12 @@
             </div>
 
             {{-- Photo --}}
-            <!-- Hidden inputs to persist data -->
-            <input type="hidden" name="photo_base64" id="photo_base64" value="{{ old('photo_base64') }}">
-            <input type="hidden" name="photo_name" id="photo_name" value="{{ old('photo_name') }}">
-            <div x-data="imageSelector()" class="mb-4">
-                <label class="block font-medium mb-1" for="photo">Foto</label>
-                <div class="flex items-center space-x-2 mb-4">
-                    <!-- Select file button -->
-                    <label for="photo" class="cursor-pointer button-success px-4 py-2 rounded transition">
-                        Seleccionar archivo
-                    </label>
-                    <span x-text="filename" class="text-gray-700"></span>
-                </div>
-
-                {{-- Show current photo --}}
-                @if ($user->photo)
-                    <div class="mb-4" x-show="!confirmedImageUrl" x-cloak>
-                        <img
-                            src="{{ asset('storage/' . $user->photo) }}"
-                            alt="Preview"
-                            @click="$dispatch('open-image', { src: '{{ asset('storage/' . $user->photo) }}' })"
-                            class="h-32 w-32 object-contain rounded cursor-pointer transition hover:brightness-110"
-                            title="Ver foto actual">
-                    </div>
-                @endif
-
-                <div class="mb-4" x-show="confirmedImageUrl" x-cloak>
-                    <img
-                        :src="confirmedImageUrl"
-                        alt="Preview"
-                        class="h-32 w-32 object-cover rounded cursor-pointer hover:brightness-110 transition"
-                        @click="openLarge(confirmedImageUrl)"
-                    />
-                </div>
-
-                <input type="file" name="photo" id="photo" class="hidden" @change="previewImage($event)">
-
-                {{-- Confirmation modal --}}
-                <x-admin.image-confirmation-modal />
-            </div>
+            <x-form.image-upload
+                label="Foto"
+                base-id="photo"
+                :current-path="$user->photo"
+                preview-size="h-32 w-32"
+            />
         </div>
 
         {{-- Grid for user-only fields (mobile users) --}}

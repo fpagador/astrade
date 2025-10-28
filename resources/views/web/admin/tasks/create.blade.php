@@ -89,14 +89,11 @@
 
             {{-- PICTOGRAM AND COLOR --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <x-form.file
-                        name="pictogram_path"
-                        label="Pictograma"
-                        preview
-                    />
-                    <input type="hidden" name="pictogram_path" :value="taskPictogramPath">
-                </div>
+                <x-form.image-upload
+                    label="Pictograma"
+                    base-id="pictogram"
+                />
+
                 <div>
                     <label class="block font-medium mb-1 flex items-center gap-1">Color</label>
                     <input
@@ -262,15 +259,29 @@
                                     <label class="block text-sm font-medium text-gray-700">Nota</label>
                                     <textarea :name="'subtasks['+index+'][note]'" class="form-textarea w-full" rows="2" x-model="subtask.note"></textarea>
                                 </div>
-                                <div>
-                                    <x-form.file
-                                        label="Pictograma"
-                                        accept="image/*"
-                                        preview
-                                        x-bind:name="'subtask_pictograms[' + index + ']'"
-                                        @change="subtask.pictogram_path = $event.target.files[0] ? $event.target.files[0].name : ''"
-                                    />
-                                    <input type="hidden" :name="'subtasks['+index+'][pictogram_path]'" :value="subtask.pictogram_path">
+                                <div x-data="imageSelector('subtask_' + index + '_base64', 'subtask_' + index + '_name')">
+                                    <!-- Hidden inputs -->
+                                    <input type="hidden" :id="'subtask_' + index + '_base64'" :name="'subtasks[' + index + '][pictogram_base64]'">
+                                    <input type="hidden" :id="'subtask_' + index + '_name'" :name="'subtasks[' + index + '][pictogram_name]'">
+
+                                    <label class="block font-medium mb-1" :for="'subtask_' + index + '_file'">Pictograma</label>
+                                    <div class="mb-4" x-show="confirmedImageUrl" x-cloak>
+                                        <img
+                                            :src="confirmedImageUrl"
+                                            alt="Preview"
+                                            class="h-24 w-24 object-cover rounded cursor-pointer hover:brightness-110 transition"
+                                            @click="openLarge(confirmedImageUrl)"
+                                        />
+                                    </div>
+                                    <div class="flex items-center space-x-2 mb-2">
+                                        <label :for="'subtask_' + index + '_file'" class="cursor-pointer flex-shrink-0 inline-flex items-center px-4 py-2 rounded button-success transition focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1">
+                                            <span x-text="subtask.pictogram_path || confirmedImageUrl ? 'Cambiar pictograma' : 'Seleccionar pictograma'"></span>
+                                        </label>
+                                        <span x-text="filename" class="text-gray-700 text-sm truncate block w-[70%]"></span>
+                                    </div>
+
+                                    <input type="file" accept="image/*" :id="'subtask_' + index + '_file'" class="hidden" @change="previewImage($event)">
+                                    <x-admin.image-confirmation-modal />
                                 </div>
                             </div>
                         </div>

@@ -64,29 +64,6 @@ class UserRepository
     }
 
     /**
-     * Get phone numbers of users that can receive calls.
-     *
-     * @return array
-     */
-    public function getActivePhones(): array
-    {
-        $phones = User::where('can_be_called', true)
-            ->pluck('phone')
-            ->map(function ($phone) {
-                return $phone ? preg_replace('/[^\d+]/', '', $phone) : null;
-            })
-            ->filter()
-            ->values()
-            ->toArray();
-
-        if (!$phones) {
-            throw new ModelNotFoundException("No users with configured phones have been found.");
-        }
-
-        return $phones;
-    }
-
-    /**
      * Paginate the base query of users.
      *
      * @param array $filters
@@ -160,20 +137,6 @@ class UserRepository
         }
 
         return $query;
-    }
-
-    /**
-     * Count users with can_be_called = true for Admin/Manager roles.
-     *
-     * @return int
-     */
-    public function countCallableManagers(): int
-    {
-        $roles = [RoleEnum::ADMIN->value, RoleEnum::MANAGER->value];
-
-        return User::where('can_be_called', true)
-            ->whereHas('role', fn($q) => $q->whereIn('role_name', $roles))
-            ->count();
     }
 
     /**

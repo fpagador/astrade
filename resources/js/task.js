@@ -739,7 +739,7 @@ export function handleAjaxError(error, container) {
 export function calendarView() {
     const today = new Date();
     const minMonth = today.getMonth();
-    const minYear = today.getFullYear();
+    const minYear = today.getFullYear() - 1;
 
     function formatDateLocal(date) {
         return date.getFullYear() + '-' +
@@ -756,7 +756,7 @@ export function calendarView() {
         currentMonth: today.getMonth(),
         currentYear: today.getFullYear(),
         monthNames: ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
-        yearsRange: Array.from({length:6},(_,i)=>today.getFullYear() + i),
+        yearsRange: Array.from({length:7}, (_, i) => today.getFullYear() - 1 + i),
         get currentCalendarDate() {
             return this.currentDate;
         },
@@ -812,6 +812,16 @@ export function calendarView() {
             document.addEventListener('clone-task', (e) => {
                 const { taskId, userId } = e.detail;
                 window.location = this.getCloneTaskUrl(taskId, userId);
+            });
+
+            document.addEventListener('daily-date-changed', (e) => {
+                const parts = e.detail.date.split('-');
+                const year = parseInt(parts[0], 10);
+                const month = parseInt(parts[1], 10) - 1;
+                const day = parseInt(parts[2], 10);
+                this.currentDate = new Date(year, month, day);
+                this.updateDisplayedDays(7);
+                this.renderMiniCalendar();
             });
         },
         updateDisplayedDays(count) {
@@ -885,8 +895,20 @@ export function calendarView() {
                 let classes = 'border p-2 rounded relative hover:bg-gray-200';
 
                 // Selected day
-                if (dayKey === formatDateLocal(this.currentDate)) {
+                const currentDayKey = formatDateLocal(new Date(
+                    this.currentDate.getFullYear(),
+                    this.currentDate.getMonth(),
+                    this.currentDate.getDate()
+                ));
+
+                if (dayKey === currentDayKey) {
                     classes += ' bg-blue-200';
+                }
+
+                const today = new Date();
+                const todayKey = formatDateLocal(today);
+                if (dayKey === todayKey) {
+                    classes += ' border-2 border-blue-900';
                 }
 
                 // Holidays, vacations or legal absences
@@ -976,6 +998,20 @@ export function calendarView() {
 
             this.renderMiniCalendar();
         },
+
+        goToday() {
+            const today = new Date();
+            this.currentDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            this.currentMonth = today.getMonth();
+            this.currentYear = today.getFullYear();
+            this.updateDisplayedDays(7);
+            this.renderMiniCalendar();
+
+            if (this.viewMode === 'daily') {
+                const formatted = this.formatDateLocal(this.currentDate);
+                document.dispatchEvent(new CustomEvent('date-changed', { detail: { date: formatted } }));
+            }
+        },
     }
 }
 
@@ -991,14 +1027,25 @@ export function dailyControls(initialDate = null) {
         initDaily() {
             this.loadTasks();
 
-            // Escuchar evento del mini calendario
+            // Listen to mini calendar event
             document.addEventListener('date-changed', e => {
                 this.selectedDate = new Date(e.detail.date);
                 this.loadTasks();
             });
 
+            // Listen to changes from filters
             document.addEventListener('filters-changed', e => {
                 this.filters = e.detail;
+                this.loadTasks();
+            });
+
+            // Listen to changes from the mini calendar
+            document.addEventListener('daily-date-changed', e => {
+                const parts = e.detail.date.split('-');
+                const year = parseInt(parts[0], 10);
+                const month = parseInt(parts[1], 10) - 1;
+                const day = parseInt(parts[2], 10);
+                this.selectedDate = new Date(year, month, day);
                 this.loadTasks();
             });
         },
@@ -1006,16 +1053,31 @@ export function dailyControls(initialDate = null) {
             return date.toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
         },
         prevDay() {
-            this.selectedDate = new Date(this.selectedDate.setDate(this.selectedDate.getDate() - 1));
+            this.selectedDate.setDate(this.selectedDate.getDate() - 1);
             this.loadTasks();
+            this.syncMiniCalendar();
         },
+
         nextDay() {
-            this.selectedDate = new Date(this.selectedDate.setDate(this.selectedDate.getDate() + 1));
+            this.selectedDate.setDate(this.selectedDate.getDate() + 1);
             this.loadTasks();
+            this.syncMiniCalendar();
         },
         today() {
-            this.selectedDate = new Date();
+            const now = new Date();
+            this.selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             this.loadTasks();
+            this.syncMiniCalendar();
+        },
+        syncMiniCalendar() {
+            const year = this.selectedDate.getFullYear();
+            const month = this.selectedDate.getMonth();
+            const day = this.selectedDate.getDate();
+            const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+
+            document.dispatchEvent(new CustomEvent('daily-date-changed', {
+                detail: { date: dateStr }
+            }));
         },
         applyFilters() {
             this.loadTasks();

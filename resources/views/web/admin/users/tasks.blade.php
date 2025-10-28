@@ -60,6 +60,10 @@
                         </template>
                     </select>
 
+                    <button @click="goToday()" class="px-3 py-1 bg-indigo-900 text-white rounded ">
+                        Hoy
+                    </button>
+
                     <select
                         x-model="currentYear"
                         x-on:change="onMonthYearChange()"

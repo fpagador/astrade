@@ -235,23 +235,6 @@ class UserController extends WebController
     }
 
     /**
-     * Controller to toggle the "can_be_called" status for a user
-     *
-     * @param User $user
-     * @return RedirectResponse|JsonResponse
-     */
-    public function toggleCall(User $user): RedirectResponse|JsonResponse
-    {
-        $result = $this->userService->toggleCall($user);
-
-        if (isset($result['success'])) {
-            return back()->with('success', $result['success']);
-        }
-
-        return back()->with('general', $result['error']);
-    }
-
-    /**
      * Export users to Excel with all filters applied.
      *
      *

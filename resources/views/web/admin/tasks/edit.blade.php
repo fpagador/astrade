@@ -96,40 +96,13 @@
 
             {{-- PICTOGRAM --}}
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Pictograma</label>
-
-                @if ($task->pictogram_path)
-                    {{-- Imagen actual --}}
-                    <div class="relative group h-20 aspect-square mb-2">
-                        <img
-                            src="{{ asset('storage/' . $task->pictogram_path) }}"
-                            @click="$dispatch('open-image', '{{ asset('storage/' . $task->pictogram_path) }}')"
-                            title="Ver pictograma actual"
-                            class="h-full w-full object-contain rounded cursor-pointer transition group-hover:brightness-110"
-                        />
-                        <div class="absolute inset-0 flex items-center justify-center bg-black/30 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none">
-                            <i data-lucide="search" class="w-5 h-5 text-white"></i>
-                        </div>
-                    </div>
-                @endif
-
-                {{-- Botón y texto de archivo --}}
-                <div class="flex items-center gap-2">
-                    <label class="cursor-pointer button-success px-4 py-2 rounded transition inline-block">
-                        <span>{{ $task->pictogram_path ? 'Cambiar pictograma' : 'Seleccionar pictograma' }}</span>
-                        <input
-                            @if($disableFields) disabled @endif
-                        type="file"
-                            name="pictogram_path"
-                            accept="image/*"
-                            class="hidden"
-                        />
-                    </label>
-
-                    @unless($task->pictogram_path)
-                        <span class="text-gray-500 text-sm">Ningún archivo seleccionado</span>
-                    @endunless
-                </div>
+                <x-form.image-upload
+                    label="Pictograma"
+                    base-id="pictogram_path"
+                    :current-path="$task->pictogram_path"
+                    preview-size="h-20 w-20"
+                    disabled={{$disableFields}}
+                />
             </div>
 
             {{-- COLOR AND STATE --}}
@@ -349,39 +322,51 @@
                                 </div>
 
                                 <div x-data="{ storageBaseUrl: '{{ asset('storage') }}' }">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Pictograma:</label>
+                                    <div x-data="imageSelector('subtask_' + index + '_base64', 'subtask_' + index + '_name')">
+                                        <!-- Hidden inputs -->
+                                        <input type="hidden" :id="'subtask_' + index + '_base64'" :name="'subtasks[' + index + '][pictogram_base64]'">
+                                        <input type="hidden" :id="'subtask_' + index + '_name'" :name="'subtasks[' + index + '][pictogram_name]'">
 
-                                    {{-- Imagen actual --}}
-                                    <template x-if="subtask.pictogram_path">
-                                        <div class="mb-2 relative group w-20 aspect-square">
-                                            <img
-                                                :src="`${storageBaseUrl}/${subtask.pictogram_path}`"
-                                                class="w-full h-full object-contain rounded cursor-pointer transition group-hover:brightness-110"
-                                                @click="window.dispatchEvent(new CustomEvent('open-image', { detail: `${storageBaseUrl}/${subtask.pictogram_path}` }))"
-                                                title="Ver Pictograma actual"
-                                            />
-                                            <!-- Overlay lupa -->
-                                            <div class="absolute inset-0 flex items-center justify-center bg-black/30 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none">
-                                                <i data-lucide="search" class="w-5 h-5 text-white"></i>
+                                        <label class="block font-medium mb-1" :for="'subtask_' + index + '_file'">Pictograma</label>
+
+                                        <!-- Imagen actual o nueva -->
+                                        <template x-if="confirmedImageUrl || subtask.pictogram_path">
+                                            <div class="mb-2 relative group w-20 aspect-square">
+                                                <img
+                                                    :src="confirmedImageUrl ? confirmedImageUrl : `${storageBaseUrl}/${subtask.pictogram_path}`"
+                                                    class="w-full h-full object-contain rounded cursor-pointer transition group-hover:brightness-110"
+                                                    @click="window.dispatchEvent(new CustomEvent('open-image', { detail: confirmedImageUrl ? confirmedImageUrl : `${storageBaseUrl}/${subtask.pictogram_path}` }))"
+                                                    :title="confirmedImageUrl ? 'Vista previa' : 'Ver pictograma actual'"
+                                                />
+                                                <div class="absolute inset-0 flex items-center justify-center bg-black/30 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none">
+                                                    <i data-lucide="search" class="w-5 h-5 text-white"></i>
+                                                </div>
                                             </div>
+                                        </template>
+
+                                        <!-- Botón + nombre archivo -->
+                                        <div class="flex items-center space-x-2 mb-2">
+                                            <label :for="'subtask_' + index + '_file'" class="cursor-pointer px-4 py-2 rounded button-success transition {{ $disableFields ? 'opacity-50 cursor-not-allowed' : '' }}">
+                                                <span x-text="subtask.pictogram_path || confirmedImageUrl ? 'Cambiar pictograma' : 'Seleccionar pictograma'"></span>
+                                            </label>
+                                            <span x-text="filename" class="text-gray-700 text-sm truncate block w-[70%]"></span>
                                         </div>
-                                    </template>
 
-                                    {{-- Botón y texto de archivo --}}
-                                    <div class="flex items-center gap-2">
-                                        <label class="cursor-pointer button-success px-4 py-2 rounded transition inline-block">
-                                            <span x-text="subtask.pictogram_path ? 'Cambiar pictograma' : 'Seleccionar pictograma'"></span>
-                                            <input
-                                                type="file"
-                                                :name="`subtask_pictograms[${subtask.id ?? 'new_' + index}]`"
-                                                accept="image/*"
-                                                class="hidden"
-                                                @change="subtask.pictogram_path = $event.target.files[0] ? URL.createObjectURL($event.target.files[0]) : null"
-                                                @if($disableFields) disabled @endif
-                                            />
-                                        </label>
+                                        <!-- Input real -->
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            :id="'subtask_' + index + '_file'"
+                                            class="hidden"
+                                            @change="previewImage($event)"
+                                            @if($disableFields) disabled @endif
+                                        />
 
-                                        <span class="text-gray-500 text-sm" x-show="!subtask.pictogram_path">Ningún archivo seleccionado</span>
+                                        <!-- Modal de confirmación -->
+                                        <x-admin.image-confirmation-modal
+                                            @confirm.window="confirmedImageUrl = confirmedImageUrl"
+                                            @cancel.window="confirmedImageUrl = null; filename = ''"
+                                        />
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

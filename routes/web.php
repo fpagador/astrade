@@ -72,11 +72,6 @@ Route::middleware(['auth', 'role:admin|manager'])->prefix('admin')->name('admin.
         Route::post('/validate-field', [UserController::class, 'validateField'])->name('validate-field');
         Route::post('/validate-password', [UserController::class, 'validatePassword'])->name('validate-password');
 
-        // Ajax method to select the user who can be called
-        Route::post('{user}/toggle-call', [UserController::class, 'toggleCall'])
-            ->name('toggleCall')
-            ->middleware('can:update,user');
-
         /*
         |--------------------------------------------------------------------------
         | Holidays and legal absence per user
