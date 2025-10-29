@@ -11,11 +11,12 @@
         {{-- ALERTS --}}
         <x-admin.alert-messages />
 
-        <x-form.form-wrapper action="{{ route('admin.users.tasks.update', $task->id) }}" method="PUT" class="space-y-6">
+        <x-form.form-wrapper action="{{ route('admin.users.tasks.update', ['user' => $task->user->id, 'task' => $task->id, 'date' => $date, 'viewMode' => $viewMode]) }}" method="PUT" class="space-y-6">
             <input type="hidden" name="date" value="{{ $date }}">
             <input type="hidden" name="user_id" value="{{ $task->user_id }}">
             <input type="hidden" name="assigned_by" value="{{ $task->assigned_by }}">
             <input type="hidden" name="edit_series" value="{{ $editSeries }}">
+            <input type="hidden" name="viewMode" value="{{ $viewMode }}">
 
             {{-- TITLE --}}
             <x-form.input
@@ -154,12 +155,10 @@
                         const fp = dateInput._flatpickr;
 
                         if (this.recurrent) {
-                            // Desactivar edición pero mantener valor visible
                             if (fp) fp.set('clickOpens', false);
                             dateInput.disabled = true;
                             dateInput.classList.add('opacity-50', 'cursor-not-allowed');
                         } else {
-                            // Reactivar si deja de ser recurrente
                             if (fp) fp.set('clickOpens', true);
                             dateInput.disabled = false;
                             dateInput.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -177,7 +176,7 @@
                     name="is_recurrent"
                     x-model="recurrent"
                     label="¿Tarea recurrente?"
-                    :disabled="$disableFields"
+                    :disabled="$disableFields || !$task->is_recurrent"
                     value="{{ old('is_recurrent', $task->is_recurrent) }}"
                 />
 
@@ -329,7 +328,7 @@
 
                                         <label class="block font-medium mb-1" :for="'subtask_' + index + '_file'">Pictograma</label>
 
-                                        <!-- Imagen actual o nueva -->
+                                        <!-- Current or new image -->
                                         <template x-if="confirmedImageUrl || subtask.pictogram_path">
                                             <div class="mb-2 relative group w-20 aspect-square">
                                                 <img
@@ -344,9 +343,8 @@
                                             </div>
                                         </template>
 
-                                        <!-- Botón + nombre archivo -->
                                         <div class="flex items-center space-x-2 mb-2">
-                                            <label :for="'subtask_' + index + '_file'" class="cursor-pointer px-4 py-2 rounded button-success transition {{ $disableFields ? 'opacity-50 cursor-not-allowed' : '' }}">
+                                            <label :for="'subtask_' + index + '_file'" class="cursor-pointer flex-shrink-0 inline-flex items-center px-4 py-2 rounded button-success transition focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1 {{ $disableFields ? 'opacity-50 cursor-not-allowed' : '' }}">
                                                 <span x-text="subtask.pictogram_path || confirmedImageUrl ? 'Cambiar pictograma' : 'Seleccionar pictograma'"></span>
                                             </label>
                                             <span x-text="filename" class="text-gray-700 text-sm truncate block w-[70%]"></span>

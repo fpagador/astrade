@@ -42,7 +42,7 @@
 
         {{-- MAIN FORM --}}
         <x-form.form-wrapper
-            action="{{ route('admin.users.tasks.store', ['user' => $user, 'date' => $date])  }}"
+            action="{{ route('admin.users.tasks.store', ['user' => $user, 'date' => $date, 'viewMode' => $viewMode])  }}"
             method="POST"
             class="space-y-6">
             @csrf

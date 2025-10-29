@@ -65,15 +65,15 @@ class UserTaskService
      * Return tasks (weekly + daily view) and auxiliary calendar data.
      *
      * @param int $userId
-     * @param string $date ISO date string for daily view
-     * @param array $filters Optional filters (title, status)
+     * @param string $date
+     * @param array $filters
      * @return array {
-     *      @type array  $tasksByDate   tasks grouped by scheduled_date (weekly view)
-     *      @type \Illuminate\Contracts\Pagination\LengthAwarePaginator $tasksDaily paginated daily tasks
-     *      @type array  $timeCounts    counts per scheduled_time for day
+     *      @type array  $tasksByDate
+     *      @type \Illuminate\Contracts\Pagination\LengthAwarePaginator $tasksDaily
+     *      @type array  $timeCounts
      *      @type bool   $hasAnyTasks
-     *      @type array  $specialDays   map date => type (holiday, vacation, legal_absence)
-     *      @type array  $calendarColors array of available calendar colors
+     *      @type array  $specialDays
+     *      @type array  $calendarColors
      * }
      */
     public function getUserTasksForCalendar(int $userId, string $date, array $filters = []): array
@@ -81,11 +81,21 @@ class UserTaskService
         // WEEKLY
         $weeklyTasks = $this->taskRepository->getUserTasks($userId);
         $tasksByDate = [];
+        $timeCounterByDate = [];
 
         foreach ($weeklyTasks as $task) {
             $dateKey = $task->scheduled_date
                 ? Carbon::parse($task->scheduled_date)->toDateString()
                 : 'sin_fecha';
+
+
+            $timeKey = $task->scheduled_time
+                ? ($task->scheduled_time instanceof Carbon
+                    ? $task->scheduled_time->format('H:i')
+                    : Carbon::parse((string)$task->scheduled_time)->format('H:i'))
+                : 'no_hora';
+
+            $timeCounterByDate[$dateKey][$timeKey] = ($timeCounterByDate[$dateKey][$timeKey] ?? 0) + 1;
 
             $tasksByDate[$dateKey][] = [
                 'id' => $task->id,
@@ -97,9 +107,18 @@ class UserTaskService
                         : Carbon::parse((string)$task->scheduled_time)->format('H:i') )
                     : null,
                 'color' => $task->color,
-                'recurrent_task_id' => $task->recurrent_task_id ?? null
+                'recurrent_task_id' => $task->recurrent_task_id ?? null,
+                'is_conflict' => false,
             ];
         }
+
+        foreach ($tasksByDate as $dateKey => &$tasks) {
+            foreach ($tasks as &$task) {
+                $timeKey = $task['scheduled_time'] ?? 'no_hora';
+                $task['is_conflict'] = ($timeCounterByDate[$dateKey][$timeKey] ?? 0) > 1;
+            }
+        }
+        unset($tasks);
 
         // DAILY (with filters)
         $dailyTasks = $this->taskRepository->getUserTasksByDate($userId, $date, $filters);

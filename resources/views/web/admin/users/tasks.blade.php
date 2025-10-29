@@ -149,7 +149,16 @@
                                         </div>
                                         <div class="text-sm text-gray-600 mt-1 flex items-center gap-1">
                                             <span x-text="task.scheduled_time ?? 'No asignada'"></span>
+                                            <button
+                                                x-show="task.is_conflict"
+                                                title="Conflicto de horario con otra tarea"
+                                                class="w-5 h-5 flex items-center justify-center bg-yellow-200 border border-red-600 text-red-800 rounded-none"
+                                                type="button"
+                                            >
+                                                <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                                            </button>
                                             <i data-lucide="repeat" class="w-4 h-4 text-blue-600" x-show="task.recurrent_task_id"></i>
+
                                         </div>
                                     </div>
                                 </template>
@@ -164,9 +173,9 @@
                     <div x-data="dailyControls('{{ $date }}')" x-init="initDaily()">
                         <div class="flex items-center gap-4 mb-6">
                             <button @click="prevDay()" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Anterior</button>
-                            <button @click="today()" class="px-3 py-1 rounded bg-indigo-900 text-white hover:bg-indigo-800">Hoy</button>
-                            <button @click="nextDay()" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Siguiente</button>
                             <span class="ml-4 font-semibold text-gray-700" x-text="formatDate(selectedDate)"></span>
+                            <button @click="nextDay()" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Siguiente</button>
+
                         </div>
                     </div>
 

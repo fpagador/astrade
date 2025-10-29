@@ -787,6 +787,11 @@ export function calendarView() {
             const viewMode = this.viewMode;
             return window.cloneTaskBaseUrl.replace('__USER__', userId) + `?date=${date}&viewMode=${viewMode}&clone=${taskId}`;
         },
+        updateViewModeInUrl() {
+            const url = new URL(window.location);
+            url.searchParams.set('viewMode', this.viewMode);
+            window.history.replaceState({}, '', url);
+        },
         init() {
             const urlParams = new URLSearchParams(window.location.search);
             const dateParam = urlParams.get('date');
@@ -794,7 +799,10 @@ export function calendarView() {
 
             if (dateParam) {
                 this.currentDate = new Date(dateParam);
+                this.currentMonth = this.currentDate.getMonth();
+                this.currentYear = this.currentDate.getFullYear();
             }
+
             if (viewModeParam) {
                 this.viewMode = viewModeParam;
             }
@@ -803,6 +811,8 @@ export function calendarView() {
             this.renderMiniCalendar();
 
             this.$watch('viewMode', value => {
+                this.updateViewModeInUrl();
+
                 if (value === 'daily') {
                     const formatted = this.formatDateLocal(this.currentDate);
                     document.dispatchEvent(new CustomEvent('date-changed', { detail: { date: formatted } }));
