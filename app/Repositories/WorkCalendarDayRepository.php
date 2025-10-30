@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Enums\CalendarStatus;
 use App\Enums\CalendarType;
 use App\Models\WorkCalendarDay;
 use Illuminate\Database\Eloquent\Collection;
@@ -108,4 +109,20 @@ class WorkCalendarDayRepository
             ->get()
             ->keyBy(fn($day) => $day->date->format('Y-m-d'));
     }
+
+    /**
+     * It determines whether a day is a holiday or not from a work calendar.
+     *
+     * @param int $templateId
+     * @param string $date
+     * @return bool
+     */
+    public function isFestiveDay(int $templateId, string $date): bool
+    {
+        return WorkCalendarDay::where('template_id', $templateId)
+            ->whereDate('date', $date)
+            ->where('day_type', 'holiday')
+            ->exists();
+    }
+
 }

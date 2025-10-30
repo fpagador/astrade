@@ -131,7 +131,7 @@ class WorkCalendarTemplateRepository
     public function getActiveFutureTemplates(): Collection
     {
         return WorkCalendarTemplate::where('status', CalendarStatus::ACTIVE->value)
-            ->where('year', '>', now()->year)
+            ->where('year', now()->year + 1)
             ->get();
     }
 
@@ -158,4 +158,17 @@ class WorkCalendarTemplateRepository
             ->first();
     }
 
+    /**
+     * Remove continuity relationship from templates that reference the given template.
+     *
+     * @param WorkCalendarTemplate $template
+     * @return void
+     */
+    public function clearContinuityFromParents(WorkCalendarTemplate $template): void
+    {
+        if ($template->status === CalendarStatus::INACTIVE->value) {
+            WorkCalendarTemplate::where('continuity_template_id', $template->id)
+                ->update(['continuity_template_id' => null]);
+        }
+    }
 }

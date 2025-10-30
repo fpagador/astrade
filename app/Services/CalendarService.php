@@ -169,6 +169,7 @@ class CalendarService
     public function updateTemplate(WorkCalendarTemplate $template, array $data, ?string $holidaysJson = null): bool
     {
         $updated = $this->workCalendarTemplateRepository->update($template, $data);
+        $this->workCalendarTemplateRepository->clearContinuityFromParents($template);
         $this->userRepository->deleteWorkCalendarTemplateFromUsers($template);
         $this->workCalendarDayRepository->deleteDaysByYear($template->id, $template->year);
         $this->generateCalendarDays($template, $holidaysJson);

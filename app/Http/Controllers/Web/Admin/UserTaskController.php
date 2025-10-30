@@ -375,12 +375,13 @@ class UserTaskController extends WebController
         $date = $request->query('scheduled_date');
 
         $nonWorking = $this->userTaskService->isNonWorkingDay($userId, $date);
+        $festiveDay = $this->userTaskService->isFestiveDay($userId, $date);
 
-        return response()->json(['nonWorking' => $nonWorking]);
+        return response()->json(['nonWorking' => $nonWorking, 'festiveDay' => $festiveDay]);
     }
 
     /**
-     * Checks if a date range of recurring tasks has absence days
+     * Checks if a date range of recurring tasks has absence days and festives days.
      *
      * @param int $userId
      * @param Request $request
@@ -391,6 +392,9 @@ class UserTaskController extends WebController
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
 
+        $templateId = $this->userTaskService->getTemplateId($userId);
+        $festiveDays = $templateId ? $this->userTaskService->isFestiveDays($templateId) : [];
+
         $dates = [];
         $current = Carbon::parse($startDate);
         $end = Carbon::parse($endDate);
@@ -400,13 +404,16 @@ class UserTaskController extends WebController
         }
 
         $nonWorkingDates = [];
+        $festiveDates = [];
         foreach ($dates as $date) {
             if ($this->userTaskService->isNonWorkingDay($userId, $date)) {
                 $nonWorkingDates[] = $date;
             }
+            if (in_array($date, $festiveDays)) {
+                $festiveDates[] = $date;
+            }
         }
 
-        return response()->json(['nonWorkingDates' => $nonWorkingDates]);
+        return response()->json(['nonWorkingDates' => $nonWorkingDates, 'festiveDates' => $festiveDates]);
     }
-
 }

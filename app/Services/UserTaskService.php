@@ -860,4 +860,44 @@ class UserTaskService
     {
         return $this->userRepository->getAllUsersWithRoleUser();
     }
+
+    /**
+     * It determines whether a day is a holiday or not from a work calendar.
+     *
+     *
+     * @param int $userId
+     * @param string $date
+     * @return bool
+     */
+    public function isFestiveDay(int $userId, string $date): bool
+    {
+        $templateId = $this->getTemplateId($userId);
+        $templateId = $user->work_calendar_template_id;
+        if (!$templateId) return false;
+
+        return $this->workCalendarDayRepository->isFestiveDay($templateId, $date);
+    }
+
+    /**
+     * It determines whether a day is a holiday or not from a work calendar.
+     *
+     * @param int $templateId
+     * @return array
+     */
+    public function isFestiveDays(int $templateId): array
+    {
+        return $this->workCalendarDayRepository->getHolidaysByTemplate($templateId, 'array');
+    }
+
+    /**
+     * Get work_calendar_template_id from a specific user
+     *
+     * @param int $userId
+     * @return int|null
+     */
+    public function getTemplateId(int $userId): int|null
+    {
+        $user = $this->userRepository->find($userId);
+        return $user->work_calendar_template_id ?? null;
+    }
 }

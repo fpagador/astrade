@@ -110,17 +110,27 @@ export function cloneTaskForm(oldSubtasks = []) {
                 const recurrentEnd = form.querySelector('input[name="recurrent_end_date"]').value;
 
                 try {
-                    // 1️⃣ Check non-working days
+                    // 1️⃣ Check non-working days and festives
                     if (isRecurrent && recurrentStart && recurrentEnd) {
                         const response = await fetch(
                             nonWorkingRangeUrl.replace('{userId}', userId) + `?start_date=${recurrentStart}&end_date=${recurrentEnd}`
                         );
                         const data = await response.json();
+                        const { nonWorkingDates = [], festiveDates = [] } = data;
 
-                        if (data.nonWorkingDates && data.nonWorkingDates.length > 0) {
-                            const proceed = await customConfirm(
-                                'Algunas de las fechas en el rango recurrente seleccionado corresponden a días de vacaciones o ausencias legales. No se crearán tareas para estos días. ¿Desea continuar?'
-                            );
+                        let message = '';
+
+                        if (nonWorkingDates.length && festiveDates.length) {
+                            message = 'En el rango de fechas seleccionado existen días de vacaciones o ausencias legales (no se crearán tareas) y días festivos (se crearán tareas si continúa).';
+                        } else if (nonWorkingDates.length) {
+                            message = 'Algunas de las fechas en el rango recurrente corresponden a días de vacaciones o ausencias legales. No se crearán tareas para estos días.';
+                        } else if (festiveDates.length) {
+                            message = 'Algunas de las fechas en el rango recurrente corresponden a días festivos. Las tareas se crearán de todas formas.';
+                        }
+
+                        if (message) {
+                            const proceed = await customConfirm(message);
+
                             if (!proceed) {
                                 checkingConflict = false;
                                 return;
@@ -131,10 +141,22 @@ export function cloneTaskForm(oldSubtasks = []) {
                             nonWorkingUrl.replace('{userId}', userId) + `?scheduled_date=${scheduledDate}`
                         );
                         const nonWorkingData = await nonWorkingResponse.json();
+                        // Check non-working day
                         if (nonWorkingData.nonWorking) {
                             await customAlert('La fecha seleccionada corresponde a un día de vacaciones o de ausencia legal y, por lo tanto, no se pueden agregar tareas este día.');
                             checkingConflict = false;
                             return;
+                        }
+
+                        // Check festive day (tasks can be created)
+                        if (nonWorkingData.festiveDay) {
+                            const proceedFestive = await customConfirm(
+                                'La fecha seleccionada corresponde a un día festivo. ¿Desea crear la tarea de todas formas?'
+                            );
+                            if (!proceedFestive) {
+                                checkingConflict = false;
+                                return;
+                            }
                         }
                     }
 
