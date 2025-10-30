@@ -68,7 +68,7 @@
         </div>
 
         {{-- TABLE HEADER (Desktop) --}}
-        <div class="hidden md:grid grid-cols-[1.2fr_1.2fr_1fr_2fr_1fr_1fr_8rem_7rem]
+        <div class="hidden md:grid grid-cols-[1.2fr_1.2fr_1fr_2fr_1fr_1fr_1fr]
                     table-header font-medium text-sm rounded-t-md px-4 py-2 gap-x-2">
             <div><x-admin.sortable-column label="Nombre" field="name" default="true" /></div>
             <div><x-admin.sortable-column label="Apellidos" field="surname" /></div>
@@ -76,14 +76,13 @@
             <div><x-admin.sortable-column label="Email" field="email" /></div>
             <div><x-admin.sortable-column label="Teléfono" field="phone" /></div>
             <div><x-admin.sortable-column label="Rol" field="role" /></div>
-            <div><x-admin.sortable-column label="Llamadas" field="can_be_called" /></div>
             <div>Acciones</div>
         </div>
 
         {{-- TABLE ROWS --}}
         @forelse($users as $user)
             {{-- Desktop version --}}
-            <div class="hidden md:grid grid-cols-[1.2fr_1.2fr_1fr_2fr_1fr_1fr_8rem_7rem]
+            <div class="hidden md:grid grid-cols-[1.2fr_1.2fr_1fr_2fr_1fr_1fr_1fr]
                         items-center px-4 py-3 border-b hover:bg-indigo-50 text-sm bg-white gap-x-2">
                 <div>{{ $user->name }}</div>
                 <div>{{ $user->surname }}</div>
@@ -91,13 +90,6 @@
                 <div class="truncate" title="{{ $user->email }}">{{ $user->email }}</div>
                 <div>{{ $user->phone }}</div>
                 <div>{{ $user->role ? \App\Enums\RoleEnum::from($user->role->role_name)->label() : '' }}</div>
-
-                {{-- Calls --}}
-                <div>
-                    <i data-lucide="{{ $user->can_be_called ? 'phone' : 'x' }}"
-                       class="w-5 h-5 {{ $user->can_be_called ? 'text-green-600' : 'text-red-600' }}">
-                    </i>
-                </div>
 
                 {{-- Actions --}}
                 <div class="flex gap-2">
@@ -137,12 +129,6 @@
                 <p><span class="font-medium">Email:</span> {{ $user->email }}</p>
                 <p><span class="font-medium">Teléfono:</span> {{ $user->phone }}</p>
                 <p><span class="font-medium">Rol:</span> {{ $user->role ? \App\Enums\RoleEnum::from($user->role->role_name)->label() : '' }}</p>
-                <p class="flex items-center gap-1">
-                    <span class="font-medium">Puede recibir llamada:</span>
-                    <i data-lucide="{{ $user->can_be_called ? 'phone' : 'x' }}"
-                       class="w-5 h-5 {{ $user->can_be_called ? 'text-green-600' : 'text-red-600' }}">
-                    </i>
-                </p>
 
                 {{-- Acciones --}}
                 <div class="flex gap-3 mt-3 items-center">
