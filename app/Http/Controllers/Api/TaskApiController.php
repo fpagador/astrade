@@ -19,7 +19,7 @@ class TaskApiController extends ApiController
         $this->service = $service;
     }
 
-    /**
+    /*
      * Get all tasks with subtasks for the authenticated user
      * from today and up to 1 month ahead.
      *
@@ -37,7 +37,6 @@ class TaskApiController extends ApiController
      *         @OA\JsonContent(ref="#/components/schemas/ApiResponse")
      *     )
      * )
-     */
     public function allTasksWithSubtasks(Request $request): JsonResponse
     {
         return $this->handleApi(function () use ($request) {
@@ -47,7 +46,7 @@ class TaskApiController extends ApiController
         }, 'Error al obtener tareas con subtareas', $request);
     }
 
-    /**
+    /*
      * Returns the tasks scheduled for today for the authenticated user.
      *
      * @param Request $request
@@ -64,7 +63,7 @@ class TaskApiController extends ApiController
      *         @OA\JsonContent(ref="#/components/schemas/ApiResponse")
      *     )
      * )
-     */
+
     public function tasksToday(Request $request): JsonResponse
     {
         return $this->handleApi(function () use ($request) {
@@ -77,7 +76,7 @@ class TaskApiController extends ApiController
         }, "Error al obtener las tareas de hoy", $request);
     }
 
-    /**
+    /*
      * Returns the tasks planned for the next N days (maximum 30).
      *
      * @param Request $request
@@ -102,7 +101,7 @@ class TaskApiController extends ApiController
      *         @OA\JsonContent(ref="#/components/schemas/ApiResponse")
      *     )
      * )
-     */
+     *
     public function plannedTasks(Request $request, int $days): JsonResponse
     {
         return $this->handleApi(function () use ($days, $request) {
@@ -115,7 +114,7 @@ class TaskApiController extends ApiController
 
             return $this->render($groupedTasks);
         }, 'Error al obtener tareas programadas', $request);
-    }
+    }*/
 
     /**
      * Displays the details of a task for the authenticated user.
@@ -152,7 +151,7 @@ class TaskApiController extends ApiController
         }, 'Error al obtener los detalles de la tarea', $request);
     }
 
-    /**
+    /*
      * Returns a summary of the status of the user's tasks.
      *
      * @param Request $request
@@ -169,7 +168,6 @@ class TaskApiController extends ApiController
      *         @OA\JsonContent(ref="#/components/schemas/ApiResponse")
      *     )
      * )
-     */
     public function statusSummary(Request $request): JsonResponse
     {
         return $this->handleApi(function () use ($request) {
@@ -184,7 +182,7 @@ class TaskApiController extends ApiController
         }, 'Error al obtener el resumen de la tarea', $request);
     }
 
-    /**
+    /*
      * View companies associated with a specific task via URL param.
      *
      * @param Request $request
@@ -211,7 +209,7 @@ class TaskApiController extends ApiController
      *     @OA\Response(response=404, description="Task not found or not authorized"),
      *     @OA\Response(response=400, description="No company associated with this task")
      * )
-     */
+     *
     public function getCompaniesByTask(Request $request, int $taskId): JsonResponse
     {
         return $this->handleApi(function () use ($request, $taskId) {
@@ -220,7 +218,7 @@ class TaskApiController extends ApiController
         }, "Error al obtener la empresa de la tarea", $request);
     }
 
-    /**
+    /*
      * Returns the tasks scheduled for a specific date for the authenticated user.
      *
      * @param Request $request
@@ -249,7 +247,7 @@ class TaskApiController extends ApiController
      *         description="Invalid date format"
      *     )
      * )
-     */
+     *
     public function tasksByDate(Request $request, string $date): JsonResponse
     {
         return $this->handleApi(function () use ($request, $date) {
@@ -261,7 +259,7 @@ class TaskApiController extends ApiController
 
             return $this->render($tasks);
         }, 'Error al obtener tareas por fecha', $request);
-    }
+    }*/
 
     /**
      * Returns the tasks for a specific day offset for the authenticated user.

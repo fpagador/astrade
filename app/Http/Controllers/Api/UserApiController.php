@@ -39,7 +39,7 @@ class UserApiController extends ApiController
         }, 'Error getting user profile', $request);
     }
 
-    /**
+    /*
      * Update FCM Token
      *
      * @OA\Post(
@@ -60,7 +60,7 @@ class UserApiController extends ApiController
      *         @OA\JsonContent(ref="#/components/schemas/ApiResponse")
      *     )
      * )
-     */
+     *
     public function updateFcmToken(Request $request): JsonResponse
     {
         return $this->handleApi(function () use ($request) {
@@ -88,13 +88,13 @@ class UserApiController extends ApiController
      *         @OA\JsonContent(ref="#/components/schemas/ApiResponse")
      *     )
      * )
-     */
+     *
     public function deleteFcmToken(Request $request): JsonResponse
     {
         return $this->handleApi(function () use ($request) {
             return $this->render($this->service->deleteFcmToken($request->user()), 'FCM token deleted successfully');
         }, 'Error deleting FCM token', $request);
-    }
+    }*/
 
 
 }

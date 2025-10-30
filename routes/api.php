@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Route;
 
 // Public login
 Route::post('/login', [AuthController::class, 'login']);
-Route::get('/phones', [UserApiController::class, 'getPhone']);
 
 // Routes for authenticated mobile users (role: user)
 
@@ -27,16 +26,16 @@ Route::middleware(['auth:sanctum', 'role:admin|manager|user|'])->group(function 
     | Task
     |--------------------------------------------------------------------------
     */
-    Route::get('/tasks', [TaskApiController::class, 'allTasksWithSubtasks']);
+    /*Route::get('/tasks', [TaskApiController::class, 'allTasksWithSubtasks']);
     Route::get('/tasks/today', [TaskApiController::class, 'tasksToday']);
     Route::get('/tasks/planned/{num}', [TaskApiController::class, 'plannedTasks'])->whereNumber('num');
-    Route::get('/tasks/{task_id}', [TaskApiController::class, 'show']);
     Route::get('/tasks/{task_id}/subtasks', [SubtaskApiController::class, 'index']);
+        Route::get('/tasks/status/summary', [TaskApiController::class, 'statusSummary']);
+    Route::get('/tasks/by-date/{date}', [TaskApiController::class, 'tasksByDate'])
+        ->where('date', '\d{4}-\d{2}-\d{2}');*/
+    Route::get('/tasks/{task_id}', [TaskApiController::class, 'show']);
     Route::put('/subtasks/{subtask_id}/status/{status}', [SubtaskApiController::class, 'updateStatus'])
         ->where('status', 'completed|pending');
-    Route::get('/tasks/status/summary', [TaskApiController::class, 'statusSummary']);
-    Route::get('/tasks/by-date/{date}', [TaskApiController::class, 'tasksByDate'])
-        ->where('date', '\d{4}-\d{2}-\d{2}');
     Route::get('/tasks/day-offset/{offset}', [TaskApiController::class, 'tasksByDayOffset'])
         ->where('offset', '[0-9]+');
 
@@ -50,12 +49,9 @@ Route::middleware(['auth:sanctum', 'role:admin|manager|user|'])->group(function 
 
     /*
    |--------------------------------------------------------------------------
-   | Companies
+   | Auth
    |--------------------------------------------------------------------------
    */
-    // View companies associated with a task
-    Route::get('/tasks/{task_id}/companies', [TaskApiController::class, 'getCompaniesByTask']);
-
     // Logout
     Route::post('/logout', [AuthController::class, 'logout']);
 
