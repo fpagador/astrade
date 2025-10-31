@@ -86,7 +86,7 @@ class UserTaskController extends WebController
     public function create(Request $request, User $user): View|RedirectResponse
     {
         return $this->tryCatch(function () use ($request, $user) {
-            $existingTasks = $this->taskRepository->getAllWithRelations();
+            $existingTasks = $this->taskRepository->getForUserWithRelations($user->id);
 
             return view('web.admin.tasks.create', [
                 'user' => $user,

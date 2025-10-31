@@ -77,7 +77,14 @@ class StoreOrUpdateTaskRequest extends FormRequest
             $rules['days_of_week.*'] = ['required', 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday'];
 
             $rules['recurrent_start_date'] = ['required', 'date', 'after_or_equal:today'];
-            $rules['recurrent_end_date'] = ['required', 'date', 'after_or_equal:recurrent_start_date'];
+            $maxEndDate = now()->addMonths(2)->toDateString();
+
+            $rules['recurrent_end_date'] = [
+                'required',
+                'date',
+                'after_or_equal:recurrent_start_date',
+                'before_or_equal:' . $maxEndDate,
+            ];
         } else {
             //Normal task or single-instance editing -> nullable, no "as of today" restriction
             $rules['days_of_week'] = ['nullable', 'array'];
@@ -111,6 +118,7 @@ class StoreOrUpdateTaskRequest extends FormRequest
             'recurrent_end_date.required' => 'La fecha de fin es obligatoria para tareas recurrentes.',
             'recurrent_start_date.after_or_equal' => 'La fecha de inicio no puede ser anterior a hoy.',
             'recurrent_end_date.after_or_equal' => 'La fecha de fin debe ser igual o posterior a la fecha de inicio.',
+            'recurrent_end_date.before_or_equal' => 'La fecha de fin no puede ser posterior a dos meses desde hoy.',
 
             // Subtasks
             'subtasks.*.title.required' => 'El título de la subtarea es obligatorio.',
