@@ -466,7 +466,8 @@ class TaskRepository
      * @param string|null $userName
      * @param string|null $taskTitle
      * @param string|null $status
-     * @param string|null $date
+     * @param string|null $dateStart
+     * @param string|null $dateEnd
      * @param int         $perPage
      *
      * @return LengthAwarePaginator
@@ -475,19 +476,20 @@ class TaskRepository
         ?string $userName,
         ?string $taskTitle,
         ?string $status,
-        ?string $date,
+        ?string $dateStart,
+        ?string $dateEnd,
         int $perPage = 10
     ): LengthAwarePaginator {
         // Base filter
-        $usersQuery = User::whereHas('tasks', function (Builder $q) use ($taskTitle, $status, $date) {
+        $usersQuery = User::whereHas('tasks', function (Builder $q) use ($taskTitle, $status, $dateStart, $dateEnd) {
             if ($taskTitle) {
                 $q->where('title', 'like', "%{$taskTitle}%");
             }
             if ($status) {
                 $q->where('status', $status);
             }
-            if ($date) {
-                $q->whereDate('scheduled_date', $date);
+            if ($dateStart && $dateEnd) {
+                $q->whereBetween('scheduled_date', [$dateStart, $dateEnd]);
             }
         });
 
@@ -501,15 +503,15 @@ class TaskRepository
 
         //Loading relationships and pagination
         return $usersQuery
-            ->with(['tasks' => function ($q) use ($taskTitle, $status, $date) {
+            ->with(['tasks' => function ($q) use ($taskTitle, $status, $dateStart, $dateEnd) {
                 if ($taskTitle) {
                     $q->where('title', 'like', "%{$taskTitle}%");
                 }
                 if ($status) {
                     $q->where('status', $status);
                 }
-                if ($date) {
-                    $q->whereDate('scheduled_date', $date);
+                if ($dateStart && $dateEnd) {
+                    $q->whereBetween('scheduled_date', [$dateStart, $dateEnd]);
                 }
                 $q->orderByDesc('scheduled_date')->orderBy('scheduled_time');
             }, 'tasks.subtasks'])

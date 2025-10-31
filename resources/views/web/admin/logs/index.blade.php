@@ -15,43 +15,44 @@
     {{-- FILTERS --}}
     <form method="GET" action="{{ route('admin.logs.index') }}"
           class="bg-white p-4 rounded shadow mb-6 flex flex-wrap gap-4 items-end">
-        <div>
-            <label for="date_from" class="block text-sm font-medium text-gray-700">Fecha desde</label>
-            <input type="text" name="date_from" id="date_from" value="{{ request('date_from') }}" class="form-input w-full" placeholder="dd/mm/yy" data-flatpickr>
-        </div>
 
-        <div>
-            <label for="date_to" class="block text-sm font-medium text-gray-700">Fecha hasta</label>
-            <input type="text" name="date_to" id="date_to" value="{{ request('date_to') }}" class="form-input w-full" placeholder="dd/mm/yy" data-flatpickr>
-        </div>
+        <x-form.input
+            name="date_from"
+            label="Fecha desde"
+            type="text"
+            placeholder="dd/mm/yy"
+            data-flatpickr
+            :flatpickr="true"
+            value="{{ request('date_from')  }}"
+        />
 
-        <div>
-            <label for="level" class="block text-sm font-medium text-gray-700">Nivel</label>
-            <select name="level" id="level" class="form-select w-full">
-                <option value="">Todos</option>
-                @foreach($levels as $lvl)
-                    <option value="{{ $lvl }}" {{ request('level') === $lvl ? 'selected' : '' }}>
-                        {{ ucfirst($lvl) }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+        <x-form.input
+            name="date_to"
+            label="Fecha hasta"
+            type="text"
+            placeholder="dd/mm/yy"
+            data-flatpickr
+            :flatpickr="true"
+            value="{{ request('date_to')  }}"
+        />
 
-        <div>
-            <label for="message" class="block text-sm font-medium text-gray-700">Mensaje</label>
-            <input type="text" name="message" id="message" value="{{ request('message') }}"
-                   class="form-input w-full">
-        </div>
+        <x-form.select
+            name="level"
+            label="Nivel"
+            :options="['' => 'Todos'] + collect($levels)->mapWithKeys(fn($lvl) => [$lvl => ucfirst($lvl)])->toArray()"
+            :selected="request('level', '')"
+        />
 
-        <div class="flex gap-2">
-            <button type="submit"
-                    class="mt-1 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition shadow">
-                Filtrar
-            </button>
-            <a href="{{ route('admin.logs.index') }}"
-               class="mt-1 inline-block px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition shadow">
-                Limpiar
-            </a>
+        <x-form.input
+            name="message"
+            label="Mensaje"
+            type="text"
+            value="{{ request('message')}}"
+        />
+
+        <div class="mb-4">
+            <button type="submit" class="mt-1 px-4 py-2 rounded button-success shadow">Filtrar</button>
+            <a href="{{ route('admin.logs.index') }}" class="mt-1 inline-block px-4 py-2 rounded button-cancel shadow">Limpiar</a>
         </div>
     </form>
 

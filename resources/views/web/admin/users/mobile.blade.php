@@ -22,40 +22,37 @@
     {{-- FILTERS --}}
     <form method="GET" action="{{ route('admin.users.index', ['type' => 'mobile']) }}" class="bg-white p-4 rounded shadow mb-6 flex flex-wrap gap-4 items-end">
         <input type="hidden" name="type" value="{{ request('type', 'mobile') }}">
-        <div>
-            <label for="name" class="block text-sm font-medium text-gray-700">Nombre</label>
-            <input type="text" name="name" id="name" value="{{ request('name') }}" class="form-input w-full">
-        </div>
-        <div>
-            <label for="dni" class="block text-sm font-medium text-gray-700">DNI</label>
-            <input type="text" name="dni" id="dni" value="{{ request('dni') }}" class="form-input w-full">
-        </div>
-        <div>
-            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-            <input type="text" name="email" id="email" value="{{ request('email') }}" class="form-input w-full">
-        </div>
+        <x-form.input
+            name="name"
+            label="Nombre"
+            type="text"
+            value="{{ request('name') }}"
+        />
 
-        <div>
-            <label for="company_id" class="block text-sm font-medium text-gray-700">Empresa</label>
-            <select name="company_id" id="company_id" class="form-select w-full">
-                <option value="">-- Todas --</option>
-                @foreach($companies as $company)
-                    <option value="{{ $company->id }}" {{ request('company_id') == $company->id ? 'selected' : '' }}>
-                        {{ $company->name }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+        <x-form.input
+            name="dni"
+            label="DNI"
+            type="text"
+            value="{{ request('dni') }}"
+        />
 
-        <div class="flex gap-2">
-            <button type="submit"
-                    class="mt-1 px-4 py-2 button-success rounded transition shadow">
-                Filtrar
-            </button>
-            <a href="{{ route('admin.users.index', ['type' => 'mobile']) }}"
-               class="mt-1 inline-block px-4 py-2 button-cancel rounded transition shadow">
-                Limpiar
-            </a>
+        <x-form.input
+            name="email"
+            label="Email"
+            type="text"
+            value="{{ request('email') }}"
+        />
+
+        <x-form.select
+            name="company_id"
+            label="Empresa"
+            :options="['' => '-- Todas --'] + $companies->pluck('name', 'id')->toArray()"
+            :selected="request('company_id', '')"
+        />
+
+        <div class="mb-4">
+            <button type="submit" class="mt-1 px-4 py-2 rounded button-success shadow">Filtrar</button>
+            <a href="{{ route('admin.users.index', ['type' => 'management']) }}" class="mt-1 inline-block px-4 py-2 rounded button-cancel shadow">Limpiar</a>
         </div>
     </form>
 

@@ -18,25 +18,23 @@
 
     {{-- FILTERS --}}
     <form method="GET" action="{{ route('admin.companies.index') }}" class="bg-white p-4 rounded shadow mb-6 flex flex-wrap gap-4 items-end">
-        <div>
-            <label for="name" class="block text-sm font-medium text-gray-700">Nombre</label>
-            <input type="text" name="name" id="name" value="{{ request('name') }}" class="form-input w-full">
-        </div>
+        <x-form.input
+            name="name"
+            label="Nombre"
+            type="text"
+            value="{{ request('name')}}"
+        />
 
-        <div>
-            <label for="address" class="block text-sm font-medium text-gray-700">Dirección</label>
-            <input type="text" name="address" id="address" value="{{ request('address') }}" class="form-input w-full">
-        </div>
+        <x-form.input
+            name="address"
+            label="Dirección"
+            type="text"
+            value="{{ request('address')}}"
+        />
 
-        <div class="flex gap-2">
-            <button type="submit"
-                    class="mt-1 px-4 py-2 button-success rounded transition shadow">
-                Filtrar
-            </button>
-            <a href="{{ route('admin.companies.index') }}"
-               class="mt-1 inline-block px-4 py-2 rounded button-cancel transition shadow">
-                Limpiar
-            </a>
+        <div class="mb-4">
+            <button type="submit" class="mt-1 px-4 py-2 rounded button-success shadow">Filtrar</button>
+            <a href="{{ route('admin.companies.index') }}" class="mt-1 inline-block px-4 py-2 rounded button-cancel shadow">Limpiar</a>
         </div>
     </form>
 

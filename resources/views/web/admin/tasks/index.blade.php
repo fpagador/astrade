@@ -23,31 +23,52 @@
     <form method="GET" action="{{ route('admin.task_logs.index') }}"
           class="bg-white p-4 rounded shadow mb-6 flex flex-wrap gap-4 items-end">
 
-        <div>
-            <label for="user_name" class="block text-sm font-medium text-gray-700">Nombre de Usuario</label>
-            <input type="text" name="user_name" id="user_name" value="{{ $filters['user_name'] ?? '' }}" class="form-input w-full">
-        </div>
+        <x-form.input
+            name="date_start"
+            label="Fecha inicio"
+            type="text"
+            placeholder="dd/mm/yy"
+            data-flatpickr
+            :flatpickr="true"
+            value="{{ $filters['date_start'] }}"
+        />
 
-        <div>
-            <label for="task_title" class="block text-sm font-medium text-gray-700">Título de Tarea</label>
-            <input type="text" name="task_title" id="task_title" value="{{ $filters['task_title'] ?? '' }}" class="form-input w-full">
-        </div>
+        <x-form.input
+            name="date_end"
+            label="Fecha fin"
+            type="text"
+            placeholder="dd/mm/yy"
+            data-flatpickr
+            :flatpickr="true"
+            value="{{ $filters['date_end'] }}"
+        />
 
-        <div>
-            <label for="status" class="block text-sm font-medium text-gray-700">Estado de tarea</label>
-            <select name="status" id="status" class="form-select w-full">
-                <option value="">Todos</option>
-                <option value="pending" {{ ($filters['status'] ?? '') === 'pending' ? 'selected' : '' }}>Pendiente</option>
-                <option value="completed" {{ ($filters['status'] ?? '') === 'completed' ? 'selected' : '' }}>Completada</option>
-            </select>
-        </div>
+        <x-form.input
+            name="user_name"
+            label="Nombre de Usuario"
+            type="text"
+            value="{{ $filters['user_name'] ?? '' }}"
+        />
 
-        <div>
-            <label for="date" class="block text-sm font-medium text-gray-700">Fecha</label>
-            <input type="date" name="date" id="date" value="{{ $filters['date'] ?? '' }}" class="form-input w-full">
-        </div>
+        <x-form.input
+            name="task_title"
+            label="Título de Tarea"
+            type="text"
+            value="{{ $filters['task_title'] ?? '' }}"
+        />
 
-        <div class="flex gap-2">
+        <x-form.select
+            name="status"
+            label="Estado de tarea"
+            :options="[
+        '' => 'Todos',
+        'pending' => 'Pendiente',
+        'completed' => 'Completada'
+    ]"
+            :selected="$filters['status'] ?? ''"
+        />
+
+        <div class="mb-4">
             <button type="submit" class="mt-1 px-4 py-2 rounded button-success shadow">Filtrar</button>
             <a href="{{ route('admin.task_logs.index') }}" class="mt-1 inline-block px-4 py-2 rounded button-cancel shadow">Limpiar</a>
         </div>

@@ -179,7 +179,8 @@ class TaskService
      * @param string|null $userName
      * @param string|null $taskTitle
      * @param string|null $status
-     * @param string|null $date
+     * @param string|null $dateStart
+     * @param string|null $dateEnd
      *
      * @return LengthAwarePaginator
      */
@@ -187,9 +188,10 @@ class TaskService
         ?string $userName,
         ?string $taskTitle,
         ?string $status,
-        ?string $date
+        ?string $dateStart,
+        ?string $dateEnd
     ): LengthAwarePaginator {
-        $users = $this->taskRepository->getFilteredUsersWithTasks($userName, $taskTitle, $status, $date);
+        $users = $this->taskRepository->getFilteredUsersWithTasks($userName, $taskTitle, $status, $dateStart, $dateEnd);
 
         $users->getCollection()->transform(function ($user) {
             $user->tasks->transform(function ($task) {

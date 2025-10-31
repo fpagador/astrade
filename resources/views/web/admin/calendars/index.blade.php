@@ -21,37 +21,30 @@
         <form method="GET" action="{{ route('admin.calendars.index') }}"
               class="bg-white p-4 rounded shadow mb-6 flex flex-wrap gap-4 items-end">
 
-            <div>
-                <label for="name" class="block text-sm font-medium text-gray-700">Nombre</label>
-                <input type="text" name="name" id="name" value="{{ request('name') }}" class="form-input w-full">
-            </div>
+            <x-form.input
+                name="name"
+                label="Nombre"
+                type="text"
+                value="{{ request('name')}}"
+            />
 
-            <div>
-                <label for="year" class="block text-sm font-medium text-gray-700">Año</label>
-                <input type="number" name="year" id="year" value="{{ request('year') }}" class="form-input w-full">
-            </div>
+            <x-form.input
+                name="year"
+                label="Año"
+                type="number"
+                value="{{ request('year')}}"
+            />
 
-            <div>
-                <label for="status" class="block text-sm font-medium text-gray-700">Estado</label>
-                <select name="status" id="status" class="form-select w-full">
-                    <option value="">Todos</option>
-                    @foreach($statuses as $value => $label)
-                        <option value="{{ $value }}" {{ request('status', '') == $value ? 'selected' : '' }}>
-                            {{ $label }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+            <x-form.select
+                name="status"
+                label="Estado"
+                :options="['' => 'Todos'] + $statuses"
+                :selected="request('status', '')"
+            />
 
-            <div class="flex gap-2">
-                <button type="submit"
-                        class="mt-1 px-4 py-2 rounded button-success transition shadow">
-                    Filtrar
-                </button>
-                <a href="{{ route('admin.calendars.index') }}"
-                   class="mt-1 inline-block px-4 py-2 rounded button-cancel transition shadow">
-                    Limpiar
-                </a>
+            <div class="mb-4">
+                <button type="submit" class="mt-1 px-4 py-2 rounded button-success shadow">Filtrar</button>
+                <a href="{{ route('admin.calendars.index') }}" class="mt-1 inline-block px-4 py-2 rounded button-cancel shadow">Limpiar</a>
             </div>
         </form>
 

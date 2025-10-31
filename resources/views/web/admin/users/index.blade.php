@@ -22,40 +22,37 @@
 
         {{-- FILTERS --}}
         <form method="GET" action="{{ route('admin.users.index', ['type' => 'management']) }}" class="bg-white p-4 rounded shadow mb-6 flex flex-wrap gap-4 items-end">
-            <div>
-                <label for="name" class="block text-sm font-medium text-gray-700">Nombre</label>
-                <input type="text" name="name" id="name" value="{{ request('name') }}" class="form-input w-full">
-            </div>
-            <div>
-                <label for="dni" class="block text-sm font-medium text-gray-700">DNI</label>
-                <input type="text" name="dni" id="dni" value="{{ request('dni') }}" class="form-input w-full">
-            </div>
-            <div>
-                <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                <input type="text" name="email" id="email" value="{{ request('email') }}" class="form-input w-full">
-            </div>
+            <x-form.input
+                name="name"
+                label="Nombre"
+                type="text"
+                value="{{ request('name') }}"
+            />
 
-            <div>
-                <label for="role" class="block text-sm font-medium text-gray-700">Rol</label>
-                <select name="role" id="role" class="form-select w-full">
-                    <option value="">Todos</option>
-                    @foreach(\App\Enums\RoleEnum::options() as $value => $label)
-                        <option value="{{ $value }}" {{ request('role') == $value ? 'selected' : '' }}>
-                            {{ $label }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+            <x-form.input
+                name="dni"
+                label="DNI"
+                type="text"
+                value="{{ request('dni') }}"
+            />
 
-            <div class="flex gap-2">
-                <button type="submit"
-                        class="mt-1 px-4 py-2 rounded transition shadow button-success">
-                    Filtrar
-                </button>
-                <a href="{{ route('admin.users.index', ['type' => 'management']) }}"
-                   class="mt-1 inline-block px-4 py-2 rounded transition shadow button-cancel">
-                    Limpiar
-                </a>
+            <x-form.input
+                name="email"
+                label="Email"
+                type="text"
+                value="{{ request('email') }}"
+            />
+
+            <x-form.select
+                name="role"
+                label="Rol"
+                :options="['' => 'Todos'] + \App\Enums\RoleEnum::options()"
+                :selected="request('role', '')"
+            />
+
+            <div class="mb-4">
+                <button type="submit" class="mt-1 px-4 py-2 rounded button-success shadow">Filtrar</button>
+                <a href="{{ route('admin.users.index', ['type' => 'management']) }}" class="mt-1 inline-block px-4 py-2 rounded button-cancel shadow">Limpiar</a>
             </div>
         </form>
 
