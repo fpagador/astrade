@@ -125,13 +125,36 @@ class TaskRepository
     }
 
     /**
-     * Get all tasks with relations (used for create view listing existing tasks).
+     * It retrieves all of the user's tasks and subtasks (including recurring ones) from two months prior.
      *
+     * @param int $userId
      * @return Collection
      */
-    public function getAllWithRelations(): Collection
+    public function getForUserWithRelations(int $userId): Collection
     {
-        return Task::with(['user', 'subtasks'])->latest()->get();
+        $twoMonthsAgo = now()->subMonths(2)->toDateString();
+
+        $normalTasks = Task::with(['subtasks'])
+            ->where('user_id', $userId)
+            ->whereNull('recurrent_task_id')
+            ->whereDate('scheduled_date', '>=', $twoMonthsAgo)
+            ->orderByDesc('scheduled_date')
+            ->get();
+
+        $recurrentTasks = Task::with(['subtasks'])
+            ->where('user_id', $userId)
+            ->whereNotNull('recurrent_task_id')
+            ->whereDate('scheduled_date', '>=', $twoMonthsAgo)
+            ->orderByDesc('scheduled_date')
+            ->get()
+            ->groupBy('recurrent_task_id')
+            ->map(fn($tasks) => $tasks->first())
+            ->values();
+
+        return $normalTasks
+            ->merge($recurrentTasks)
+            ->sortByDesc('scheduled_date')
+            ->values();
     }
 
     /**

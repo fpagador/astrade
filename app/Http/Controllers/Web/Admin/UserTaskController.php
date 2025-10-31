@@ -90,7 +90,7 @@ class UserTaskController extends WebController
     public function create(Request $request, User $user): View|RedirectResponse
     {
         return $this->tryCatch(function () use ($request, $user) {
-            $existingTasks = $this->userTaskService->formatExistingTasks();
+            $existingTasks = $this->userTaskService->formatExistingTasks($user);
 
             $taskToClone = null;
             $cloneId = $request->query('clone');

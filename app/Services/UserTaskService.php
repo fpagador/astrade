@@ -1,6 +1,7 @@
 <?php
 namespace App\Services;
 
+use App\Models\User;
 use App\Repositories\RecurrentTaskRepository;
 use App\Repositories\SubtaskRepository;
 use App\Repositories\TaskRepository;
@@ -834,11 +835,12 @@ class UserTaskService
      * Each resulting option will have the format:
      *    "Username - Task Title - dd/mm/YYYY"
      *
+     * @param User $user
      * @return SupportCollection
      */
-    public function formatExistingTasks(): SupportCollection
+    public function formatExistingTasks(User $user): SupportCollection
     {
-        $tasks = $this->taskRepository->getAllWithRelations();
+        $tasks = $this->taskRepository->getForUserWithRelations($user->id);
 
         return $tasks->mapWithKeys(function ($task) {
             $formattedDate = $task->scheduled_date
