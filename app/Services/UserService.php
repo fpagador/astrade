@@ -130,8 +130,8 @@ class UserService
         }
 
         // Notification flags
-        $data['notification_type'] = $data['notification_type'] ?? 'none';
-        $data['can_receive_notifications'] = $data['notification_type'] === 'none';
+        $data['notification_type'] = $data['notification_type'] ?? NotificationType::NONE->value;
+        $data['can_receive_notifications'] = $data['notification_type'] != NotificationType::NONE->value;
 
         return $data;
     }
