@@ -89,9 +89,9 @@
     </aside>
 
     {{-- Main content --}}
-    <div class="flex-1 flex flex-col min-h-screen md:ml-64">
+    <div class="flex-1 flex flex-col md:ml-64 pt-16 pb-14 overflow-hidden">
         {{-- Header --}}
-        <header class="h-16 header shadow px-4 flex items-center justify-between md:px-6">
+        <header class="fixed top-0 left-0 right-0 h-16 header shadow px-4 flex items-center justify-between md:px-6 z-40 md:ml-64">
             <div class="flex items-center gap-3">
                 {{-- Toggle Sidebar on Mobile --}}
                 <button class="md:hidden text-black" @click="sidebarOpen = true">
@@ -125,12 +125,12 @@
         </header>
 
         {{-- Page content --}}
-        <main class="flex-1 p-4 md:p-6">
+        <main class="flex-1 overflow-y-auto p-4 md:p-6">
             @yield('content')
         </main>
 
         {{-- Footer --}}
-        <footer class="footer border-t p-4 text-center text-sm mt-auto">
+        <footer class="fixed bottom-0 left-0 right-0 footer border-t p-4 text-center text-sm z-40 md:ml-64 bg-white">
             &copy; {{ now()->year }} Talentismo. Todos los derechos reservados.
         </footer>
     </div>
