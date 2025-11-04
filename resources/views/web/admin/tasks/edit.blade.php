@@ -173,12 +173,15 @@
                 class="border-t pt-6 mt-6"
             >
                 <x-form.checkbox
-                    name="is_recurrent"
+                    name="is_recurrent_display"
                     x-model="recurrent"
                     label="¿Tarea recurrente?"
                     :disabled="$disableFields || !$task->is_recurrent"
                     value="{{ old('is_recurrent', $task->is_recurrent) }}"
                 />
+                <input type="hidden"
+                       name="is_recurrent"
+                       value="{{ old('is_recurrent', $task->recurrentTask ? '1' : '0') }}">
 
                 <div x-show="recurrent" x-cloak class="space-y-4 bg-gray-50 p-4 rounded border border-gray-200">
                     {{-- Days of the week --}}

@@ -37,7 +37,7 @@ class StoreOrUpdateTaskRequest extends FormRequest
         $rules = [
             'title' => 'required|string',
             'description' => 'nullable|string',
-            'scheduled_date' => $request->boolean('is_recurrent') ? 'nullable|date' : 'required|date|after_or_equal:today',
+            'scheduled_date' => $isRecurrent ? 'nullable|date' : 'required|date|after_or_equal:today',
             'scheduled_time' => 'required',
             'estimated_duration_minutes' => 'nullable|integer|min:1',
             'color' => 'nullable|string',
@@ -70,7 +70,7 @@ class StoreOrUpdateTaskRequest extends FormRequest
             $rules['subtask_pictograms.*'] = 'nullable|string';
         }
 
-        // --- Reglas recurrentes dinámicas ---
+        // --- Dynamic recurring rules ---
         if ($isNewRecurrent || $isRecurrentSeriesEdit) {
             // Create new series or edit the entire series -> required and start_date >= today
             $rules['days_of_week'] = ['required', 'array', 'min:1'];
