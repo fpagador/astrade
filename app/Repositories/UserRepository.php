@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Enums\CalendarStatus;
 use App\Enums\TaskStatus;
+use App\Models\Role;
 use App\Models\User;
 use App\Models\WorkCalendarTemplate;
 use Carbon\CarbonPeriod;
@@ -275,9 +276,12 @@ class UserRepository
      */
     public function getUsersWithoutTasksForDay(Carbon $date): Collection
     {
-        return User::whereDoesntHave('tasks', function ($query) use ($date) {
-            $query->whereDate('scheduled_date', $date);
+        return User::whereHas('role', function ($q) {
+            $q->where('role_name', RoleEnum::USER->value);
         })
+            ->whereDoesntHave('tasks', function ($query) use ($date) {
+                $query->whereDate('scheduled_date', $date);
+            })
             ->get(['id', 'name', 'surname']);
     }
 
