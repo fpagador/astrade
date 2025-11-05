@@ -133,11 +133,11 @@ class UserTaskController extends WebController
             // Normalize and attach subtask files (support both subtask_pictograms and subtask_files)
             $subtasks = $data['subtasks'] ?? [];
             foreach ($subtasks as $i => &$st) {
-                $pictogramPath = $request->input("subtasks.$i.pictogram_path") ?? null;
+                $base64 = $request->input("subtasks.$i.pictogram_base64");
+                $filename = $request->input("subtasks.$i.pictogram_name");
 
-                $file = $request->file("subtask_pictograms.$i") ?: $request->file("subtask_files.$i");
-                if ($file || $pictogramPath) {
-                    $st['pictogram_path'] = $this->userTaskService->normalizePictogram($file, $pictogramPath);
+                if ($base64 && $filename) {
+                    $st['pictogram_path'] = $this->userTaskService->storeBase64Pictogram($base64, $filename);
                 }
             }
             $data['subtasks'] = $subtasks;
@@ -242,9 +242,13 @@ class UserTaskController extends WebController
             $formSubtasks = $request->input('subtasks', []);
             foreach ($formSubtasks as $index => &$subtask) {
                 $fileKey = $subtask['id'] ?? 'new_' . $index;
+                $base64 = $request->input("subtasks.$index.pictogram_base64");
+                $filename = $request->input("subtasks.$index.pictogram_name");
 
                 if ($request->hasFile("subtask_pictograms.$fileKey")) {
                     $subtask['pictogram'] = $request->file("subtask_pictograms.$fileKey");
+                } elseif ($base64 && $filename) {
+                    $subtask['pictogram'] = $this->userTaskService->storeBase64Pictogram($base64, $filename);
                 }
             }
             $data['subtasks'] = $formSubtasks;

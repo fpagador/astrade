@@ -215,16 +215,45 @@ class UserTaskService
      */
     public function normalizePictogram(UploadedFile|string|null $file, ?string $oldPath = null): ?string
     {
+        if ($oldPath && Storage::disk('public')->exists($oldPath)) {
+            Storage::disk('public')->delete($oldPath);
+        }
+
         if ($file instanceof UploadedFile) {
-            // Delete old file if exists
-            if ($oldPath && Storage::disk('public')->exists($oldPath)) {
-                Storage::disk('public')->delete($oldPath);
-            }
             return $file->store('pictograms', 'public');
         }
 
         // If it's already a string path or null, just return it
-        return $file ?? $oldPath;
+        return $file ?? null;
+    }
+
+    /**
+     * Store a pictogram provided as base64 and return its storage path.
+     *
+     * @param string $base64
+     * @param string $filename
+     * @return string|null
+     */
+    public function storeBase64Pictogram(string $base64, string $filename): ?string
+    {
+        if (str_contains($base64, ',')) {
+            $base64 = explode(',', $base64)[1];
+        }
+        $imageData = base64_decode($base64);
+        if (!$imageData) {
+            return null;
+        }
+
+        // Ensure file has a valid extension
+        $extension = pathinfo($filename, PATHINFO_EXTENSION) ?: 'png';
+
+        // Generate a short random name similar to UploadedFile::store behavior
+        $storedName = bin2hex(random_bytes(16)) . '.' . $extension;
+
+        $path = 'pictograms/' . $storedName;
+        Storage::disk('public')->put($path, $imageData);
+
+        return $path;
     }
 
     /**
@@ -235,7 +264,7 @@ class UserTaskService
      */
     protected function normalizeSubtask(array $subtask): array
     {
-        if (!empty($subtask['pictogram_path'])) {
+        if (!empty($subtask['pictogram_path']) && $subtask['pictogram_path'] instanceof UploadedFile) {
             $subtask['pictogram_path'] = $this->normalizePictogram($subtask['pictogram_path']);
         }
         $subtask['external_id'] = $subtask['external_id'] ?? (string) Str::uuid();
@@ -714,7 +743,7 @@ class UserTaskService
             ];
 
             // pictogram logic (business rule)
-            if (!empty($subtaskData['pictogram']) && $subtaskData['pictogram'] instanceof UploadedFile) {
+            if (!empty($subtaskData['pictogram'])) {
                 $values['pictogram_path'] = $this->normalizePictogram(
                     $subtaskData['pictogram'],
                     $existing?->pictogram_path
