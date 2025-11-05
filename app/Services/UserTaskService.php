@@ -903,7 +903,6 @@ class UserTaskService
     public function isFestiveDay(int $userId, string $date): bool
     {
         $templateId = $this->getTemplateId($userId);
-        $templateId = $user->work_calendar_template_id;
         if (!$templateId) return false;
 
         return $this->workCalendarDayRepository->isFestiveDay($templateId, $date);
