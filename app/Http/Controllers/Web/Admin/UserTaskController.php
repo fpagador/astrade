@@ -12,6 +12,8 @@ use App\Services\UserTaskService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use App\Repositories\TaskRepository;
@@ -120,24 +122,24 @@ class UserTaskController extends WebController
     {
         return $this->tryCatch(function () use ($request, $user) {
             $data = $request->validated();
+            $data['pictogram_path'] = $this->userTaskService->processPictogram(
+                $request->file('pictogram_path') ?? $request->input('pictogram_path'),
+                $request->input('pictogram_name') ?? null
+            );
 
-            // attach uploaded main pictogram if present
-            if ($request->hasFile('pictogram_path')) {
-                $data['pictogram_path'] = $request->file('pictogram_path');
-            } elseif ($request->input('pictogram_path')) {
-                $data['pictogram_path'] = $request->input('pictogram_path');
-            } else {
-                $data['pictogram_path'] = null;
-            }
-
-            // Normalize and attach subtask files (support both subtask_pictograms and subtask_files)
             $subtasks = $data['subtasks'] ?? [];
             foreach ($subtasks as $i => &$st) {
-                $base64 = $request->input("subtasks.$i.pictogram_base64");
+                $base64   = $request->input("subtasks.$i.pictogram_base64");
                 $filename = $request->input("subtasks.$i.pictogram_name");
+                $path     = $request->input("subtasks.$i.pictogram_path");
 
                 if ($base64 && $filename) {
-                    $st['pictogram_path'] = $this->userTaskService->storeBase64Pictogram($base64, $filename);
+                    $st['pictogram_path'] = $this->userTaskService->processPictogram($base64, $filename);
+                } elseif ($path) {
+                    $internalPath = str_replace('/storage/', '', $path);
+                    $st['pictogram_path'] = $this->userTaskService->processPictogram($internalPath, null);
+                } else {
+                    $st['pictogram_path'] = null;
                 }
             }
             $data['subtasks'] = $subtasks;

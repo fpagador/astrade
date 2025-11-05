@@ -20,7 +20,7 @@
     <!-- Label -->
     <label class="block font-medium mb-1" for="{{ $baseId }}">{{ $label }}</label>
 
-    <!-- Imagen mostrada -->
+    <!-- Image shown -->
     <template x-if="imageToShow()">
         <div class="relative group {{ $previewSize }} mb-2">
             <img
@@ -35,7 +35,7 @@
         </div>
     </template>
 
-    <!-- Botón + nombre archivo -->
+    <!-- Button + file name -->
     <div class="flex items-center space-x-2 mb-2">
         <label
             for="{{ $baseId }}"
@@ -62,7 +62,6 @@
         {{ $disabled ? 'disabled' : '' }}
     />
 
-    <!-- Modal de confirmación -->
     <x-admin.image-confirmation-modal
         @confirm.window="confirm()"
         @cancel.window="cancel()"

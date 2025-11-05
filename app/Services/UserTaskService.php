@@ -930,4 +930,35 @@ class UserTaskService
         $user = $this->userRepository->find($userId);
         return $user->work_calendar_template_id ?? null;
     }
+
+    /**
+     * Processes a pictogram: if it is a base64 file, it saves it, if it is an existing path it duplicates it.
+     *
+     * @param string|UploadedFile|null $input
+     * @param string|null $filename
+     * @return string|null
+     */
+    public function processPictogram(string|UploadedFile|null $input, ?string $filename = null): ?string
+    {
+        // base64
+        if (is_string($input) && $filename) {
+            return $this->storeBase64Pictogram($input, $filename);
+        }
+
+        // UploadedFile
+        if ($input instanceof UploadedFile) {
+            return $input->store('pictograms', 'public');
+        }
+
+        // path
+        if (is_string($input) && Storage::disk('public')->exists($input)) {
+            $extension = pathinfo($input, PATHINFO_EXTENSION);
+            $newPath = 'pictograms/' . Str::random(32) . '.' . $extension;
+            Storage::disk('public')->copy($input, $newPath);
+            return $newPath;
+        }
+
+
+        return null;
+    }
 }

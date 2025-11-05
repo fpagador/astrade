@@ -246,11 +246,26 @@ export function cloneTaskForm(oldSubtasks = []) {
                     const subEl = container.querySelectorAll('.subtask')[index];
                     if (!subEl) return;
 
-                    // Asigna valor al input hidden
-                    const hiddenInput = subEl.querySelector(`input[name="subtasks[${index}][pictogram_path]"]`);
-                    if (hiddenInput) hiddenInput.value = subtask.pictogram_path || '';
+                    // Asigna valores a inputs ocultos
+                    let pictogramInput = subEl.querySelector(`input[name="subtasks[${index}][pictogram_path]"]`);
+                    if (!pictogramInput) {
+                        pictogramInput = document.createElement('input');
+                        pictogramInput.type = 'hidden';
+                        pictogramInput.name = `subtasks[${index}][pictogram_path]`;
+                        subEl.appendChild(pictogramInput);
+                    }
+                    pictogramInput.value = subtask.pictogram_path || '';
 
-                    // Genera preview solo si hay pictograma
+                    let pictogramNameInput = subEl.querySelector(`input[name="subtasks[${index}][pictogram_name]"]`);
+                    if (!pictogramNameInput) {
+                        pictogramNameInput = document.createElement('input');
+                        pictogramNameInput.type = 'hidden';
+                        pictogramNameInput.name = `subtasks[${index}][pictogram_name]`;
+                        subEl.appendChild(pictogramNameInput);
+                    }
+                    pictogramNameInput.value = subtask.pictogram_path?.split('/').pop() || '';
+
+                    // Crear preview si existe pictograma
                     if (subtask.pictogram_path) {
                         let img = subEl.querySelector('img[data-preview]');
                         if (!img) {
@@ -263,13 +278,9 @@ export function cloneTaskForm(oldSubtasks = []) {
                         const assetBase = document.querySelector('#task-form-container')?.dataset.asset || '';
                         img.src = `${assetBase}/${subtask.pictogram_path}`;
                         img.classList.remove('hidden');
-
                         img.addEventListener('click', () => {
                             window.dispatchEvent(new CustomEvent('open-image', { detail: img.src }));
                         });
-
-                        const fileSpan = subEl.querySelector('span[x-text]');
-                        if (fileSpan) fileSpan.textContent = '';
                     }
                 });
             });
@@ -348,7 +359,7 @@ export function cloneTaskForm(oldSubtasks = []) {
                 preview.classList.remove('hidden');
 
                 const fileSpan = container.querySelector('span[x-text]');
-                if (fileSpan) fileSpan.textContent = '';
+                if (fileSpan) fileSpan.textContent = 'Cambiar pictograma';
 
                 preview.addEventListener('click', () => {
                     window.dispatchEvent(new CustomEvent('open-image', { detail: preview.src }));
