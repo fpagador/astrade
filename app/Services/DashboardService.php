@@ -107,17 +107,21 @@ class DashboardService
 
         // --- GRAPH DATA ---
         $usersWithoutTasksByDay=  $this->userRepository->countUsersWithoutTasksByDay($today, $sevenDaysLater);
+
+        //provision of tasks with assigned people
         $usersWithTasksByDay = [];
         foreach ($usersWithoutTasksByDay as $day => $withoutTasksCount) {
             $usersWithTasksByDay[$day] = max(0, $totalUsers - $withoutTasksCount);
         }
 
+        // proportion of completed tasks
         $tasksByDay = $this->getTasksCompletionByDay($today);
 
-        $employeesByCompany = $this->userRepository->getUsersGroupedByCompany();
-
-        // --- TASK PERFORMANCE HISTORY ---
+        //Historical performance of completed tasks
         $taskPerformanceHistory = $this->getTaskPerformanceHistory();
+
+        // Employees per company
+        $employeesByCompany = $this->userRepository->getUsersGroupedByCompany();
 
         return compact(
             'totalUsers',
@@ -154,12 +158,12 @@ class DashboardService
      * @param int $weeksForward
      * @return array<string,int>
      */
-    public function getTasksCompletionByDay(Carbon $today, int $weeksForward = 4): array {
-        $daysForward = $weeksForward * 7;
+    public function getTasksCompletionByDay(Carbon $today, int $weeksBack = 4): array {
+        $daysBack = $weeksBack * 7;
         $tasksByDay = [];
 
-        for ($i = 0; $i < $daysForward; $i++) {
-            $date = $today->copy()->addDays($i);
+        for ($i = 0; $i < $daysBack; $i++) {
+            $date = $today->copy()->subDays($i);
             $totalTasks = $this->taskRepository->countByDate($date);
             $completedTasks = $this->taskRepository->countByDateAndStatus($date, TaskStatus::COMPLETED->value);
 
@@ -234,7 +238,7 @@ class DashboardService
     {
         $weeksBack = max(1, (int)$weeksBack);
 
-        $end = Carbon::yesterday()->startOfDay();
+        $end = Carbon::today()->endOfDay();
         $daysCount = $weeksBack * 7;
         $start = $end->copy()->subDays($daysCount - 1)->startOfDay();
 

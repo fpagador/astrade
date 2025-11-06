@@ -154,9 +154,11 @@ export function initTasksProportionChart() {
         const today = new Date();
         const filteredDays = [];
         for (let i = 0; i < daysToShow; i++) {
-            const date = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() + i));
+            const date = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() - i));
             filteredDays.push(formatDateYMD(date));
         }
+        filteredDays.reverse();
+        
         const filteredCompleted = filteredDays.map(d => tasksByDay[d]?.completed ?? 0);
         const filteredPending = filteredDays.map(d => tasksByDay[d]?.pending ?? 0);
         const filteredNoTasks = filteredDays.map((d, i) =>
@@ -242,16 +244,15 @@ export function initTaskPerformanceHistoryChart() {
         const today = new Date();
         today.setHours(0,0,0,0);
         const end = new Date(today);
-        end.setDate(today.getDate() - 1);
         const start = new Date(today);
-        start.setDate(today.getDate() - (weeksBack * 7));
+        start.setDate(end.getDate() - (weeksBack * 7) + 1);
 
         const filteredDays = [];
         const ranges = ['100%', '75-99.9%', '50-74.9%', '<50%', 'Sin tareas'];
         const series = ranges.map(r => ({ name: r, data: [] }));
 
         for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)) {
-            const dayISO = d.toISOString().slice(0,10);
+            const dayISO = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
             filteredDays.push(formatDateDMY(dayISO));
             const dayData = data[dayISO] || {};
 
