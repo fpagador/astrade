@@ -124,14 +124,15 @@ class WorkCalendarTemplateRepository
     }
 
     /**
-     * Retrieve all active Work Calendar Templates with year in the future.
+     * Restore all active work calendar templates with a future year to the current template.
      *
+     * @param int $nextYear
      * @return Collection
      */
-    public function getActiveFutureTemplates(): Collection
+    public function getNextActiveTemplate(int $nextYear): Collection
     {
         return WorkCalendarTemplate::where('status', CalendarStatus::ACTIVE->value)
-            ->where('year', now()->year + 1)
+            ->where('year', $nextYear + 1)
             ->get();
     }
 

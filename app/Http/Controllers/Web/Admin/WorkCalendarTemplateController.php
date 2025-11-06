@@ -61,15 +61,13 @@ class WorkCalendarTemplateController extends WebController
     {
         $statusOptions = $this->calendarService->getStatusOptions();
         $cloneableCalendars = $this->calendarService->getActiveTemplates();
-        $futureCalendars = $this->calendarService->getActiveFutureTemplates();
         $companies = $this->companyRepository->getAll();
         $users = $this->userRepository->getAllUsersForCompany();
         return view('web.admin.calendars.create', compact(
             'statusOptions',
             'cloneableCalendars',
             'companies',
-            'users',
-            'futureCalendars'
+            'users'
         ));
     }
 
@@ -192,6 +190,18 @@ class WorkCalendarTemplateController extends WebController
     public function cloneTemplateData(WorkCalendarTemplate $template): JsonResponse
     {
         return response()->json($this->calendarService->getTemplateCloneData($template));
+    }
+
+    /**
+     * Obtain templates for the year following the selected one.
+     *
+     * @param  int $year
+     * @return JsonResponse
+     */
+    public function getFutureTemplatesByYear(int $year): JsonResponse
+    {
+        $templates = $this->calendarService->getActiveFutureTemplates($year);
+        return response()->json($templates);
     }
 
 }

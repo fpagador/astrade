@@ -691,3 +691,55 @@ export async function validateCalendarTemplateForm() {
     }
     document.querySelector('[data-open-modal="confirmModal_calendarTemplateForm"]').click();
 }
+
+/**
+ * Update the continuity calendar selection based on the selected year
+ * @param {number} year
+ * @param {HTMLSelectElement} selectElement
+ */
+export function updateContinuityTemplates(year, selectElement) {
+    if (!selectElement || isNaN(year)) return;
+
+    const url = window.futureTemplates.replace('__YEAR__', year);
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            selectElement.innerHTML = '';
+
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = 'Ninguno';
+            selectElement.appendChild(placeholder);
+
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = item.name;
+                selectElement.appendChild(option);
+            });
+        })
+        .catch(err => {
+            console.error('Error cargando calendarios de continuidad:', err);
+        });
+}
+
+/**
+ * Initializes the listener for the year input
+ * @param {string} yearSelector
+ * @param {string} selectSelector
+ */
+export function initContinuityYearListener(yearSelector = '#year', selectSelector = 'select[name="continuity_template_id"]') {
+    const yearInput = document.querySelector(yearSelector);
+    const continuitySelect = document.querySelector(selectSelector);
+
+    if (!yearInput || !continuitySelect) return;
+
+    const initialYear = parseInt(yearInput.value);
+    updateContinuityTemplates(initialYear, continuitySelect);
+
+    yearInput.addEventListener('change', () => {
+        const selectedYear = parseInt(yearInput.value);
+        updateContinuityTemplates(selectedYear, continuitySelect);
+    });
+}

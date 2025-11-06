@@ -251,13 +251,14 @@ class CalendarService
     }
 
     /**
-     * Retrieve all active Work Calendar Templates.
+     * Retrieve all active work calendar templates from the year following the current year.
      *
+     * @param int $year
      * @return Collection
      */
-    public function getActiveFutureTemplates(): Collection
+    public function getActiveFutureTemplates(int $year): Collection
     {
-        return $this->workCalendarTemplateRepository->getActiveFutureTemplates();
+        return $this->workCalendarTemplateRepository->getNextActiveTemplate($year);
     }
 
     /**
@@ -273,7 +274,7 @@ class CalendarService
             'template' => $template,
             'holidaysJson' => json_encode($holidays),
             'statusOptions' => $this->getStatusOptions($template),
-            'futureCalendars' => $this->getActiveFutureTemplates()->where('id', '!=', $template->id),
+            'futureCalendars' => $this->getActiveFutureTemplates($template->year),
             'holidayDates' => $holidays,
         ];
     }

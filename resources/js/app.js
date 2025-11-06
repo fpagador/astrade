@@ -5,7 +5,7 @@ Alpine.plugin(collapse);
 
 import { createIcons, icons } from 'lucide';
 
-import { initCalendars, confirmDelete, calendarForm, initCloneSelect, validateCalendarTemplateForm } from './calendar';
+import { initCalendars, confirmDelete, calendarForm, initCloneSelect, validateCalendarTemplateForm, initContinuityYearListener  } from './calendar';
 import { cloneTaskForm, editTaskForm, imageModal, calendarView, actionTaskModal, dailyControls, enhancedLoadTasks, cloneModal} from './task';
 import { initCompaniesPhones } from './company';
 import { imageSelector } from './imageSelector';
@@ -34,6 +34,7 @@ window.imageSelector = imageSelector;
 window.initCalendars = initCalendars;
 window.calendarForm = calendarForm;
 window.validateCalendarTemplateForm = validateCalendarTemplateForm;
+window.initContinuityYearListener = initContinuityYearListener;
 window.confirmDelete = confirmDelete;
 window.userSelector = userSelector;
 
@@ -60,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initTasksProportionChart();
     initEmployeesByCompanyChart();
     initTaskPerformanceHistoryChart();
+    initContinuityYearListener();
 
     // === Translation of required fields tooltips ===
     const requiredFields = document.querySelectorAll('input[required], select[required], textarea[required]');

@@ -63,7 +63,6 @@
                     <x-form.select
                         name="continuity_template_id"
                         label="Calendario de Continuidad"
-                        :options="$futureCalendars->pluck('name','id')->toArray()"
                         :selected="old('continuity_template_id', null)"
                         placeholderOption="Ninguno"
                         tooltip="Cada año se inactivará el calendario anterior y se activará el calendario que esté configurado como continuidad."
@@ -151,5 +150,6 @@
     <script>
         window.appCompanies = @json($companies);
         window.appUsers = @json($users);
+        window.futureTemplates = "{{ route('admin.calendars.future-by-year', ['year' => '__YEAR__']) }}";
     </script>
 @endsection
