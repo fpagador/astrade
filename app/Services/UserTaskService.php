@@ -872,11 +872,16 @@ class UserTaskService
         $tasks = $this->taskRepository->getForUserWithRelations($user->id);
 
         return $tasks->mapWithKeys(function ($task) {
-            $formattedDate = $task->scheduled_date
-                ? Carbon::parse($task->scheduled_date)->format('d/m/Y')
-                : 'Sin fecha';
+            if ($task->recurrent_task_id) {
+                $start = Carbon::parse($task->recurrentTask->start_date)->format('d/m/Y');
+                $end = Carbon::parse($task->recurrentTask->end_date)->format('d/m/Y');
 
-            $label = "{$task->user->name} - {$task->title} - {$formattedDate}";
+                $label = "{$task->user->name} - {$task->title} - {$start} al {$end}";
+            } else {
+                $formattedDate = Carbon::parse($task->scheduled_date)->format('d/m/Y');
+
+                $label = "{$task->user->name} - {$task->title} - {$formattedDate}";
+            }
 
             return [$task->id => $label];
         })->prepend('Selecciona una tarea para clonar', '');
