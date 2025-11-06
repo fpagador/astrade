@@ -158,7 +158,7 @@ class UserTaskController extends WebController
             return redirect()->route('admin.users.tasks', [
                 'user' => $user,
                 'date' => $request->input('date') ?? now()->toDateString(),
-                'viewMode' => $request->input('viewMode', 'weekly')
+                'viewMode' => $request->get('viewMode', 'weekly'),
             ]);
         }, route('admin.users.tasks', $user), 'Tarea creada correctamente');
     }
@@ -186,7 +186,8 @@ class UserTaskController extends WebController
                 'message' => $message,
                 'redirect_url' => route('admin.users.tasks', [
                     'user' => $userId,
-                    'date' => $request->input('date') ?? now()->toDateString()
+                    'date' => $request->input('date') ?? now()->toDateString(),
+                    'viewMode' => $request->get('viewMode', 'weekly'),
                 ])
             ]);
         }, route('admin.users.tasks', ['user' => $userId]), $message);

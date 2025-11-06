@@ -156,7 +156,7 @@
                                     @click="$dispatch('open-action-modal', {
                                         taskId: {{ $task->id }},
                                         userId: {{ $user->id }},
-                                        deleteUrl: '{{ route('admin.users.tasks.destroy', ['user' => $user->id, 'task' => $task->id, 'date' => $date]) }}',
+                                        deleteUrl: '{{ route('admin.users.tasks.destroy', ['user' => $user->id, 'task' => $task->id, 'date' => $date, 'viewMode' => 'daily']) }}',
                                         type: 'delete',
                                         isRecurrent: {{ $task->recurrentTask ? 'true' : 'false' }}
                                     })"
