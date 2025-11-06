@@ -1055,6 +1055,25 @@ export function calendarView() {
                 document.dispatchEvent(new CustomEvent('date-changed', { detail: { date: formatted } }));
             }
         },
+        selectWeekday(dateStr) {
+            const parts = dateStr.split('-');
+            const y = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10) - 1;
+            const d = parseInt(parts[2], 10);
+
+            this.currentDate = new Date(y, m, d);
+
+            this.updateDisplayedDays(7);
+            this.renderMiniCalendar();
+
+            if (this.viewMode === 'daily') {
+                document.dispatchEvent(new CustomEvent('date-changed', {
+                    detail: { date: dateStr }
+                }));
+            }
+
+            document.getElementById('task-detail-container').innerHTML = '';
+        }
     }
 }
 

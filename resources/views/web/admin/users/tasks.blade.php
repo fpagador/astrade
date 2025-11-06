@@ -93,7 +93,10 @@
                     {{-- Second block: Colors according to type of task --}}
                     <div class="flex flex-wrap gap-4" x-data="{ calendarColors: @js($calendarColors) }">
                         <div class="flex items-center gap-1">
-                            <span class="w-4 h-4 inline-block bg-blue-200 rounded-sm"></span> Día actual
+                            <span class="w-4 h-4 inline-block bg-blue-200 rounded-sm"></span> Día seleccionado
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <span class="w-4 h-4 inline-block border-2 border-blue-900 rounded-sm"></span> Día de hoy
                         </div>
                         <template x-for="color in calendarColors" :key="color.class">
                             <div class="flex items-center gap-1">
@@ -121,11 +124,15 @@
 
                         <div class="grid grid-cols-7 text-center border-b border-gray-300">
                             <template x-for="day in displayedDays" :key="day.date">
-                                <div class="py-2 font-semibold"
-                                     :class="{'bg-blue-200': day.isSelected}">
+                                <button
+                                    type="button"
+                                    class="py-2 font-semibold w-full hover:bg-gray-200"
+                                    :class="{'bg-blue-200': day.isSelected}"
+                                    @click="selectWeekday(day.date)"
+                                >
                                     <div x-text="day.label"></div>
                                     <div x-text="day.weekday"></div>
-                                </div>
+                                </button>
                             </template>
                         </div>
 

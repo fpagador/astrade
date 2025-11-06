@@ -158,7 +158,7 @@ export function initTasksProportionChart() {
             filteredDays.push(formatDateYMD(date));
         }
         filteredDays.reverse();
-        
+
         const filteredCompleted = filteredDays.map(d => tasksByDay[d]?.completed ?? 0);
         const filteredPending = filteredDays.map(d => tasksByDay[d]?.pending ?? 0);
         const filteredNoTasks = filteredDays.map((d, i) =>
