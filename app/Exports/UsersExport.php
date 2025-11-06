@@ -73,7 +73,6 @@ class UsersExport implements FromCollection, WithHeadings, ShouldAutoSize, WithS
                 'Teléfono' => $user->phone,
                 'Foto' => $user->photo ? 'Sí' : 'No',
                 'Rol' => RoleEnum::from($user->role?->role_name)->label() ?? '',
-                'Puede recibir llamada' => $user->can_be_called ? 'Sí' : 'No',
             ];
         });
     }

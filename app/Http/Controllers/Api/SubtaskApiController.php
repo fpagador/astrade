@@ -21,37 +21,6 @@ class SubtaskApiController extends ApiController
     {
         $this->service = $service;
     }
-    /*
-     * Get subtasks of a task, sorted by order.
-     *
-     * @param int $taskId
-     * @return JsonResponse
-     *
-     * @OA\Get(
-     *     path="/api/tasks/{task_id}/subtasks",
-     *     summary="Get all subtasks for a task",
-     *     tags={"Subtasks"},
-     *     security={{"sanctum":{}}},
-     *     @OA\Parameter(
-     *         name="task_id",
-     *         in="path",
-     *         description="ID of the task",
-     *         required=true,
-     *         @OA\Schema(type="integer", example=1)
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="List of subtasks",
-     *         @OA\JsonContent(ref="#/components/schemas/ApiResponse")
-     *     )
-     * )
-
-    public function index(int $taskId): JsonResponse
-    {
-        return $this->handleApi(function () use ($taskId) {
-            return $this->render($this->service->getSubtasks($taskId));
-        }, 'Error getting subtasks');
-    }*/
 
     /**
      * Update the status of a subtask (completed or pending).

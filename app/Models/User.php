@@ -26,7 +26,6 @@ use App\Notifications\ResetPasswordNotification;
  * @property Carbon|null $contract_start_date
  * @property string|null $notification_type
  * @property bool $can_receive_notifications
- * @property bool $can_be_called
  * @property int|null $role_id
  * @property int|null $company_id
  * @property int|null $work_calendar_template_id
@@ -47,7 +46,7 @@ class User extends Authenticatable
         'name', 'surname', 'dni', 'email', 'username', 'password', 'photo',
         'work_schedule', 'contract_type', 'contract_start_date',
         'notification_type', 'can_receive_notifications', 'role_id', 'phone',
-        'company_id', 'work_calendar_template_id', 'can_be_called'
+        'company_id', 'work_calendar_template_id'
     ];
 
     /** @var array<int, string> */

@@ -117,7 +117,7 @@ class UserRepository
         $sort = $filters['sort'] ?? 'name';
         $direction = $filters['direction'] ?? 'asc';
 
-        $sortableColumns = ['name', 'surname', 'dni', 'email', 'phone', 'can_be_called'];
+        $sortableColumns = ['name', 'surname', 'dni', 'email', 'phone'];
         $sortableRelations = [
             'role'    => ['table' => 'roles', 'local_key' => 'role_id', 'foreign_key' => 'id', 'column' => 'role_name'],
             'company' => ['table' => 'companies', 'local_key' => 'company_id', 'foreign_key' => 'id', 'column' => 'name'],
