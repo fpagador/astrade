@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\Log;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -21,6 +22,8 @@ class LogRepository
     public function query(array $filters = []): Builder
     {
         $query = Log::query();
+
+        $query->where('created_at', '>=', Carbon::now()->subWeek());
 
         if (!empty($filters['date_from'])) {
             $query->whereDate('created_at', '>=', $filters['date_from']);
