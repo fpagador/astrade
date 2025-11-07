@@ -235,11 +235,6 @@ export function initTaskPerformanceHistoryChart() {
         return `${day}/${month}/${year}`;
     }
 
-    function parseLocalDate(dayStr) {
-        const [year, month, day] = dayStr.split('-').map(Number);
-        return new Date(year, month - 1, day);
-    }
-
     function getFilteredData(weeksBack) {
         const today = new Date();
         today.setHours(0,0,0,0);
@@ -294,6 +289,13 @@ export function initTaskPerformanceHistoryChart() {
                     const dayFormatted = config.w.config.xaxis.categories[config.dataPointIndex];
                     const dayISO = allDays.find(d => formatDateDMY(d) === dayFormatted);
                     const total = config.w.globals.stackedSeriesTotals[config.dataPointIndex];
+                    const legend = [
+                        { name: '100%',        color: '#00B050' },
+                        { name: '75-99.9%',    color: '#92D050' },
+                        { name: '50-74.9%',    color: '#FFC000' },
+                        { name: '<50%',        color: '#C00000' },
+                        { name: 'Sin tareas',  color: '#DBD9D2' }
+                    ];
 
                     const htmlParts = await Promise.all(config.w.config.series.map(async serie => {
                         const val = serie.data[config.dataPointIndex];
@@ -301,7 +303,7 @@ export function initTaskPerformanceHistoryChart() {
 
                         const percentage = total ? ((val / total) * 100).toFixed(1) : 0;
 
-                        // Fetch usuarios del backend para este rango y día
+                        // Fetch backend users for this range and day
                         const users = await fetch(window.dashboardRoutes.usersByPerformance
                             .replace('__DAY__', dayISO)
                             .replace('__RANGE__', encodeURIComponent(serie.name))
@@ -314,17 +316,28 @@ export function initTaskPerformanceHistoryChart() {
                             .catch(() => '<li>Error cargando usuarios</li>');
 
                         return `
-            <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px;">
-              <div style="width:100px; text-align:center;"><strong>${percentage}%</strong></div>
-              <ul style="margin:0; padding-left:0; list-style:none;">${users}</ul>
-            </div>
-            <hr/>
-        `;
+                            <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px;">
+                              <div style="width:100px; text-align:center;"><strong>${percentage}%</strong></div>
+                              <ul style="margin:0; padding-left:0; list-style:none;">${users}</ul>
+                            </div>
+                            <hr/>
+                        `;
                     }));
-
+                    const legendHTML = `
+                            <div style="margin-top:20px;">
+                                <div style="display:flex; flex-wrap:wrap; gap:12px; justify-content:center;">
+                                    ${legend.map(l => `
+                                        <div style="display:flex; align-items:center; gap:6px;">
+                                            <div style="width:14px; height:14px; background:${l.color}; border-radius:3px;"></div>
+                                            <span>${l.name}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
                     Swal.fire({
                         title: `<div style="text-align:center;">${dayFormatted}</div>`,
-                        html: htmlParts.join(''),
+                        html: htmlParts.join('') + legendHTML,
                         width: 700,
                         customClass: { popup: 'p-3' },
                     });
@@ -370,7 +383,7 @@ export function initEmployeesByCompanyChart() {
     const companyIds = employeesByCompany.map(e => e.company ? e.company.id : null);
     const totals = employeesByCompany.map(e => e.total);
 
-    // Creamos dos series: con empresa y sin empresa
+    // We created two series: with a company and without a company.
     const seriesWithCompany = totals.map((total, i) => companyNames[i] !== 'Sin empresa' ? total : 0);
     const seriesWithoutCompany = totals.map((total, i) => companyNames[i] === 'Sin empresa' ? total : 0);
 
