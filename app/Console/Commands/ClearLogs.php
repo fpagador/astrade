@@ -35,11 +35,6 @@ class ClearLogs extends Command
             ->where('created_at', '<', $cutoff)
             ->delete();
 
-        // Notify the administrator by email
-        /*(new AdminNotifier)->notify(
-            new LogsClearedNotification('Task Completion', $deleted)
-        );*/
-
         $this->info("Deleted {$deleted} general logs older than one month.");
     }
 }

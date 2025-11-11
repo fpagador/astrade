@@ -45,19 +45,23 @@ class CleanOldTasks extends Command
         $dbPass = config('database.connections.mysql.password');
         $dbName = config('database.connections.mysql.database');
 
-        $dumpCmd = "mysqldump -h{$dbHost} -u{$dbUser} -p{$dbPass} {$dbName} tasks subtasks > {$fileName}";
+        if (app()->environment('local')) {
+            $this->info("Skipping backup in local environment.");
+        } else {
+            $dumpCmd = "mysqldump -h{$dbHost} -u{$dbUser} -p{$dbPass} {$dbName} tasks subtasks > {$fileName}";
 
-        $this->info("Creando backup en: {$fileName}");
+            $this->info("Creating a backup in: {$fileName}");
 
-        $result = null;
-        system($dumpCmd, $result);
+            $result = null;
+            system($dumpCmd, $result);
 
-        if ($result !== 0) {
-            $this->error("Error creating backup. Canceling deletion.");
-            return Command::FAILURE;
+            if ($result !== 0) {
+                $this->error("Error creating backup. Canceling deletion.");
+                return Command::FAILURE;
+            }
+
+            $this->info("Backup completed.");
         }
-
-        $this->info("Backup completed.");
 
         DB::beginTransaction();
 

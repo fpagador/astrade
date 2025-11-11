@@ -20,6 +20,7 @@ class Kernel extends ConsoleKernel
         //Run on January 1st at 00:01
         $schedule->command('calendar:assign-new')->yearlyOn(1, 1, '00:00');
 
+        //It runs once a month
         $schedule->command('tasks:clean-old')->monthly();
     }
 
