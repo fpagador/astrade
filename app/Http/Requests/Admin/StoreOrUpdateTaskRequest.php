@@ -41,6 +41,7 @@ class StoreOrUpdateTaskRequest extends FormRequest
             'scheduled_time' => 'required',
             'estimated_duration_minutes' => 'nullable|integer|min:1',
             'color' => 'nullable|string',
+            'status' => 'required|string',
 
             // Recurrent
             'is_recurrent' => 'nullable|boolean',
