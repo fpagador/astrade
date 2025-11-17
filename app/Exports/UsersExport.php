@@ -101,7 +101,7 @@ class UsersExport implements FromCollection, WithHeadings, ShouldAutoSize, WithS
             ];
         }
 
-        return ['Nombre', 'Apellidos', 'DNI', 'Email', 'Teléfono', 'Foto', 'Rol', 'Puede recibir llamada'];
+        return ['Nombre', 'Apellidos', 'DNI', 'Email', 'Teléfono', 'Foto', 'Rol'];
     }
 
     /**

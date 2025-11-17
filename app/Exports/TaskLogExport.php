@@ -63,7 +63,8 @@ class TaskLogExport implements FromCollection, WithHeadings, ShouldAutoSize, Wit
             $this->filters['user_name'] ?? null,
             $this->filters['task_title'] ?? null,
             $this->filters['status'] ?? null,
-            $this->filters['date'] ?? null
+            $this->filters['date_start'] ?? null,
+            $this->filters['date_end'] ?? null
         );
 
         $rows = collect();

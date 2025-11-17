@@ -58,7 +58,7 @@
                     $isConflict = isset($timeCounts[$timeKey]) && $timeCounts[$timeKey] > 1;
                 @endphp
 
-                <div x-data="{ open: false }"
+                <div x-data="{ open: false, task:@js($task) }"
                      class="rounded shadow p-6 border-4"
                      style="border-color: {{ $task->color === '' ? '#e5e7eb' : $task->color }}; background-color: #ffffff;">
 
