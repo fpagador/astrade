@@ -61,11 +61,11 @@ class UsersExport implements FromQuery, WithMapping, WithHeadings, ShouldAutoSiz
                 $user->company?->name ?? '—',
                 $user->workCalendarTemplate?->name ?? '—',
                 $user->work_schedule ?? '—',
-                ContractType::label(ContractType::from($user->contract_type)) ?? '—',
+                $user->contract_type ? ContractType::label(ContractType::from($user->contract_type)) : '—',
                 $user->contract_start_date
                     ? Carbon::parse($user->contract_start_date)->format('d/m/Y')
                     : '—',
-                NotificationType::label(NotificationType::from($user->notification_type)) ?? '—',
+                $user->notification_type ? NotificationType::label(NotificationType::from($user->notification_type)) : '—',
             ];
         }
 
