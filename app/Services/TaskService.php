@@ -222,4 +222,50 @@ class TaskService
 
         return $users;
     }
+
+    /**
+     * Process and stream the CSV of tasks.
+     *
+     * @param array $filters
+     * @param resource $handle
+     * @return void
+     */
+    public function streamTasksCsv(array $filters, $handle): void
+    {
+        $query = $this->taskRepository->getUsersTasksForExportQuery($filters);
+
+        $query->chunk(1000, function ($rows) use ($handle) {
+
+            foreach ($rows as $row) {
+
+                $taskStatusLabel = TaskStatus::label(
+                    TaskStatus::from($row->task_status)
+                );
+
+                $subtaskStatusLabel = $row->subtask_status
+                    ? TaskStatus::label(TaskStatus::from($row->subtask_status))
+                    : '';
+
+                $fecha = $row->scheduled_date
+                    ? \Carbon\Carbon::parse($row->scheduled_date)->format('d/m/Y')
+                    : '—';
+
+                $hora = $row->scheduled_time
+                    ? \Carbon\Carbon::parse($row->scheduled_time)->format('H:i:s')
+                    : '—';
+
+                fputcsv($handle, [
+                    "{$row->user_name} {$row->user_surname}",
+                    $row->task_title,
+                    $taskStatusLabel,
+                    $row->subtask_title ?? '',
+                    $subtaskStatusLabel,
+                    $fecha,
+                    $hora,
+                ], ';');
+            }
+
+            flush();
+        });
+    }
 }

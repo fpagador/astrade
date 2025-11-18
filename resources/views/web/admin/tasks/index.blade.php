@@ -10,7 +10,7 @@
         {{-- EXPORT EXCEL BUTTON --}}
             <a href="{{ route('admin.task_logs.export', request()->query()) }}"
                class="inline-block mb-4 px-4 py-2 rounded button-success">
-                Exportar en Excel
+                Exportar en CSV
             </a>
     </div>
 

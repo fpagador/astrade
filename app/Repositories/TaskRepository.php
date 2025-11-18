@@ -11,7 +11,9 @@ use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Collection as CollectionDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 /**
  * Repository class responsible for managing task data persistence.
@@ -517,5 +519,56 @@ class TaskRepository
             }, 'tasks.subtasks'])
             ->orderBy('name')
             ->paginate($perPage);
+    }
+
+    /**
+     * Returns a QueryBuilder with users, tasks, and subtasks for CSV export.
+     *
+     * @param array $filters
+     * @return Builder|QueryBuilder
+     */
+    public function getUsersTasksForExportQuery(array $filters): Builder|QueryBuilder
+    {
+        return DB::table('tasks')
+            ->select([
+                'users.name as user_name',
+                'users.surname as user_surname',
+
+                'tasks.title as task_title',
+                'tasks.status as task_status',
+                'tasks.scheduled_date',
+                'tasks.scheduled_time',
+
+                'subtasks.title as subtask_title',
+                'subtasks.status as subtask_status',
+            ])
+            ->join('users', 'users.id', '=', 'tasks.user_id')
+            ->leftJoin('subtasks', 'subtasks.task_id', '=', 'tasks.id')
+
+            // ----- filtros -----
+            ->when($filters['user_name'] ?? null, function ($q, $value) {
+                $q->whereRaw("CONCAT(users.name, ' ', users.surname) LIKE ?", ["%{$value}%"]);
+            })
+
+            ->when($filters['task_title'] ?? null, function ($q, $value) {
+                $q->where('tasks.title', 'LIKE', "%{$value}%");
+            })
+
+            ->when($filters['status'] ?? null, function ($q, $value) {
+                $q->where('tasks.status', $value);
+            })
+
+            ->when($filters['date_start'] ?? null, function ($q, $value) {
+                $q->whereDate('tasks.scheduled_date', '>=', $value);
+            })
+
+            ->when($filters['date_end'] ?? null, function ($q, $value) {
+                $q->whereDate('tasks.scheduled_date', '<=', $value);
+            })
+
+            ->orderBy('users.name')
+            ->orderBy('users.surname')
+            ->orderBy('tasks.scheduled_date')
+            ->orderBy('tasks.scheduled_time');
     }
 }
