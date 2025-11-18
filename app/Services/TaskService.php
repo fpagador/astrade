@@ -7,6 +7,8 @@ use App\Errors\ErrorCodes;
 use App\Exceptions\BusinessRuleException;
 use App\Repositories\TaskRepository;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use App\Models\Task;
@@ -171,6 +173,48 @@ class TaskService
                 'tasks' => $dayTasks->map(fn($task) => $task->toArray())->values(),
             ];
         })->values();
+    }
+
+    /**
+     * Procesa los filtros del request y devuelve un array listo para usar en queries.
+     *
+     * @param Request $request
+     * @return array
+     */
+    public function getFilters(Request $request): array
+    {
+        $today = now()->toDateString();
+        $twoMonthsAgo = now()->subMonths(2)->toDateString();
+
+        //We collect filters from the request
+        $userName  = $request->input('user_name', null);
+        $taskTitle = $request->input('task_title', null);
+        $status    = $request->input('status', null);
+
+        //Filter dates with default values
+        $dateStart = $request->input('date_start', $twoMonthsAgo);
+        $dateEnd   = $request->input('date_end', $today);
+
+        try {
+            $start = Carbon::parse($dateStart);
+            $end   = Carbon::parse($dateEnd);
+
+            if ($start->diffInDays($end) > 62) {
+                $dateStart = $twoMonthsAgo;
+                $dateEnd   = $today;
+            }
+        } catch (\Exception $e) {
+            $dateStart = $twoMonthsAgo;
+            $dateEnd   = $today;
+        }
+
+        return [
+            'user_name'  => $userName,
+            'task_title' => $taskTitle,
+            'status'     => $status,
+            'date_start' => $dateStart,
+            'date_end'   => $dateEnd,
+        ];
     }
 
     /**

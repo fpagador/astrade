@@ -198,7 +198,7 @@
         @endforelse
     </div>
 
-    {{-- PAGINACIÓN --}}
+    {{-- PAGINATION --}}
     <div class="mt-6">
         {{ $users->appends(request()->query())->links() }}
     </div>

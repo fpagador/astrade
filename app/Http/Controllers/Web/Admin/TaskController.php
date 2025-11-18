@@ -32,37 +32,23 @@ class TaskController extends WebController
      */
     public function index(Request $request): View
     {
-        $userName  = $request->input('user_name');
-        $taskTitle = $request->input('task_title');
-        $status    = $request->input('status');
-
-        // Fechas de filtro
-        $today = now()->toDateString();
-        $twoMonthsAgo = now()->subMonths(2)->toDateString();
-        $dateStart = $request->input('date_start', $twoMonthsAgo);
-        $dateEnd   = $request->input('date_end', $today);
-
-        if (Carbon::parse($dateStart)->diffInDays(Carbon::parse($dateEnd)) > 62) {
-            $dateStart = $twoMonthsAgo;
-            $dateEnd = $today;
-        }
-
+        $filters = $this->taskService->getFilters($request);
         $users = $this->taskService->getProcessedUsersWithTasks(
-            $userName,
-            $taskTitle,
-            $status,
-            $dateStart,
-            $dateEnd
+            $filters['user_name'],
+            $filters['task_title'],
+            $filters['status'],
+            $filters['date_start'],
+            $filters['date_end']
         );
 
         return view('web.admin.tasks.index', [
             'users' => $users,
             'filters' => [
-                'user_name' => $userName,
-                'task_title' => $taskTitle,
-                'status' => $status,
-                'date_start' => $dateStart,
-                'date_end'   => $dateEnd,
+                'user_name' => $filters['user_name'],
+                'task_title' => $filters['task_title'],
+                'status' => $filters['status'],
+                'date_start' => $filters['date_start'],
+                'date_end'   => $filters['date_end'],
             ],
         ]);
     }
@@ -75,7 +61,7 @@ class TaskController extends WebController
      */
     public function export(Request $request): StreamedResponse
     {
-        $filters = $request->all();
+        $filters = $this->taskService->getFilters($request);
         $fileName = 'registro_tareas_usuarios_' . now()->format('Ymd_His') . '.csv';
 
         $headers = [
