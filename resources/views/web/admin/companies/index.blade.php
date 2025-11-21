@@ -39,7 +39,7 @@
     </form>
 
     {{-- TABLE HEADER --}}
-    <div class="grid grid-cols-[2fr_3fr_3fr_3fr_1fr] table-header font-medium text-sm rounded-t-md px-4 py-2">
+    <div class="hidden md:grid grid-cols-[2fr_3fr_3fr_3fr_1fr] table-header font-medium text-sm rounded-t-md px-4 py-2">
         <div><x-admin.sortable-column label="Nombre" field="name" default="true" /></div>
         <div><x-admin.sortable-column label="Dirección" field="address" /></div>
         <div><x-admin.sortable-column label="Descripción" field="description" /></div>
@@ -49,36 +49,60 @@
 
     {{-- ROWS --}}
     @forelse($companies as $company)
-        <div class="grid grid-cols-[2fr_3fr_3fr_3fr_1fr] items-center px-4 py-3 border-b hover:bg-indigo-50 text-sm bg-white">
-            <div class="px-2">{{ $company->name }}</div>
-            <div class="px-2">{{ $company->address ?? '-' }}</div>
-            <div class="px-2">{{ $company->description ?? '-' }}</div>
-            <div class="px-2 space-y-1">
-                @foreach($company->phones as $phone)
-                    <div>
-                        <span class="font-semibold">{{ $phone->name }}:</span> {{ $phone->phone_number }}
-                    </div>
-                @endforeach
+        <div class="grid grid-cols-1 md:grid-cols-[2fr_3fr_3fr_3fr_1fr] items-start md:items-center px-4 py-4 border-b hover:bg-indigo-50 text-sm bg-white gap-3">
+
+            {{-- Name --}}
+            <div>
+                <span class="md:hidden font-semibold">Nombre:</span>
+                {{ $company->name }}
             </div>
-            <div class="flex justify-center gap-2 px-2">
+
+            {{-- Direction --}}
+            <div>
+                <span class="md:hidden font-semibold">Dirección:</span>
+                {{ $company->address ?? '-' }}
+            </div>
+
+            {{-- Description --}}
+            <div>
+                <span class="md:hidden font-semibold">Descripción:</span>
+                {{ $company->description ?? '-' }}
+            </div>
+
+            {{-- Phones --}}
+            <div>
+                <span class="md:hidden font-semibold">Teléfonos:</span>
+                <div class="space-y-1">
+                    @foreach($company->phones as $phone)
+                        <div>
+                            <span class="font-semibold">{{ $phone->name }}:</span> {{ $phone->phone_number }}
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Actions --}}
+            <div class="flex gap-4 mt-4 items-center">
+
                 {{-- EDIT --}}
                 <a href="{{ route('admin.companies.edit', $company->id) }}" title="Editar">
-                    <i data-lucide="pencil" class="w-5 h-5 text-indigo-800 hover:text-indigo-900 transition"></i>
+                    <i data-lucide="pencil" class="w-6 h-6 text-indigo-800 hover:text-indigo-900 transition"></i>
                 </a>
 
                 {{-- DELETE --}}
-                    <form action="{{ route('admin.companies.destroy', $company->id) }}"
-                          method="POST"
-                          data-message="¿Está seguro de eliminar esta empresa?"
-                          class="delete-form"
-                    >
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" title="Eliminar">
-                            <i data-lucide="trash-2" class="w-5 h-5 text-red-600 hover:text-red-700 transition"></i>
-                        </button>
-                    </form>
+                <form action="{{ route('admin.companies.destroy', $company->id) }}"
+                      method="POST"
+                      data-message="¿Está seguro de eliminar esta empresa?"
+                      class="delete-form">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" title="Eliminar">
+                        <i data-lucide="trash-2" class="w-6 h-6 text-red-600 hover:text-red-700 transition"></i>
+                    </button>
+                </form>
+
             </div>
+
         </div>
     @empty
         <div class="col-span-6 text-center text-sm py-6 bg-white border border-t-0 rounded-b-md">

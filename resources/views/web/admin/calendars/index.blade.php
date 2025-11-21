@@ -49,7 +49,7 @@
         </form>
 
         {{-- TABLE HEADER --}}
-        <div class="grid grid-cols-[2fr_1fr_1fr_2fr_1fr_auto] table-header font-medium text-sm rounded-t-md px-4 py-2">
+        <div class="hidden md:grid grid-cols-[2fr_1fr_1fr_2fr_1fr_auto] table-header font-medium text-sm rounded-t-md px-4 py-2">
             <div><x-admin.sortable-column label="Nombre" field="name" default="true" /></div>
             <div><x-admin.sortable-column label="Año" field="year" /></div>
             <div><x-admin.sortable-column label="Estado" field="status" /></div>
@@ -60,10 +60,13 @@
 
         {{-- ROWS --}}
         @forelse($templates as $template)
-            <div class="grid grid-cols-[2fr_1fr_1fr_2fr_1fr_auto] items-center px-4 py-3 border-b hover:bg-indigo-50 text-sm bg-white">
+
+            {{-- DESKTOP VERSION --}}
+            <div class="hidden md:grid grid-cols-[2fr_1fr_1fr_2fr_1fr_auto] items-center px-4 py-3 border-b hover:bg-indigo-50 text-sm bg-white">
                 <div>{{ $template->name }}</div>
                 <div>{{ $template->year }}</div>
                 <div>{{ \App\Enums\CalendarStatus::label(\App\Enums\CalendarStatus::from($template->status)) }}</div>
+
                 <div>
                     @if($template->continuityTemplate)
                         {{ $template->continuityTemplate->name }} ({{ $template->continuityTemplate->year }})
@@ -71,11 +74,12 @@
                         <span class="text-gray-400 italic">N/A</span>
                     @endif
                 </div>
+
                 <div>{{ $template->holidays_count }}</div>
+
                 <div class="flex gap-2">
                     {{-- VIEW --}}
-                    <a href="{{ route('admin.calendars.show', $template) }}"
-                       title="Ver plantilla de calendario" class="flex items-center justify-center">
+                    <a href="{{ route('admin.calendars.show', $template) }}" title="Ver plantilla de calendario">
                         <i data-lucide="eye" class="w-5 h-5 text-blue-600 hover:text-blue-700 transition"></i>
                     </a>
 
@@ -96,6 +100,54 @@
                     </form>
                 </div>
             </div>
+
+            {{-- MOBILE VERSION (CARDS) --}}
+            <div class="md:hidden bg-white rounded shadow p-4 mb-4 text-sm">
+
+                <p><span class="font-medium">Nombre:</span> {{ $template->name }}</p>
+                <p><span class="font-medium">Año:</span> {{ $template->year }}</p>
+                <p><span class="font-medium">Estado:</span>
+                    {{ \App\Enums\CalendarStatus::label(\App\Enums\CalendarStatus::from($template->status)) }}
+                </p>
+
+                <p>
+                    <span class="font-medium">Continuidad:</span>
+                    @if($template->continuityTemplate)
+                        {{ $template->continuityTemplate->name }} ({{ $template->continuityTemplate->year }})
+                    @else
+                        <span class="text-gray-400 italic">N/A</span>
+                    @endif
+                </p>
+
+                <p><span class="font-medium">Días festivos:</span> {{ $template->holidays_count }}</p>
+
+                {{-- Actions --}}
+                <div class="flex gap-4 mt-4 items-center">
+
+                    {{-- VIEW --}}
+                    <a href="{{ route('admin.calendars.show', $template) }}" title="Ver plantilla de calendario">
+                        <i data-lucide="eye" class="w-6 h-6 text-blue-600 hover:text-blue-700"></i>
+                    </a>
+
+                    {{-- EDIT --}}
+                    <a href="{{ route('admin.calendars.edit', $template) }}" title="Editar">
+                        <i data-lucide="pencil" class="w-6 h-6 text-indigo-800 hover:text-indigo-900"></i>
+                    </a>
+
+                    {{-- DELETE --}}
+                    <form action="{{ route('admin.calendars.destroy', $template) }}" method="POST"
+                          data-users="{{ $template->users()->count() }}"
+                          data-confirm-delete>
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" title="Eliminar">
+                            <i data-lucide="trash-2" class="w-6 h-6 text-red-600 hover:text-red-700"></i>
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+
         @empty
             <div class="col-span-6 text-center text-sm py-6 bg-white border border-t-0 rounded-b-md">
                 No hay plantillas de calendarios laborales creadas.
