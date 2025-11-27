@@ -26,7 +26,7 @@
         name="{{ $name }}"
         id="{{ $name }}"
         {{ $attributes->merge([
-            'class' => 'w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400 ' .
+            'class' => 'w-full border border-gray-300 rounded pl-4 pr-10 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400 ' .
                        ($disabled ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : '')
         ]) }}
         @if($required) required @endif

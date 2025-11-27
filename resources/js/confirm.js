@@ -39,7 +39,7 @@ export function customAlert(message) {
         msg.textContent = message;
         modal.classList.remove('hidden');
 
-        // Solo mostramos el botón Ok
+        // We only show the OK button
         okBtn.innerText = "Ok";
         cancelBtn.style.display = "none";
 

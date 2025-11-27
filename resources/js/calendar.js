@@ -356,7 +356,6 @@ function initCalendar(options = {}) {
             const dateObj = new Date(currentYear, currentMonth, d);
             let weekday = dateObj.getDay();
             weekday = weekday === 0 ? 6 : weekday - 1;
-            const isWeekend = weekday === 5 || weekday === 6;
             const isVacation = filteredVacationDates.includes(dateStr);
             const isLegal = filteredLegalDates.includes(dateStr);
             const cell = document.createElement('button');
@@ -385,7 +384,7 @@ function initCalendar(options = {}) {
                 const holidayActive = document.getElementById('enableHolidayMode')?.checked;
                 const legalActive = document.getElementById('enableLegalAbsenceMode')?.checked;
 
-                // --- MODO 'holiday' (plantilla de festivos) ---
+                // --- MODE 'holiday' ---
                 if (mode === 'holiday') {
                     if (!holidayActive) return;
 
@@ -400,7 +399,7 @@ function initCalendar(options = {}) {
                     return;
                 }
 
-                // --- MODO 'vacation' (selector general) ---
+                // --- MODE 'vacation' ---
                 if (holidayActive) {
                     if (selectedLegalDates.has(dateStr)) {
                         const confirmed = await customConfirm('Este día está marcado como ausencia legal. ¿Desea cambiarlo a vacaciones?');
